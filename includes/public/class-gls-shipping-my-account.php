@@ -29,18 +29,18 @@ class GLS_Shipping_My_Account
         if (!empty($gls_pickup_info)) {
             $pickup_info = json_decode($gls_pickup_info);
 
-            echo '<strong>' . __('GLS Pickup Location:', 'gls_croatia') . '</strong><br>';
-            echo '<strong>' . __('ID:', 'gls_croatia') . '</strong> ' . esc_html($pickup_info->id) . '<br>';
-            echo '<strong>' . __('Name:', 'gls_croatia') . '</strong> ' . esc_html($pickup_info->name) . '<br>';
-            echo '<strong>' . __('Address:', 'gls_croatia') . '</strong> ' . esc_html($pickup_info->contact->address) . ', ' . esc_html($pickup_info->contact->city) . ', ' . esc_html($pickup_info->contact->postalCode) . '<br>';
-            echo '<strong>' . __('Country:', 'gls_croatia') . '</strong> ' . esc_html($pickup_info->contact->countryCode) . '<br/><br/>';
+            echo '<strong>' . esc_html__('GLS Pickup Location:', 'gls-shipping-for-woocommerce') . '</strong><br>';
+            echo '<strong>' . esc_html__('ID:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->id) . '<br>';
+            echo '<strong>' . esc_html__('Name:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->name) . '<br>';
+            echo '<strong>' . esc_html__('Address:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->contact->address) . ', ' . esc_html($pickup_info->contact->city) . ', ' . esc_html($pickup_info->contact->postalCode) . '<br>';
+            echo '<strong>' . esc_html__('Country:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->contact->countryCode) . '<br/><br/>';
         }
 
         if ($tracking_code) {
             $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
             $tracking_url = "https://gls-group.eu/" . $gls_shipping_method_settings['country'] . "/en/parcel-tracking/?match=" . $tracking_code;
 
-            echo '<strong>' . __('GLS Tracking Number: ', 'gls_croatia') . '<a href="' . $tracking_url . '" target="_blank">' . $tracking_code . '</a></strong><br>';
+            echo '<strong>' . esc_html__('GLS Tracking Number: ', 'gls-shipping-for-woocommerce') . '<a href="' . esc_url($tracking_url) . '" target="_blank">' . esc_html($tracking_code) . '</a></strong><br>';
         }
     }
 

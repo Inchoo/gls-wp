@@ -43,10 +43,10 @@ class GLS_Shipping_Assets
     public static function load_scripts()
     {
         $translation_array = array(
-            'pickup_location' => __('Pickup Location', 'gls_croatia'),
-            'name' => __('Name', 'gls_croatia'),
-            'address' => __('Address', 'gls_croatia'),
-            'country' => __('Country', 'gls_croatia'),
+            'pickup_location' => __('Pickup Location', 'gls-shipping-for-woocommerce'),
+            'name' => __('Name', 'gls-shipping-for-woocommerce'),
+            'address' => __('Address', 'gls-shipping-for-woocommerce'),
+            'country' => __('Country', 'gls-shipping-for-woocommerce'),
         );
         // wp_enqueue_script('gls-shipping-dpm', GLS_SHIPPING_URL . 'assets/js/gls-dpm.js', array('jquery'), GLS_SHIPPING_VERSION, false);
         wp_enqueue_script('gls-shipping-dpm', 'https://map.gls-croatia.com/widget/gls-dpm.js', array(), GLS_SHIPPING_VERSION, false);

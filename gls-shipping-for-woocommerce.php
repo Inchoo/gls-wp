@@ -3,10 +3,10 @@
 /**
  * Plugin Name: GLS Shipping for WooCommerce
  * Description: Offical GLS Shipping for WooCommerce plugin
- * Version: 1.0.0
+ * Version: 1.0.2
  * Author: Inchoo
  * Author URI: https://inchoo.hr
- * Text Domain: gls_croatia
+ * Text Domain: gls-shipping-for-woocommerce
  * Domain Path: /languages
  * Requires at least: 5.9
  * Tested up to: 6.4
@@ -22,7 +22,7 @@ final class GLS_Shipping_For_Woo
 {
     private static $instance;
 
-    private $version = '1.0.0';
+    private $version = '1.0.2';
 
     private function __construct()
     {
@@ -108,7 +108,7 @@ final class GLS_Shipping_For_Woo
 
     public function load_textdomain()
     {
-        load_plugin_textdomain('gls_croatia', false, basename(dirname(__FILE__)) . '/languages/');
+        load_plugin_textdomain('gls-shipping-for-woocommerce', false, basename(dirname(__FILE__)) . '/languages/');
     }
 
     public function add_gls_shipping_methods($methods)

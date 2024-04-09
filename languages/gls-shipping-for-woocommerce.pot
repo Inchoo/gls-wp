@@ -12,7 +12,7 @@ msgstr ""
 "POT-Creation-Date: 2024-02-05T14:28:54+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.9.0\n"
-"X-Domain: gls_croatia\n"
+"X-Domain: gls-shipping-for-woocommerce\n"
 
 #. Plugin Name of the plugin
 msgid "GLS Shipping for WooCommerce"

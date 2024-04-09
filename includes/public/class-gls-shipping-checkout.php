@@ -59,7 +59,7 @@ class GLS_Shipping_Checkout
         if (array_intersect($this->allowed_methods, $chosen_shipping_methods)) {
             // Check if the required GLS info is set and not empty
             if (empty($_POST['gls_pickup_info'])) {
-                wc_add_notice(__('Please select a parcel locker/shop by clicking on Select Parcel button.', 'gls_croatia'), 'error');
+                wc_add_notice(__('Please select a parcel locker/shop by clicking on Select Parcel button.', 'gls-shipping-for-woocommerce'), 'error');
             }
         }
     }
@@ -92,9 +92,9 @@ class GLS_Shipping_Checkout
 
         if (in_array($method->id, $this->allowed_methods) && is_array($chosen_methods) && in_array($method->id, $chosen_methods)) {
             if ($method->id === GLS_SHIPPING_METHOD_PARCEL_LOCKER_ID) {
-                $label .= '<br/><button type="button" id="gls-map-button" class="dugme-' . $method->id . '">' . __('Select Parcel Locker', 'gls_croatia') . '</button>';
+                $label .= '<br/><button type="button" id="gls-map-button" class="dugme-' . $method->id . '">' . __('Select Parcel Locker', 'gls-shipping-for-woocommerce') . '</button>';
             } elseif ($method->id === GLS_SHIPPING_METHOD_PARCEL_SHOP_ID) {
-                $label .= '<br/><button type="button" id="gls-map-button" class="dugme-' . $method->id . '">' . __('Select Parcel Shop', 'gls_croatia') . '</button>';
+                $label .= '<br/><button type="button" id="gls-map-button" class="dugme-' . $method->id . '">' . __('Select Parcel Shop', 'gls-shipping-for-woocommerce') . '</button>';
             }
         }
 

@@ -59,7 +59,7 @@ class GLS_Shipping_API_Service
 
 		$params = array(
 			'headers'     => array('Content-Type' => 'application/json'),
-			'body'        => json_encode($post_fields),
+			'body'        => wp_json_encode($post_fields),
 			'method'      => 'POST',
 			'timeout' 	  => 60,
 			'data_format' => 'body',
@@ -73,17 +73,17 @@ class GLS_Shipping_API_Service
 		$response = wp_remote_post($this->api_url, $params);
 
 		if (is_wp_error($response)) {
-			$error_message = $response->get_error_message();
+			$error_message = esc_html($response->get_error_message());
 			$this->log_error($error_message, $post_fields);
-			throw new Exception('Error communicating with GLS API: ' . $error_message);
+			throw new Exception('Error communicating with GLS API: ' . esc_html($error_message));
 		}
 
 		$body = json_decode(wp_remote_retrieve_body($response), true);
 
 		if (!empty($body['PrintLabelsErrorList'])) {
-			$error_message = $body['PrintLabelsErrorList'][0]['ErrorDescription'] ?? 'GLS API error.';
+			$error_message = esc_html($body['PrintLabelsErrorList'][0]['ErrorDescription']) ?? esc_html('GLS API error.');
 			$this->log_error($error_message, $post_fields);
-			throw new Exception($error_message);
+			throw new Exception(esc_html($error_message));
 		}
 
 		if ($this->get_option("logging") === 'yes') {
@@ -96,7 +96,7 @@ class GLS_Shipping_API_Service
 	private function log_error($error_message, $params)
 	{
 		error_log('** API request to: ' . $this->api_url . ' FAILED ** 
-			Request Params: {' . json_encode($params) . '} 
+			Request Params: {' . wp_json_encode($params) . '} 
 			Error: ' . $error_message . ' 
 			** END **');
 	}
@@ -105,8 +105,8 @@ class GLS_Shipping_API_Service
 	{
 		unset($body['Labels']);
 		error_log('** API request to: ' . $this->api_url . ' SUCCESS ** 
-				Request Params: {' . json_encode($params) . '} 
-				Response Body: ' . json_encode($body) . ' 
+				Request Params: {' . wp_json_encode($params) . '} 
+				Response Body: ' . wp_json_encode($body) . ' 
 				** END **');
 	}
 }

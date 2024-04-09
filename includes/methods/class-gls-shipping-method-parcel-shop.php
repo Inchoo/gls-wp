@@ -15,13 +15,13 @@ function gls_shipping_method_parcel_shop_init()
 			public function __construct()
 			{
 				$this->id                 = GLS_SHIPPING_METHOD_PARCEL_SHOP_ID;
-				$this->method_title       = __('GLS Parcel Shop', 'gls_croatia');
-				$this->method_description = __('Parcel Shop Delivery (PSD) service that ships parcels to the GLS Parcel Shop. GLS Parcel Shop can be selected from the interactive GLS Parcel Shop and GLS Locker finder map.', 'gls_croatia');
+				$this->method_title       = __('GLS Parcel Shop', 'gls-shipping-for-woocommerce');
+				$this->method_description = __('Parcel Shop Delivery (PSD) service that ships parcels to the GLS Parcel Shop. GLS Parcel Shop can be selected from the interactive GLS Parcel Shop and GLS Locker finder map.', 'gls-shipping-for-woocommerce');
 
 				$this->init();
 
 				$this->enabled = isset($this->settings['enabled']) ? $this->settings['enabled'] : 'yes';
-				$this->title = isset($this->settings['title']) ? $this->settings['title'] : __('Delivery to GLC Parcel Shop', 'gls_croatia');
+				$this->title = isset($this->settings['title']) ? $this->settings['title'] : __('Delivery to GLC Parcel Shop', 'gls-shipping-for-woocommerce');
 			}
 
 			/**
@@ -43,41 +43,41 @@ function gls_shipping_method_parcel_shop_init()
 			{
 				$this->form_fields = array(
 					'enabled' => array(
-						'title' => __('Enable', 'gls_croatia'),
+						'title' => __('Enable', 'gls-shipping-for-woocommerce'),
 						'type' => 'checkbox',
-						'description' => __('Enable this shipping.', 'gls_croatia'),
+						'description' => __('Enable this shipping.', 'gls-shipping-for-woocommerce'),
 						'default' => 'yes'
 					),
 					'title' => array(
-						'title' => __('Title', 'gls_croatia'),
+						'title' => __('Title', 'gls-shipping-for-woocommerce'),
 						'type' => 'text',
-						'description' => __('Title to be display on site', 'gls_croatia'),
-						'default' => __('Delivery to GLS Parcel Shop', 'gls_croatia')
+						'description' => __('Title to be display on site', 'gls-shipping-for-woocommerce'),
+						'default' => __('Delivery to GLS Parcel Shop', 'gls-shipping-for-woocommerce')
 					),
 					'shipping_price' => array(
-						'title'       => __('Shipping Price', 'gls_croatia'),
+						'title'       => __('Shipping Price', 'gls-shipping-for-woocommerce'),
 						'type'        => 'text',
-						'description' => __('Enter the shipping price for this method.', 'gls_croatia'),
+						'description' => __('Enter the shipping price for this method.', 'gls-shipping-for-woocommerce'),
 						'default'     => 0,
 						'desc_tip'    => true,
 					),
 					'supported_countries' => array(
-						'title'   => __('Supported Countries', 'gls_croatia'),
+						'title'   => __('Supported Countries', 'gls-shipping-for-woocommerce'),
 						'type'    => 'multiselect',
 						'class'   => 'wc-enhanced-select',
 						'css'     => 'width: 400px;',
 						'options' => array(
-							'HR' => __('Croatia', 'gls_croatia'),
-							'CZ' => __('Czech Republic', 'gls_croatia'),
-							'HU' => __('Hungary', 'gls_croatia'),
-							'RO' => __('Romania', 'gls_croatia'),
-							'SI' => __('Slovenia', 'gls_croatia'),
-							'SK' => __('Slovakia', 'gls_croatia'),
-							'RS' => __('Serbia', 'gls_croatia'),
+							'HR' => __('Croatia', 'gls-shipping-for-woocommerce'),
+							'CZ' => __('Czech Republic', 'gls-shipping-for-woocommerce'),
+							'HU' => __('Hungary', 'gls-shipping-for-woocommerce'),
+							'RO' => __('Romania', 'gls-shipping-for-woocommerce'),
+							'SI' => __('Slovenia', 'gls-shipping-for-woocommerce'),
+							'SK' => __('Slovakia', 'gls-shipping-for-woocommerce'),
+							'RS' => __('Serbia', 'gls-shipping-for-woocommerce'),
 						),
 						'default' => array('HR', 'CZ', 'HU', 'RO', 'SI', 'SK'),
 						'desc_tip' => true,
-						'description' => __('Select countries to support for this shipping method.', 'gls_croatia'),
+						'description' => __('Select countries to support for this shipping method.', 'gls-shipping-for-woocommerce'),
 					),
 				);
 			}

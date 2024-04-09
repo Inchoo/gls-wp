@@ -184,32 +184,46 @@ class GLS_Shipping_API_Data
 	 */
 	public function isExpressDeliverySupported($expressDeliveryTime)
 	{
+		require_once(ABSPATH . 'wp-admin/includes/file.php');
+
+    	WP_Filesystem();
+    	global $wp_filesystem;
+
 		$countryToCheck = $this->get_option('country');
 		$zipcodeToCheck = $this->order->get_shipping_postcode();
 
-		if (($handle = fopen(GLS_SHIPPING_ABSPATH . "includes/api/express-service.csv", "r")) !== FALSE) {
-			// Skip the first line if it contains headers
-			fgetcsv($handle, 1000, ",");
+		$file_path = GLS_SHIPPING_ABSPATH . "includes/api/express-service.csv";
+		$csv_data = $wp_filesystem->get_contents($file_path);
 
-			while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-				$country = $data[0];
-				$zipcode = $data[1];
+		if ($csv_data) {
 
-				if ($country === $countryToCheck && $zipcode === $zipcodeToCheck) {
-					if ($expressDeliveryTime === "T12") {
-						return $data[2] === "x";
+			$lines = explode("\n", $csv_data);
+			array_shift($lines);
+
+			foreach ($lines as $line) {
+				$data = str_getcsv($line);
+	
+				if (!empty($data)) {
+					$country = $data[0];
+					$zipcode = $data[1];
+	
+					if ($country === $countryToCheck && $zipcode === $zipcodeToCheck) {
+						if ($expressDeliveryTime === "T12") {
+							return $data[2] === "x";
+						}
+						if ($expressDeliveryTime === "T09") {
+							return $data[3] === "x";
+						}
+						if ($expressDeliveryTime === "T10") {
+							return $data[4] === "x";
+						}
+						return false;
 					}
-					if ($expressDeliveryTime === "T09") {
-						return $data[3] === "x";
-					}
-					if ($expressDeliveryTime === "T10") {
-						return $data[4] === "x";
-					}
-					return false;
 				}
 			}
-			fclose($handle);
 		}
+
+		return false;
 	}
 
 

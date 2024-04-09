@@ -29,7 +29,7 @@ class GLS_Shipping_Order
 
         add_meta_box(
             'gls_shipping_info_meta_box',
-            __('GLS Shipping Info', 'gls_croatia'),
+            esc_html__('GLS Shipping Info', 'gls-shipping-for-woocommerce'),
             array($this, 'gls_shipping_info_meta_box_content'),
             $screen,
             'side',
@@ -47,18 +47,17 @@ class GLS_Shipping_Order
         if (!empty($gls_pickup_info)) {
             $pickup_info = json_decode($gls_pickup_info);
 
-            echo '<strong>' . __('GLS Pickup Location:', 'gls_croatia') . '</strong><br/>';
-            echo '<strong>' . __('ID:', 'gls_croatia') . '</strong> ' . esc_html($pickup_info->id) . '<br>';
-            echo '<strong>' . __('Name:', 'gls_croatia') . '</strong> ' . esc_html($pickup_info->name) . '<br>';
-            echo '<strong>' . __('Address:', 'gls_croatia') . '</strong> ' . esc_html($pickup_info->contact->address) . ', ' . esc_html($pickup_info->contact->city) . ', ' . esc_html($pickup_info->contact->postalCode) . '<br>';
-            echo '<strong>' . __('Country:', 'gls_croatia') . '</strong> ' . esc_html($pickup_info->contact->countryCode) . '<br>';
+            echo '<strong>' . esc_html__('GLS Pickup Location:', 'gls-shipping-for-woocommerce') . '</strong><br/>';
+            echo '<strong>' . esc_html__('ID:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->id) . '<br>';
+            echo '<strong>' . esc_html__('Name:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->name) . '<br>';
+            echo '<strong>' . esc_html__('Address:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->contact->address) . ', ' . esc_html($pickup_info->contact->city) . ', ' . esc_html($pickup_info->contact->postalCode) . '<br>';
+            echo '<strong>' . esc_html__('Country:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->contact->countryCode) . '<br>';
         }
 
         if ($tracking_code) {
             $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
             $tracking_url = "https://gls-group.eu/" . $gls_shipping_method_settings['country'] . "/en/parcel-tracking/?match=" . $tracking_code;
-
-            echo '<br/><br/><strong>' . __('GLS Tracking Number: ', 'gls_croatia') . '<a href="' . $tracking_url . '" target="_blank">' . $tracking_code . '</a></strong><br><br>';
+            echo '<br/><br/><strong>' . esc_html__('GLS Tracking Number: ', 'gls-shipping-for-woocommerce') . '<a href="' . esc_url($tracking_url) . '" target="_blank">' . esc_html($tracking_code) . '</a></strong><br><br>';
         }
     }
 
@@ -76,10 +75,10 @@ class GLS_Shipping_Order
         <h4 style="margin-bottom:0px;">
             <div style="margin-top:10px;">
                 <?php if ($gls_print_label) { ?>
-                    <a class="button primary" href="<?php echo $gls_print_label; ?>" target="_blank"><?php _e("Print Label", "gls_croatia"); ?></a>
+                    <a class="button primary" href="<?php echo esc_url($gls_print_label); ?>" target="_blank"><?php esc_html_e("Print Label", "gls-shipping-for-woocommerce"); ?></a>
                 <?php } else { ?>
-                    <button type="button" class="button gls-print-label" order-id="<?php echo $order->get_id(); ?>">
-                        <?php _e("Generate Shipping Label", "gls_croatia"); ?>
+                    <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
+                        <?php esc_html_e("Generate Shipping Label", "gls-shipping-for-woocommerce"); ?>
                     </button>
                 <?php } ?>
             </div>
@@ -90,12 +89,11 @@ class GLS_Shipping_Order
 
     public function generate_label_and_tracking_number()
     {
-        $nonce = $_POST['postNonce'];
-        $order_id = $_POST['orderId'];
-
-        if (!wp_verify_nonce($nonce, 'import-nonce')) {
+        if (!wp_verify_nonce(esc_attr($_POST['postNonce']), 'import-nonce')) {
             die('Busted!');
         }
+
+        $order_id = esc_attr($_POST['orderId']);
 
         try {
             $prepare_data = new GLS_Shipping_API_Data($order_id);
@@ -127,13 +125,21 @@ class GLS_Shipping_Order
 
     public function save_print_labels($labels, $order_id, $order)
     {
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+
+        WP_Filesystem();
+        global $wp_filesystem;
+
         $label_print = implode(array_map('chr', $labels));
         $upload_dir = wp_upload_dir();
         $file_url = $upload_dir['url'] . '/shipping_label_' . $order_id . '.pdf';
         $file_path = $upload_dir['path'] . '/shipping_label_' . $order_id . '.pdf';
-        file_put_contents($file_path, $label_print);
-        $order->update_meta_data('_gls_print_label', $file_url);
-        $order->save();
+
+        if ($wp_filesystem->put_contents($file_path, $label_print)) {
+            $order->update_meta_data('_gls_print_label', $file_url);
+            $order->save();
+        }
+
     }
 
     public function save_tracking_info($printLabelsInfoList, $order_id, $order)
