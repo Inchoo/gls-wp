@@ -2,8 +2,8 @@
 Contributors: wpgens
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 4.4
-Tested up to: 6.4
-Stable tag: 1.0.2
+Tested up to: 6.5
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -26,7 +26,7 @@ This plugin will enable GLS Shipping method for your website.
 
 == Changelog ==
 
-= 1.0.2 =
+= 1.1.0 =
 * Sanitization and escaping
 
 = 1.0.1 =

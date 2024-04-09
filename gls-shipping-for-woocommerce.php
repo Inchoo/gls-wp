@@ -3,17 +3,17 @@
 /**
  * Plugin Name: GLS Shipping for WooCommerce
  * Description: Offical GLS Shipping for WooCommerce plugin
- * Version: 1.0.2
+ * Version: 1.1.0
  * Author: Inchoo
  * Author URI: https://inchoo.hr
  * Text Domain: gls-shipping-for-woocommerce
  * Domain Path: /languages
  * Requires at least: 5.9
- * Tested up to: 6.4
+ * Tested up to: 6.5
  * Requires PHP: 7.1
  *
  * WC requires at least: 4.3
- * WC tested up to: 7.1
+ * WC tested up to: 8.7
  */
 
 defined('ABSPATH') || exit;
@@ -22,7 +22,7 @@ final class GLS_Shipping_For_Woo
 {
     private static $instance;
 
-    private $version = '1.0.2';
+    private $version = '1.1.0';
 
     private function __construct()
     {
