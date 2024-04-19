@@ -5,6 +5,8 @@
  * Description: Offical GLS Shipping for WooCommerce plugin
  * Version: 1.1.0
  * Author: Inchoo
+ * License: GPLv2
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.html
  * Author URI: https://inchoo.hr
  * Text Domain: gls-shipping-for-woocommerce
  * Domain Path: /languages

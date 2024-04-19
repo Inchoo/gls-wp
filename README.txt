@@ -4,7 +4,7 @@ Tags: gls, shipping, woocommerce shipping
 Requires at least: 4.4
 Tested up to: 6.5
 Stable tag: 1.1.0
-License: GPLv2 or later
+License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 GLS Shipping plugin for WooCommerce

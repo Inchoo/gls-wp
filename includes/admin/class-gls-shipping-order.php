@@ -89,11 +89,11 @@ class GLS_Shipping_Order
 
     public function generate_label_and_tracking_number()
     {
-        if (!wp_verify_nonce(esc_attr($_POST['postNonce']), 'import-nonce')) {
+        if (!wp_verify_nonce(sanitize_text_field($_POST['postNonce']), 'import-nonce')) {
             die('Busted!');
         }
 
-        $order_id = esc_attr($_POST['orderId']);
+        $order_id = sanitize_text_field($_POST['orderId']);
 
         try {
             $prepare_data = new GLS_Shipping_API_Data($order_id);
