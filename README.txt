@@ -3,7 +3,7 @@ Contributors: wpgens
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 4.4
 Tested up to: 6.5
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -11,20 +11,51 @@ GLS Shipping plugin for WooCommerce
 
 == Description ==
 
-### WordPress Refer A Friend Plugin ###
-
 This plugin will enable GLS Shipping method for your website.
+
+## Introduction ##
+
+This WooCommerce shipping plugin integrates with GLS Group to provide direct shipping capabilities within your WooCommerce store. This plugin uses external services to handle shipping processes and tracking effectively.
+
+## External Services ##
+This plugin makes use of the following third-party services:
+
+### GLS Group APIs ###
+- **Service:** GLS Shipping Tracking
+- **Purpose:** Allows users to track their shipments directly through WooCommerce.
+- **URL:** [GLS Group](https://gls-group.com/HR/en/)
+- **Privacy Policy:** [GLS Privacy Policy](https://gls-group.com/HR/en/privacy-policy)
+
+### OpenStreetMap ###
+- **Service:** OpenStreetMap API
+- **Purpose:** Used to provide map functionalities in the shipping plugin.
+- **URL:** [OpenStreetMap](https://openstreetmap.org)
+- **Privacy Policy:** [OpenStreetMap Privacy](https://wiki.osmfoundation.org/wiki/Privacy_Policy)
+
+## Data Handling and Privacy ##
+When using our plugin, certain data such as tracking numbers and geographical locations may be transmitted to third-party services mentioned above. We do not store this data on our servers. Please review the privacy policies of the respective services (linked above) to understand how they manage your data.
+
+= Links and Additional Information =
+For more details about GLS Shipping plugin for WooCommerce and how it integrates with your WordPress site, please visit our website: [LoyalGenie](https://gls-group.com/HR/en/)
+To understand how we handle and protect your data, please review our Terms of Use and Privacy Policies available at the following links:
+* [Terms of Service](https://gls-group.com/HR/en/terms-conditions/) 
+* [Privacy Policy](https://gls-group.com/HR/en/privacy-policy/)
 
 == Installation ==
 
-1. Upload the plugin to your site, Activate it.
-2. Go to WooCommerce -> Shipping tab, to set it up.
+To install and configure this plugin:
+1. Download and activate the plugin in your WooCommerce store.
+2. Navigate to WooCommerce Settings > Shipping and select GLS Shipping.
+3. Enter your GLS API credentials and configure the necessary settings to enable the shipping and tracking functionalities.
 
 == Frequently Asked Questions ==
 
 == Screenshots ==
 
 == Changelog ==
+
+= 1.1.1 =
+* Updated readme file and additional sanitization. 
 
 = 1.1.0 =
 * Sanitization and escaping
