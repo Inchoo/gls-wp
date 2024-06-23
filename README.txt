@@ -1,9 +1,9 @@
 === GLS Shipping for WooCommerce ===
-Contributors: wpgens
+Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 4.4
 Tested up to: 6.5
-Stable tag: 1.1.1
+Stable tag: 1.1.2
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,6 +53,10 @@ To install and configure this plugin:
 == Screenshots ==
 
 == Changelog ==
+
+= 1.1.2 =
+* Support for SenderIdentityCardNumber and Content fields.
+* Support for Print Position and Printer Type
 
 = 1.1.1 =
 * Updated readme file and additional sanitization. 

@@ -373,6 +373,8 @@ class GLS_Shipping_API_Data
 	public function generate_post_fields()
 	{
 		$clientReferenceFormat = $this->get_option('client_reference_format');
+		$senderIdentityCardNumber = $this->get_option('sender_identity_card_number');
+		$content = $this->get_option('content');
 		$orderId = $this->order->get_id();
 		$clientReference = str_replace('{{order_id}}', $orderId, $clientReferenceFormat);
 
@@ -386,6 +388,11 @@ class GLS_Shipping_API_Data
 		$parcel['ServiceList'] = $this->get_service_list();
 		$parcel['Content'] = $this->order->get_shipping_address_2();
 
+		if ($this->order->get_shipping_country() !== 'RS') {
+            $parcel['SenderIdentityCardNumber'] = $senderIdentityCardNumber;
+            $parcel['Content'] = $content;
+        }
+		
 		if ($this->order->get_payment_method() === 'cod') {
 			$parcel['CODAmount'] = $this->order->get_total();
 			$parcel['CODReference'] = $orderId;
@@ -393,7 +400,8 @@ class GLS_Shipping_API_Data
 
 		$params = [
 			'ParcelList' => [$parcel],
-			'PrintPosition' => 1,
+			'PrintPosition' => (int)$this->get_option("print_position") ?: 1,
+			'TypeOfPrinter' => $this->get_option("type_of_printer") ?: 'A4_2x2',
 			'ShowPrintDialog' => false
 		];
 

@@ -54,7 +54,10 @@ class GLS_Shipping_Checkout
     public function validate_gls_parcel_shop_selection()
     {
         $chosen_shipping_methods = WC()->session->get('chosen_shipping_methods');
-
+        if (!is_array($chosen_shipping_methods)) {
+            $chosen_shipping_methods = [];
+        }
+        
         // Check if GLS shipping method is selected
         if (array_intersect($this->allowed_methods, $chosen_shipping_methods)) {
             // Check if the required GLS info is set and not empty
