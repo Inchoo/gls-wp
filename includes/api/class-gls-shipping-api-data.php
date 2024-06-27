@@ -388,7 +388,7 @@ class GLS_Shipping_API_Data
 		$parcel['ServiceList'] = $this->get_service_list();
 		$parcel['Content'] = $this->order->get_shipping_address_2();
 
-		if ($this->order->get_shipping_country() !== 'RS') {
+		if ($this->order->get_shipping_country() === 'RS') {
             $parcel['SenderIdentityCardNumber'] = $senderIdentityCardNumber;
             $parcel['Content'] = $content;
         }

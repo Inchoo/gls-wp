@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-02-01 08:11+0000\n"
-"PO-Revision-Date: 2024-04-09 08:21+0000\n"
+"PO-Revision-Date: 2024-06-26 19:12+0000\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
 "Language: sr_RS\n"
@@ -13,103 +13,151 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.6.7; wp-6.4.3"
+"X-Loco-Version: 2.6.7; wp-6.5.3"
 
-msgid "API Settings for all of the GLS Shipping Options."
-msgstr "API postavke za sve GLS opcije isporuke"
-
+#: includes/public/class-gls-shipping-assets.php:48
 msgid "Address"
 msgstr "Adresa"
 
+#: includes/admin/class-gls-shipping-order.php:53
+#: includes/public/class-gls-shipping-my-account.php:35
 msgid "Address:"
 msgstr "Adresa"
 
+#: includes/methods/class-gls-shipping-method.php:255
 msgid "Addressee Only Service (AOS)"
 msgstr "Samo usluga adrese"
 
+#: includes/methods/class-gls-shipping-method.php:89
+msgid "API Settings for all of the GLS Shipping Options."
+msgstr "API postavke za sve GLS opcije isporuke"
+
+#: includes/methods/class-gls-shipping-method.php:202
 msgid ""
 "Availability depends on the country. Can’t be used with FDS and FSS services."
 msgstr ""
 "Raspoloživost zavisi od zemlje. Ne može da se koristi sa FDS i FSS uslugama."
 
+#: includes/methods/class-gls-shipping-method.php:264
 msgid "Available within specific limits based on the country."
 msgstr "Dostupno u određenim granicama u zavisnosti od zemlje gde se koristi"
 
+#: includes/methods/class-gls-shipping-method.php:221
 msgid "Can’t be used with T09, T10, and T12 services."
 msgstr "Ne može se koristiti sa T09, T10 i T12 uslugama."
 
+#: includes/methods/class-gls-shipping-method.php:92
 msgid "Client ID"
 msgstr "ID Klijenta"
 
+#: includes/methods/class-gls-shipping-method.php:212
 msgid "Contact Service (CS1)"
 msgstr "Kontakt usluga (CS1)"
 
+#: includes/methods/class-gls-shipping-method.php:148
+msgid "Content. Only for Serbia."
+msgstr "Sadržaj. Samo za Srbiju."
+
+#: includes/methods/class-gls-shipping-method.php:110
+#: includes/public/class-gls-shipping-assets.php:49
 msgid "Country"
 msgstr "Zemlja"
 
+#: includes/admin/class-gls-shipping-order.php:54
+#: includes/public/class-gls-shipping-my-account.php:36
 msgid "Country:"
 msgstr "Zemlja:"
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:70
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:70
+#: includes/methods/class-gls-shipping-method.php:115
 msgid "Croatia"
 msgstr "Hrvatska"
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:71
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:71
+#: includes/methods/class-gls-shipping-method.php:116
 msgid "Czech Republic"
 msgstr "Republika Češka"
 
+#: includes/methods/class-gls-shipping-method.php:26
+#: includes/methods/class-gls-shipping-method.php:67
 msgid "Delivery to Address"
 msgstr "Isporuka na adresu"
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:24
 msgid "Delivery to GLC Parcel Locker"
 msgstr "Dostava u GLC paketomat"
 
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:24
 msgid "Delivery to GLC Parcel Shop"
 msgstr "Dostava u GLC Paket Shop"
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:55
 msgid "Delivery to GLS Parcel Locker"
 msgstr "Dostava u GLS paketomat"
 
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:55
 msgid "Delivery to GLS Parcel Shop"
 msgstr "Dostava u GLS Paket Shop"
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:46
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:46
+#: includes/methods/class-gls-shipping-method.php:58
 msgid "Enable"
 msgstr "Omogući"
 
+#: includes/methods/class-gls-shipping-method.php:193
 msgid "Enable 24H"
 msgstr "Omogući 24H"
 
+#: includes/methods/class-gls-shipping-method.php:257
 msgid "Enable AOS"
 msgstr "Omogući AOS"
 
+#: includes/methods/class-gls-shipping-method.php:214
 msgid "Enable CS1"
 msgstr "Omogući CS1"
 
+#: includes/methods/class-gls-shipping-method.php:220
 msgid "Enable FDS"
 msgstr "Omogući FDS"
 
+#: includes/methods/class-gls-shipping-method.php:228
 msgid "Enable FSS"
 msgstr "Omogući FSS"
 
+#: includes/methods/class-gls-shipping-method.php:263
 msgid "Enable INS"
 msgstr "Omogući INS"
 
+#: includes/methods/class-gls-shipping-method.php:135
 msgid "Enable Logging"
 msgstr "Omogući vođenje evidencije"
 
-msgid "Enable SM1"
-msgstr "Omogući SM1"
-
-msgid "Enable SM2"
-msgstr "Omogući SM2"
-
+#: includes/methods/class-gls-shipping-method.php:137
 msgid "Enable logging of GLS API requests and responses"
 msgstr "Omogući evidentiranje GLS API zahteva i odgovora"
 
+#: includes/methods/class-gls-shipping-method.php:236
+msgid "Enable SM1"
+msgstr "Omogući SM1"
+
+#: includes/methods/class-gls-shipping-method.php:251
+msgid "Enable SM2"
+msgstr "Omogući SM2"
+
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:48
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:48
+#: includes/methods/class-gls-shipping-method.php:60
 msgid "Enable this shipping."
 msgstr "Omogući ovu pošiljku"
 
+#: includes/methods/class-gls-shipping-method.php:188
 msgid "Enable/Disable each of GLS Services for your store."
 msgstr "Omogućite/onemogućite svaku od GLS usluga za vaše skladište."
 
+#: includes/methods/class-gls-shipping-method.php:157
 msgid ""
 "Enter the format for order reference. Use {{order_id}} where you want the "
 "order ID to be inserted."
@@ -117,96 +165,151 @@ msgstr ""
 "Unesite format reference porudžbine. Koristite {{order_id}} gde želite da "
 "umetnete ID porudžbine."
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:60
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:60
+#: includes/methods/class-gls-shipping-method.php:72
 msgid "Enter the shipping price for this method."
 msgstr "Unesite cenu isporuke za ovaj metod."
 
+#: includes/methods/class-gls-shipping-method.php:94
 msgid "Enter your GLS Client ID."
 msgstr "Unesite ID GLS klijenta."
 
+#: includes/methods/class-gls-shipping-method.php:106
 msgid "Enter your GLS Password."
 msgstr "Unesite vašu GLS lozinku."
 
+#: includes/methods/class-gls-shipping-method.php:100
 msgid "Enter your GLS Username."
 msgstr "Unesite vaše GLS korisničko ime"
 
+#: includes/methods/class-gls-shipping-method.php:199
 msgid "Express Delivery Service (T09, T10, T12)"
 msgstr "Usluga ekspres dostave (T09, T10, T12)"
 
+#: includes/methods/class-gls-shipping-method.php:201
 msgid "Express Delivery Service Time"
 msgstr "Vreme usluge ekspres dostave"
 
-msgid "Flexible Delivery SMS Service (FSS)"
-msgstr "Fleksibilna isporuka SMS usluga (FSS)"
-
+#: includes/methods/class-gls-shipping-method.php:218
 msgid "Flexible Delivery Service (FDS)"
 msgstr "Fleksibilna usluga dostave (FDS)"
 
-msgid "GLS API Settings"
-msgstr "GLS API postavke"
+#: includes/methods/class-gls-shipping-method.php:226
+msgid "Flexible Delivery SMS Service (FSS)"
+msgstr "Fleksibilna isporuka SMS usluga (FSS)"
 
-msgid "GLS Delivery to Address"
-msgstr "GLS isporuka na adresu"
-
-msgid "GLS Parcel Locker"
-msgstr "GLS Paketomat"
-
-msgid "GLS Parcel Shop"
-msgstr "GLS Paket Shop"
-
-msgid "GLS Pickup Location:"
-msgstr "GLS Lokacija Prikupa"
-
-msgid "GLS Services"
-msgstr "GLS Usluge"
-
-msgid "GLS Shipping Info"
-msgstr "GLS informacije o isporuci"
-
-msgid "GLS Shipping for WooCommerce"
-msgstr "GLS pošiljke za WooCommerce"
-
-msgid "GLS Tracking Number: "
-msgstr "GLS broj za praćenje"
-
+#: includes/admin/class-gls-shipping-order.php:81
 msgid "Generate Shipping Label"
 msgstr "Generišite adresnicu za slanje"
 
+#: includes/methods/class-gls-shipping-method.php:87
+msgid "GLS API Settings"
+msgstr "GLS API postavke"
+
+#: includes/methods/class-gls-shipping-method.php:20
+msgid "GLS Delivery to Address"
+msgstr "GLS isporuka na adresu"
+
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:18
+msgid "GLS Parcel Locker"
+msgstr "GLS Paketomat"
+
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:18
+msgid "GLS Parcel Shop"
+msgstr "GLS Paket Shop"
+
+#: includes/admin/class-gls-shipping-order.php:50
+#: includes/public/class-gls-shipping-my-account.php:32
+msgid "GLS Pickup Location:"
+msgstr "GLS Lokacija Prikupa"
+
+#: includes/methods/class-gls-shipping-method.php:186
+msgid "GLS Services"
+msgstr "GLS Usluge"
+
+#. Plugin Name of the plugin
+#: gls-shipping-for-woocommerce.php
+msgid "GLS Shipping for WooCommerce"
+msgstr "GLS pošiljke za WooCommerce"
+
+#: includes/admin/class-gls-shipping-order.php:32
+msgid "GLS Shipping Info"
+msgstr "GLS informacije o isporuci"
+
+#: includes/admin/class-gls-shipping-order.php:60
+#: includes/public/class-gls-shipping-my-account.php:43
+msgid "GLS Tracking Number: "
+msgstr "GLS broj za praćenje"
+
+#: includes/methods/class-gls-shipping-method.php:191
 msgid "Guaranteed 24h Service (24H)"
 msgstr "Garantovana usluga od 24h (24H)"
 
+#. Author URI of the plugin
+#: gls-shipping-for-woocommerce.php
+msgid "https://inchoo.hr"
+msgstr "https://inchoo.hr"
+
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:72
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:72
+#: includes/methods/class-gls-shipping-method.php:117
 msgid "Hungary"
 msgstr "Mađarska"
 
+#: includes/admin/class-gls-shipping-order.php:51
+#: includes/public/class-gls-shipping-my-account.php:33
 msgid "ID:"
 msgstr "ID:"
 
+#. Author of the plugin
+#: gls-shipping-for-woocommerce.php
 msgid "Inchoo"
 msgstr "Inchoo"
 
+#: includes/methods/class-gls-shipping-method.php:261
 msgid "Insurance Service (INS)"
 msgstr "Usluga osiguranja (INS)"
 
+#: includes/methods/class-gls-shipping-method.php:125
 msgid "Mode"
 msgstr "Režim"
 
+#: includes/public/class-gls-shipping-assets.php:47
 msgid "Name"
 msgstr "Ime"
 
+#: includes/admin/class-gls-shipping-order.php:52
+#: includes/public/class-gls-shipping-my-account.php:34
 msgid "Name:"
 msgstr "Ime:"
 
+#: includes/methods/class-gls-shipping-method.php:194
 msgid "Not available in Serbia."
 msgstr "Nije dostupno u Srbiji."
 
+#: includes/methods/class-gls-shipping-method.php:229
 msgid "Not available without FDS service."
 msgstr "Nije dostupno bez FDS usluge."
 
+#. Description of the plugin
+#: gls-shipping-for-woocommerce.php
 msgid "Offical GLS Shipping for WooCommerce plugin"
 msgstr "Oficijalna GLS pošiljka za WooCommerce plugin"
 
+#: includes/methods/class-gls-shipping-method.php:143
+msgid "Only in Serbia! REQUIRED"
+msgstr "Samo za Srbiju. NEOPHODAN."
+
+#: includes/methods/class-gls-shipping-method.php:155
 msgid "Order Reference Format"
 msgstr "Format reference porudžbine"
 
+#: includes/methods/class-gls-shipping-method.php:150
+msgid "Parcel info printed on label. Only for Serbia."
+msgstr "Podaci o paketu ispisani na etiketi. Samo za Srbiju."
+
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:19
 msgid ""
 "Parcel Shop Delivery (PSD) service that ships parcels to the GLS Locker. GLS "
 "Parcel Locker can be selected from the interactive GLS Parcel Shop and GLS "
@@ -216,6 +319,7 @@ msgstr ""
 "GLS Paketomat možete izabrati sa interaktivne GLS Paket Shop i GLS Paketomat "
 "mape."
 
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:19
 msgid ""
 "Parcel Shop Delivery (PSD) service that ships parcels to the GLS Parcel Shop."
 " GLS Parcel Shop can be selected from the interactive GLS Parcel Shop and "
@@ -225,41 +329,121 @@ msgstr ""
 "GLS Paket Shop možete izabrati sa interaktivne GLS Paket Shop i GLS "
 "Paketomat mape."
 
+#: includes/methods/class-gls-shipping-method.php:21
 msgid "Parcels are shipped to the customer’s address."
 msgstr "Paket se isporučuje na adresu kupca."
 
+#: includes/methods/class-gls-shipping-method.php:104
 msgid "Password"
 msgstr "Lozinka"
 
+#: includes/public/class-gls-shipping-assets.php:46
 msgid "Pickup Location"
 msgstr "Prikupna lokacija"
 
+#: includes/public/class-gls-shipping-checkout.php:65
 msgid "Please select a parcel locker/shop by clicking on Select Parcel button."
 msgstr ""
 "Izaberite ormarić/prodavnicu paketa tako što ćete kliknuti na dugme "
 "\"Izaberi paket\"."
 
+#: includes/admin/class-gls-shipping-order.php:78
 msgid "Print Label"
 msgstr "Štampaj adresnicu"
 
+#: includes/methods/class-gls-shipping-method.php:162
+msgid "Print Position"
+msgstr "Pozicija ispisa"
+
+#: includes/methods/class-gls-shipping-method.php:130
 msgid "Production"
 msgstr "Produkcija"
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:73
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:73
+#: includes/methods/class-gls-shipping-method.php:118
 msgid "Romania"
 msgstr "Rumunija"
 
+#: includes/methods/class-gls-shipping-method.php:131
+msgid "Sandbox"
+msgstr "Sandbox"
+
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:80
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:80
+#: includes/methods/class-gls-shipping-method.php:84
+msgid "Select countries to support for this shipping method."
+msgstr "Izaberite zemlje koje će podržati ovaj način isporuke."
+
+#: includes/public/class-gls-shipping-checkout.php:98
+msgid "Select Parcel Locker"
+msgstr "Odaberite paketomat"
+
+#: includes/public/class-gls-shipping-checkout.php:100
+msgid "Select Parcel Shop"
+msgstr "Odaberite prodavnicu za pakete"
+
+#: includes/methods/class-gls-shipping-method.php:112
+msgid "Select the country for the GLS service."
+msgstr "Izaberite zemlju za GLS uslugu."
+
+#: includes/methods/class-gls-shipping-method.php:127
+msgid "Select the mode for the GLS API."
+msgstr "Izaberite mod za GLS API."
+
+#: includes/methods/class-gls-shipping-method.php:164
+msgid "Select the Print Position."
+msgstr "Odaberite položaj ispisa."
+
+#: includes/methods/class-gls-shipping-method.php:176
+msgid "Select the Printer Type."
+msgstr "Odaberite vrstu pisača."
+
+#: includes/methods/class-gls-shipping-method.php:141
+msgid "Sender Identity Card Number. Required for Serbia."
+msgstr "Broj lične karte pošiljaoca. Obavezno za Srbiju."
+
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:76
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:76
+#: includes/methods/class-gls-shipping-method.php:121
+msgid "Serbia"
+msgstr "Srbija"
+
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:58
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:58
+#: includes/methods/class-gls-shipping-method.php:70
+msgid "Shipping Price"
+msgstr "Cena pošiljke"
+
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:75
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:75
+#: includes/methods/class-gls-shipping-method.php:120
+msgid "Slovakia"
+msgstr "Slovačka"
+
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:74
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:74
+#: includes/methods/class-gls-shipping-method.php:119
+msgid "Slovenia"
+msgstr "Slovenija"
+
+#: includes/methods/class-gls-shipping-method.php:244
 msgid "SM1 Service Text"
 msgstr "SM1 Servisni tekst"
 
+#: includes/methods/class-gls-shipping-method.php:249
 msgid "SMS Pre-advice Service (SM2)"
 msgstr "Usluga Pre-advice za SMS (SM2)"
 
+#: includes/methods/class-gls-shipping-method.php:234
 msgid "SMS Service (SM1)"
 msgstr "SMS Servis (SM1)"
 
+#: includes/methods/class-gls-shipping-method.php:242
 msgid "SMS Service Text"
 msgstr "SMS Servisni tekst"
 
+#: includes/methods/class-gls-shipping-method.php:245
 msgid ""
 "SMS Service Text. Variables that can be used in the text of the SMS: "
 "#ParcelNr#, #COD#, #PickupDate#, #From_Name#, #ClientRef#."
@@ -267,56 +451,41 @@ msgstr ""
 "Tekst SMS usluge. Promenljive koje se mogu koristiti u tekstu SMS-a: "
 "#ParcelNr#, #COD#, #PickupDate#, #From_Name#, #ClientRef#."
 
+#: includes/methods/class-gls-shipping-method.php:237
 msgid "SMS service with a maximum text length of 130."
 msgstr "SMS servis sa maksimalnom dužinom teksta od 130."
 
-msgid "Sandbox"
-msgstr "Sandbox"
-
-msgid "Select Parcel Locker"
-msgstr "Odaberite paketomat"
-
-msgid "Select Parcel Shop"
-msgstr "Odaberite prodavnicu za pakete"
-
-msgid "Select countries to support for this shipping method."
-msgstr "Izaberite zemlje koje će podržati ovaj način isporuke."
-
-msgid "Select the country for the GLS service."
-msgstr "Izaberite zemlju za GLS uslugu."
-
-msgid "Select the mode for the GLS API."
-msgstr "Izaberite mod za GLS API."
-
-msgid "Serbia"
-msgstr "Srbija"
-
-msgid "Shipping Price"
-msgstr "Cena pošiljke"
-
-msgid "Slovakia"
-msgstr "Slovačka"
-
-msgid "Slovenia"
-msgstr "Slovenija"
-
+#: includes/methods/class-gls-shipping-method.php:269
+#: includes/methods/class-gls-shipping-method.php:271
 msgid "Store Phone Number"
 msgstr "Broj Telefona"
 
+#: includes/methods/class-gls-shipping-method.php:272
 msgid "Store Phone number that will be sent to GLS as a contact information."
 msgstr "Broj telefona koji će se poslati GLS-u kao kontakt informacija."
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:65
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:65
+#: includes/methods/class-gls-shipping-method.php:77
 msgid "Supported Countries"
 msgstr "Pdržane zemlje"
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:52
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:52
+#: includes/methods/class-gls-shipping-method.php:64
 msgid "Title"
 msgstr "Naslov"
 
+#: includes/methods/class-gls-shipping-method-parcel-locker.php:54
+#: includes/methods/class-gls-shipping-method-parcel-shop.php:54
+#: includes/methods/class-gls-shipping-method.php:66
 msgid "Title to be display on site"
 msgstr "Naslov prikazan na stranici"
 
+#: includes/methods/class-gls-shipping-method.php:174
+msgid "Type of Printer"
+msgstr "Tip Štampača"
+
+#: includes/methods/class-gls-shipping-method.php:98
 msgid "Username"
 msgstr "Korisničko ime"
-
-msgid "https://inchoo.hr"
-msgstr "https://inchoo.hr"

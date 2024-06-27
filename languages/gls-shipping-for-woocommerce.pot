@@ -1,32 +1,36 @@
 # Copyright (C) 2024 Inchoo
-# This file is distributed under the same license as the GLS Shipping for WooCommerce plugin.
+# This file is distributed under the GPLv2.
 msgid ""
 msgstr ""
-"Project-Id-Version: GLS Shipping for WooCommerce 1.0.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/gls-shipping-for-woo\n"
+"Project-Id-Version: GLS Shipping for WooCommerce 1.1.2\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/gls-wp\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2024-02-05T14:28:54+00:00\n"
+"POT-Creation-Date: 2024-06-26T13:57:20+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: WP-CLI 2.9.0\n"
+"X-Generator: WP-CLI 2.10.0\n"
 "X-Domain: gls-shipping-for-woocommerce\n"
 
 #. Plugin Name of the plugin
+#: gls-shipping-for-woocommerce.php
 msgid "GLS Shipping for WooCommerce"
 msgstr ""
 
 #. Description of the plugin
+#: gls-shipping-for-woocommerce.php
 msgid "Offical GLS Shipping for WooCommerce plugin"
 msgstr ""
 
 #. Author of the plugin
+#: gls-shipping-for-woocommerce.php
 msgid "Inchoo"
 msgstr ""
 
 #. Author URI of the plugin
+#: gls-shipping-for-woocommerce.php
 msgid "https://inchoo.hr"
 msgstr ""
 
@@ -59,16 +63,16 @@ msgstr ""
 msgid "Country:"
 msgstr ""
 
-#: includes/admin/class-gls-shipping-order.php:61
+#: includes/admin/class-gls-shipping-order.php:60
 #: includes/public/class-gls-shipping-my-account.php:43
 msgid "GLS Tracking Number: "
 msgstr ""
 
-#: includes/admin/class-gls-shipping-order.php:77
+#: includes/admin/class-gls-shipping-order.php:78
 msgid "Print Label"
 msgstr ""
 
-#: includes/admin/class-gls-shipping-order.php:80
+#: includes/admin/class-gls-shipping-order.php:81
 msgid "Generate Shipping Label"
 msgstr ""
 
@@ -273,135 +277,167 @@ msgid "Enable logging of GLS API requests and responses"
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:141
-msgid "Order Reference Format"
+msgid "Sender Identity Card Number. Required for Serbia."
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:143
-msgid "Enter the format for order reference. Use {{order_id}} where you want the order ID to be inserted."
+msgid "Only in Serbia! REQUIRED"
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:148
-msgid "GLS Services"
+msgid "Content. Only for Serbia."
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:150
-msgid "Enable/Disable each of GLS Services for your store."
-msgstr ""
-
-#: includes/methods/class-gls-shipping-method.php:153
-msgid "Guaranteed 24h Service (24H)"
+msgid "Parcel info printed on label. Only for Serbia."
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:155
-msgid "Enable 24H"
+msgid "Order Reference Format"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:156
-msgid "Not available in Serbia."
+#: includes/methods/class-gls-shipping-method.php:157
+msgid "Enter the format for order reference. Use {{order_id}} where you want the order ID to be inserted."
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:161
-msgid "Express Delivery Service (T09, T10, T12)"
-msgstr ""
-
-#: includes/methods/class-gls-shipping-method.php:163
-msgid "Express Delivery Service Time"
+#: includes/methods/class-gls-shipping-method.php:162
+msgid "Print Position"
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:164
-msgid "Availability depends on the country. Can’t be used with FDS and FSS services."
+msgid "Select the Print Position."
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:174
-msgid "Contact Service (CS1)"
+msgid "Type of Printer"
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:176
-msgid "Enable CS1"
+msgid "Select the Printer Type."
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:180
-msgid "Flexible Delivery Service (FDS)"
-msgstr ""
-
-#: includes/methods/class-gls-shipping-method.php:182
-msgid "Enable FDS"
-msgstr ""
-
-#: includes/methods/class-gls-shipping-method.php:183
-msgid "Can’t be used with T09, T10, and T12 services."
+#: includes/methods/class-gls-shipping-method.php:186
+msgid "GLS Services"
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:188
-msgid "Flexible Delivery SMS Service (FSS)"
-msgstr ""
-
-#: includes/methods/class-gls-shipping-method.php:190
-msgid "Enable FSS"
+msgid "Enable/Disable each of GLS Services for your store."
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:191
-msgid "Not available without FDS service."
+msgid "Guaranteed 24h Service (24H)"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:196
-msgid "SMS Service (SM1)"
+#: includes/methods/class-gls-shipping-method.php:193
+msgid "Enable 24H"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:198
-msgid "Enable SM1"
+#: includes/methods/class-gls-shipping-method.php:194
+msgid "Not available in Serbia."
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:199
-msgid "SMS service with a maximum text length of 130."
+msgid "Express Delivery Service (T09, T10, T12)"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:204
-msgid "SMS Service Text"
+#: includes/methods/class-gls-shipping-method.php:201
+msgid "Express Delivery Service Time"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:206
-msgid "SM1 Service Text"
+#: includes/methods/class-gls-shipping-method.php:202
+msgid "Availability depends on the country. Can’t be used with FDS and FSS services."
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:207
-msgid "SMS Service Text. Variables that can be used in the text of the SMS: #ParcelNr#, #COD#, #PickupDate#, #From_Name#, #ClientRef#."
+#: includes/methods/class-gls-shipping-method.php:212
+msgid "Contact Service (CS1)"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:211
-msgid "SMS Pre-advice Service (SM2)"
+#: includes/methods/class-gls-shipping-method.php:214
+msgid "Enable CS1"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:213
-msgid "Enable SM2"
+#: includes/methods/class-gls-shipping-method.php:218
+msgid "Flexible Delivery Service (FDS)"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:217
-msgid "Addressee Only Service (AOS)"
+#: includes/methods/class-gls-shipping-method.php:220
+msgid "Enable FDS"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:219
-msgid "Enable AOS"
-msgstr ""
-
-#: includes/methods/class-gls-shipping-method.php:223
-msgid "Insurance Service (INS)"
-msgstr ""
-
-#: includes/methods/class-gls-shipping-method.php:225
-msgid "Enable INS"
+#: includes/methods/class-gls-shipping-method.php:221
+msgid "Can’t be used with T09, T10, and T12 services."
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:226
-msgid "Available within specific limits based on the country."
+msgid "Flexible Delivery SMS Service (FSS)"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:231
-#: includes/methods/class-gls-shipping-method.php:233
-msgid "Store Phone Number"
+#: includes/methods/class-gls-shipping-method.php:228
+msgid "Enable FSS"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:229
+msgid "Not available without FDS service."
 msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:234
+msgid "SMS Service (SM1)"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:236
+msgid "Enable SM1"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:237
+msgid "SMS service with a maximum text length of 130."
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:242
+msgid "SMS Service Text"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:244
+msgid "SM1 Service Text"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:245
+msgid "SMS Service Text. Variables that can be used in the text of the SMS: #ParcelNr#, #COD#, #PickupDate#, #From_Name#, #ClientRef#."
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:249
+msgid "SMS Pre-advice Service (SM2)"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:251
+msgid "Enable SM2"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:255
+msgid "Addressee Only Service (AOS)"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:257
+msgid "Enable AOS"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:261
+msgid "Insurance Service (INS)"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:263
+msgid "Enable INS"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:264
+msgid "Available within specific limits based on the country."
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:269
+#: includes/methods/class-gls-shipping-method.php:271
+msgid "Store Phone Number"
+msgstr ""
+
+#: includes/methods/class-gls-shipping-method.php:272
 msgid "Store Phone number that will be sent to GLS as a contact information."
 msgstr ""
 
@@ -417,14 +453,14 @@ msgstr ""
 msgid "Address"
 msgstr ""
 
-#: includes/public/class-gls-shipping-checkout.php:62
+#: includes/public/class-gls-shipping-checkout.php:65
 msgid "Please select a parcel locker/shop by clicking on Select Parcel button."
 msgstr ""
 
-#: includes/public/class-gls-shipping-checkout.php:95
+#: includes/public/class-gls-shipping-checkout.php:98
 msgid "Select Parcel Locker"
 msgstr ""
 
-#: includes/public/class-gls-shipping-checkout.php:97
+#: includes/public/class-gls-shipping-checkout.php:100
 msgid "Select Parcel Shop"
 msgstr ""
