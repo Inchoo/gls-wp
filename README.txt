@@ -54,6 +54,9 @@ To install and configure this plugin:
 
 == Changelog ==
 
+= 1.1.4 =
+* Tax support
+
 = 1.1.3 =
 * Support for WordPress 6.6
 

@@ -296,7 +296,7 @@ function gls_shipping_method_init()
 						'id'       => $this->id,
 						'label'    => $this->title,
 						'cost'     => $price,
-						'calc_tax' => 'per_item'
+						'calc_tax' => 'per_order'
 					);
 
 					// Register the rate
