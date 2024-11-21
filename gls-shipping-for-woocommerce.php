@@ -50,7 +50,9 @@ final class GLS_Shipping_For_Woo
         if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {
             require_once(GLS_SHIPPING_ABSPATH . 'includes/methods/class-gls-shipping-method.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/methods/class-gls-shipping-method-parcel-shop.php');
+            require_once(GLS_SHIPPING_ABSPATH . 'includes/methods/class-gls-shipping-method-parcel-shop-zones.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/methods/class-gls-shipping-method-parcel-locker.php');
+            require_once(GLS_SHIPPING_ABSPATH . 'includes/methods/class-gls-shipping-method-parcel-locker-zones.php');
         }
     }
     /**
@@ -66,6 +68,9 @@ final class GLS_Shipping_For_Woo
         $this->define('GLS_SHIPPING_METHOD_ID', 'gls_shipping_method');
         $this->define('GLS_SHIPPING_METHOD_PARCEL_LOCKER_ID', 'gls_shipping_method_parcel_locker');
         $this->define('GLS_SHIPPING_METHOD_PARCEL_SHOP_ID', 'gls_shipping_method_parcel_shop');
+
+        $this->define('GLS_SHIPPING_METHOD_PARCEL_LOCKER_ZONES_ID', 'gls_shipping_method_parcel_locker_zones');
+        $this->define('GLS_SHIPPING_METHOD_PARCEL_SHOP_ZONES_ID', 'gls_shipping_method_parcel_shop_zones');
     }
 
     /**
@@ -118,6 +123,8 @@ final class GLS_Shipping_For_Woo
         $methods[GLS_SHIPPING_METHOD_ID] = 'GLS_Shipping_Method';
         $methods[GLS_SHIPPING_METHOD_PARCEL_LOCKER_ID] = 'GLS_Shipping_Method_Parcel_Shop';
         $methods[GLS_SHIPPING_METHOD_PARCEL_SHOP_ID] = 'GLS_Shipping_Method_Parcel_Locker';
+        $methods[GLS_SHIPPING_METHOD_PARCEL_LOCKER_ZONES_ID] = 'GLS_Shipping_Method_Parcel_Locker_Zones';
+        $methods[GLS_SHIPPING_METHOD_PARCEL_SHOP_ZONES_ID] = 'GLS_Shipping_Method_Parcel_Shop_Zones';
 
         return $methods;
     }

@@ -25,7 +25,7 @@ class GLS_Shipping_Checkout
      *
      * @var array
      */
-    protected $allowed_methods;
+    protected $map_selection_methods;
 
     /**
      * Constructor for the GLS_Shipping_Checkout class.
@@ -34,9 +34,11 @@ class GLS_Shipping_Checkout
      */
     public function __construct()
     {
-        $this->allowed_methods = array(
+        $this->map_selection_methods = array(
             GLS_SHIPPING_METHOD_PARCEL_LOCKER_ID,
-            GLS_SHIPPING_METHOD_PARCEL_SHOP_ID
+            GLS_SHIPPING_METHOD_PARCEL_SHOP_ID,
+            GLS_SHIPPING_METHOD_PARCEL_LOCKER_ZONES_ID,
+            GLS_SHIPPING_METHOD_PARCEL_SHOP_ZONES_ID
         );
 
         add_filter('woocommerce_cart_shipping_method_full_label', array($this, 'add_gls_button_to_shipping_method'), 10, 2);
@@ -59,7 +61,7 @@ class GLS_Shipping_Checkout
         }
         
         // Check if GLS shipping method is selected
-        if (array_intersect($this->allowed_methods, $chosen_shipping_methods)) {
+        if (array_intersect($this->map_selection_methods, $chosen_shipping_methods)) {
             // Check if the required GLS info is set and not empty
             if (empty($_POST['gls_pickup_info'])) {
                 wc_add_notice(__('Please select a parcel locker/shop by clicking on Select Parcel button.', 'gls-shipping-for-woocommerce'), 'error');
@@ -91,13 +93,14 @@ class GLS_Shipping_Checkout
         if (is_cart()) {
             return $label;
         }
+
         $chosen_methods = WC()->session->get('chosen_shipping_methods');
 
-        if (in_array($method->id, $this->allowed_methods) && is_array($chosen_methods) && in_array($method->id, $chosen_methods)) {
-            if ($method->id === GLS_SHIPPING_METHOD_PARCEL_LOCKER_ID) {
-                $label .= '<br/><button type="button" id="gls-map-button" class="dugme-' . $method->id . '">' . __('Select Parcel Locker', 'gls-shipping-for-woocommerce') . '</button>';
-            } elseif ($method->id === GLS_SHIPPING_METHOD_PARCEL_SHOP_ID) {
-                $label .= '<br/><button type="button" id="gls-map-button" class="dugme-' . $method->id . '">' . __('Select Parcel Shop', 'gls-shipping-for-woocommerce') . '</button>';
+        if (in_array($method->id, $this->map_selection_methods) && is_array($chosen_methods) && in_array($method->id, $chosen_methods)) {
+            if ($method->id === GLS_SHIPPING_METHOD_PARCEL_LOCKER_ID || $method->id === GLS_SHIPPING_METHOD_PARCEL_LOCKER_ZONES_ID) {
+                $label .= '<br/><button type="button" id="gls-map-button" class="dugme-gls_shipping_method_parcel_locker">' . __('Select Parcel Locker', 'gls-shipping-for-woocommerce') . '</button>';
+            } elseif ($method->id === GLS_SHIPPING_METHOD_PARCEL_SHOP_ID || $method->id === GLS_SHIPPING_METHOD_PARCEL_SHOP_ZONES_ID) {
+                $label .= '<br/><button type="button" id="gls-map-button" class="dugme-gls_shipping_method_parcel_shop">' . __('Select Parcel Shop', 'gls-shipping-for-woocommerce') . '</button>';
             }
         }
 
@@ -117,7 +120,7 @@ class GLS_Shipping_Checkout
         $shipping_methods = $order->get_shipping_methods();
 
         foreach ($shipping_methods as $shipping_method) {
-            if (in_array($shipping_method->get_method_id(), $this->allowed_methods)) {
+            if (in_array($shipping_method->get_method_id(), $this->map_selection_methods)) {
                 if (!empty($_POST['gls_pickup_info'])) {
                     $gls_pickup_info = sanitize_text_field(stripslashes($_POST['gls_pickup_info']));
                     $order->update_meta_data('_gls_pickup_info', $gls_pickup_info);
