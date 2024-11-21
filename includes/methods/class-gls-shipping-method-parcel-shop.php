@@ -45,7 +45,7 @@ function gls_shipping_method_parcel_shop_init()
 					'enabled' => array(
 						'title' => __('Enable', 'gls-shipping-for-woocommerce'),
 						'type' => 'checkbox',
-						'description' => __('Enable this shipping.', 'gls-shipping-for-woocommerce'),
+						'description' => __('Enable this shipping globally.', 'gls-shipping-for-woocommerce'),
 						'default' => 'yes'
 					),
 					'title' => array(
