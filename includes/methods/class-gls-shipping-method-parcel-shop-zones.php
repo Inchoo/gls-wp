@@ -45,6 +45,8 @@ function gls_shipping_method_parcel_shop_zones_init()
 
 			public function init_form_fields()
 			{
+				$weight_unit = get_option('woocommerce_weight_unit');
+
 				$this->instance_form_fields = array(
 					'title' => array(
 						'title' => __('Title', 'gls-shipping-for-woocommerce'),
@@ -59,29 +61,79 @@ function gls_shipping_method_parcel_shop_zones_init()
 						'default'     => 0,
 						'desc_tip'    => true,
 					),
+					'weight_based_rates' => array(
+						'title'       => __('Weight Based Rates: max_weight|cost', 'gls-shipping-for-woocommerce'),
+						'type'        => 'textarea',
+						'description' => sprintf(__('Optional: Enter weight based rates (one per line). Format: max_weight|cost. Example: 1|100 means up to 5 %s costs 100. Leave empty to use default price.', 'gls-shipping-for-woocommerce'), $weight_unit),
+						'default'     => '',
+						'placeholder' => 'max_weight|cost
+max_weight|cost',
+						'css'         => 'width:300px; height: 150px;',
+					),
 				);
 			}
-
+			
 			/**
-			 * Calculate Shipping Rate
+			 * Calculates the shipping rate based on the package details.
 			 *
-			 * @access public
-			 * @param array $package
-			 * @return void
+			 * Determines if the destination country is supported and applies the set shipping rate.
+			 *
+			 * @param array $package Details of the package being shipped.
 			 */
 			public function calculate_shipping($package = array())
 			{
-				$price = $this->get_instance_option('shipping_price', '0');
+				$weight_based_rates_raw = $this->get_instance_option('weight_based_rates', '');
+				$default_price = $this->get_instance_option('shipping_price', '0');
+
+				$cart_weight = WC()->cart->get_cart_contents_weight();
+				$shipping_price = $default_price;
+
+				// Check if weight-based rates are set and valid
+				if (!empty(trim($weight_based_rates_raw))) {
+					$weight_based_rates = array();
+					$lines = explode("\n", $weight_based_rates_raw);
+					foreach ($lines as $line) {
+						$rate = explode('|', trim($line));
+						if (count($rate) == 2 && is_numeric($rate[0]) && is_numeric($rate[1])) {
+							$weight_based_rates[] = array(
+								'weight' => floatval($rate[0]),
+								'price' => floatval($rate[1])
+							);
+						}
+					}
+
+					// If we have valid weight-based rates, use them
+					if (!empty($weight_based_rates)) {
+						// Sort rates by weight in ascending order
+						usort($weight_based_rates, function($a, $b) {
+							return $a['weight'] <=> $b['weight'];
+						});
+
+						// Find the appropriate rate based on cart weight
+						foreach ($weight_based_rates as $rate) {
+							if ($cart_weight <= $rate['weight']) {
+								$shipping_price = $rate['price'];
+								break;
+							}
+						}
+
+						// If no matching rate found, use the highest rate
+						if ($shipping_price === $default_price && !empty($weight_based_rates)) {
+							$shipping_price = end($weight_based_rates)['price'];
+						}
+					}
+				}
 
 				$rate = array(
 					'id'       => $this->id,
 					'label'    => $this->title,
-					'cost'     => $price,
+					'cost'     => $shipping_price,
 					'calc_tax' => 'per_order'
 				);
 
 				// Register the rate
 				$this->add_rate($rate);
+				
 			}
 
 		}
