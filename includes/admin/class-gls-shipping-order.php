@@ -57,7 +57,7 @@ class GLS_Shipping_Order
         if ($tracking_code) {
             $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
             $tracking_url = "https://gls-group.eu/" . $gls_shipping_method_settings['country'] . "/en/parcel-tracking/?match=" . $tracking_code;
-            echo '<br/><br/><strong>' . esc_html__('GLS Tracking Number: ', 'gls-shipping-for-woocommerce') . '<a href="' . esc_url($tracking_url) . '" target="_blank">' . esc_html($tracking_code) . '</a></strong><br><br>';
+            echo '<br/><strong>' . esc_html__('GLS Tracking Number: ', 'gls-shipping-for-woocommerce') . '<a href="' . esc_url($tracking_url) . '" target="_blank">' . esc_html($tracking_code) . '</a></strong><br>';
         }
     }
 
@@ -76,10 +76,19 @@ class GLS_Shipping_Order
             <div style="margin-top:10px;">
                 <?php if ($gls_print_label) { ?>
                     <a class="button primary" href="<?php echo esc_url($gls_print_label); ?>" target="_blank"><?php esc_html_e("Print Label", "gls-shipping-for-woocommerce"); ?></a>
+                    <div style="margin-top:10px;display: flex; align-items: center;">
+                        <input type="number" id="gls-label-count" min="1" value="1" style="width: 50px; margin-right: 10px;">
+                        <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
+                            <?php esc_html_e("Regenerate Shipping Label", "gls-shipping-for-woocommerce"); ?>
+                        </button>
+                    </div>
                 <?php } else { ?>
-                    <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
-                        <?php esc_html_e("Generate Shipping Label", "gls-shipping-for-woocommerce"); ?>
-                    </button>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="gls-label-count" min="1" value="1" style="width: 50px; margin-right: 10px;">
+                        <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
+                            <?php esc_html_e("Generate Shipping Label", "gls-shipping-for-woocommerce"); ?>
+                        </button>
+                    </div>
                 <?php } ?>
             </div>
             <div id="gls-info"></div>
@@ -95,9 +104,11 @@ class GLS_Shipping_Order
 
         $order_id = sanitize_text_field($_POST['orderId']);
 
+        $count = intval($_POST['count']) ?: 1;
+        
         try {
             $prepare_data = new GLS_Shipping_API_Data($order_id);
-            $data = $prepare_data->generate_post_fields();
+            $data = $prepare_data->generate_post_fields($count);
 
             $api = new GLS_Shipping_API_Service();
             $body = $api->send_order($data, $order_id);

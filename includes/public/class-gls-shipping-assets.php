@@ -77,7 +77,7 @@ class GLS_Shipping_Assets
     {
         $currentScreen = get_current_screen();
         $screenID = $currentScreen->id;
-        if ($screenID === "shop_order" || $screenID === "woocommerce_page_wc-orders") {
+        if ($screenID === "shop_order" || $screenID === "woocommerce_page_wc-orders" || $screenID === "edit-shop_order") {
             $translation_array = array(
                 'ajaxNonce' => wp_create_nonce('import-nonce'),
                 'adminAjaxUrl' => admin_url('admin-ajax.php'),

@@ -368,9 +368,10 @@ class GLS_Shipping_API_Data
 	/**
 	 * Generates post fields for the API request.
 	 *
+	 * @param int $count Number of packages.
 	 * @return array The generated post fields for the API request.
 	 */
-	public function generate_post_fields()
+	public function generate_post_fields($count = 1)
 	{
 		$clientReferenceFormat = $this->get_option('client_reference_format');
 		$senderIdentityCardNumber = $this->get_option('sender_identity_card_number');
@@ -381,7 +382,7 @@ class GLS_Shipping_API_Data
 		$parcel = [
 			'ClientNumber' => (int)$this->get_option("client_id"),
 			'ClientReference' => $clientReference,
-			'Count' => 1
+			'Count' => $count
 		];
 		$parcel['PickupAddress'] = $this->get_pickup_address();
 		$parcel['DeliveryAddress'] = $this->get_delivery_address();
