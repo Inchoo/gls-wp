@@ -68,7 +68,7 @@ class GLS_Shipping_API_Service
 		return $params;
 	}
 
-	public function send_order($post_fields)
+	public function send_order($post_fields, $is_multi = false)
 	{
 		$params = $this->generate_post_request($post_fields);
 		$response = wp_remote_post($this->api_url, $params);
@@ -81,17 +81,36 @@ class GLS_Shipping_API_Service
 
 		$body = json_decode(wp_remote_retrieve_body($response), true);
 
+		$failed_orders = [];
+
 		if (!empty($body['PrintLabelsErrorList'])) {
-			$error_message = esc_html($body['PrintLabelsErrorList'][0]['ErrorDescription']) ?? esc_html('GLS API error.');
-			$this->log_error($error_message, $post_fields);
-			throw new Exception(esc_html($error_message));
+			foreach ($body['PrintLabelsErrorList'] as $error) {
+				$error_message = esc_html($error['ErrorDescription']) ?? esc_html('GLS API error.');
+				$error_code = $error['ErrorCode'] ?? '';
+				foreach ($error['ClientReferenceList'] as $clientRef) {
+					$order_id = str_replace('Order:', '', $clientRef);
+					$failed_orders[] = [
+						'order_id' => $order_id,
+						'error_message' => $error_message,
+						'error_code' => $error_code
+					];
+				}
+				$this->log_error($error_message, $post_fields);
+			}
+			if (!$is_multi && count($failed_orders) > 0) {
+				throw new Exception(esc_html($failed_orders[0]['error_message']));
+			}
 		}
 
 		if ($this->get_option("logging") === 'yes') {
 			$this->log_response($body, $response, $post_fields);
 		}
 
-		return $body;
+		return [
+			'body' => $body,
+			'failed_orders' => $failed_orders
+		];
+		
 	}
 
 	private function log_error($error_message, $params)

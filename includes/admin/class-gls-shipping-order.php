@@ -109,11 +109,11 @@ class GLS_Shipping_Order
         try {
             $prepare_data = new GLS_Shipping_API_Data($order_id);
             $data = $prepare_data->generate_post_fields($count);
-
+    
             $api = new GLS_Shipping_API_Service();
-            $body = $api->send_order($data, $order_id);
-            $this->save_label_and_tracking_info($body, $order_id);
-
+            $result = $api->send_order($data);
+            $this->save_label_and_tracking_info($result['body'], $order_id);
+    
             wp_send_json_success(array('success' => true));
         } catch (Exception $e) {
             error_log($e->getMessage());
