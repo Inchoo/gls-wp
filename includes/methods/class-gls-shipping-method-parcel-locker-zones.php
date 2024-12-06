@@ -52,7 +52,7 @@ function gls_shipping_method_parcel_locker_zones_init()
 						'title' => __('Title', 'gls-shipping-for-woocommerce'),
 						'type' => 'text',
 						'description' => __('Title to be displayed on site', 'gls-shipping-for-woocommerce'),
-						'default' => __('Delivery to GLS Parcel Shop', 'gls-shipping-for-woocommerce')
+						'default' => __('Delivery to GLS Parcel Locker', 'gls-shipping-for-woocommerce')
 					),
 					'shipping_price' => array(
 						'title'       => __('Shipping Price', 'gls-shipping-for-woocommerce'),
@@ -97,8 +97,16 @@ max_weight|cost',
 				$default_price = $this->get_instance_option('shipping_price', '0');
 				$free_shipping_threshold = $this->get_option('free_shipping_threshold', '0');
 
-				$cart_weight = WC()->cart->get_cart_contents_weight();
-				$cart_total = WC()->cart->get_subtotal();
+				// Get the GLS shipping method settings
+				$gls_settings = get_option('woocommerce_gls_shipping_method_settings', array());
+
+				// Check if free shipping after discount is enabled
+				$free_shipping_after_discount = isset($gls_settings['free_shipping_after_discount']) && $gls_settings['free_shipping_after_discount'] === 'yes';
+				if ($free_shipping_after_discount) {
+					$cart_total = WC()->cart->get_subtotal() - WC()->cart->get_discount_total();
+				} else {
+					$cart_total = WC()->cart->get_subtotal();
+				}
 
 				$shipping_price = $default_price;
 
@@ -120,6 +128,7 @@ max_weight|cost',
 
 					// If we have valid weight-based rates, use them
 					if (!empty($weight_based_rates)) {
+						$cart_weight = WC()->cart->get_cart_contents_weight();
 						// Sort rates by weight in ascending order
 						usort($weight_based_rates, function($a, $b) {
 							return $a['weight'] <=> $b['weight'];

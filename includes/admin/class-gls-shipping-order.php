@@ -76,15 +76,21 @@ class GLS_Shipping_Order
             <div style="margin-top:10px;">
                 <?php if ($gls_print_label) { ?>
                     <a class="button primary" href="<?php echo esc_url($gls_print_label); ?>" target="_blank"><?php esc_html_e("Print Label", "gls-shipping-for-woocommerce"); ?></a>
-                    <div style="margin-top:10px;display: flex; align-items: center;">
-                        <input type="number" id="gls-label-count" min="1" value="1" style="width: 50px; margin-right: 10px;">
+                    <div style="margin-top:10px;display: flex; flex-direction: column;">
+                        <div style="margin-bottom: 10px;">
+                            <?php esc_html_e("Number of Packages:", "gls-shipping-for-woocommerce"); ?>
+                            <input type="number" id="gls-label-count" min="1" value="1" style="width: 50px; margin-right: 10px;">
+                        </div>
                         <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
                             <?php esc_html_e("Regenerate Shipping Label", "gls-shipping-for-woocommerce"); ?>
                         </button>
                     </div>
                 <?php } else { ?>
                     <div style="display: flex; align-items: center;">
-                        <input type="number" id="gls-label-count" min="1" value="1" style="width: 50px; margin-right: 10px;">
+                        <div style="margin-bottom: 10px;">
+                            <?php esc_html_e("Number of Packages", "gls-shipping-for-woocommerce"); ?>
+                            <input type="number" id="gls-label-count" min="1" value="1" style="width: 50px; margin-right: 10px;">
+                        </div>
                         <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
                             <?php esc_html_e("Generate Shipping Label", "gls-shipping-for-woocommerce"); ?>
                         </button>
