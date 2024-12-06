@@ -3,7 +3,7 @@
 /**
  * Plugin Name: GLS Shipping for WooCommerce
  * Description: Offical GLS Shipping for WooCommerce plugin
- * Version: 1.1.4
+ * Version: 1.2.0
  * Author: Inchoo
  * License: GPLv2
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -11,7 +11,7 @@
  * Text Domain: gls-shipping-for-woocommerce
  * Domain Path: /languages
  * Requires at least: 5.9
- * Tested up to: 6.6
+ * Tested up to: 6.7
  * Requires PHP: 7.1
  *
  * WC requires at least: 4.3
@@ -24,7 +24,7 @@ final class GLS_Shipping_For_Woo
 {
     private static $instance;
 
-    private $version = '1.1.4';
+    private $version = '1.2.0';
 
     private function __construct()
     {

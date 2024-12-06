@@ -2,8 +2,8 @@
 Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 4.4
-Tested up to: 6.6
-Stable tag: 1.1.4
+Tested up to: 6.7
+Stable tag: 1.2.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -53,6 +53,15 @@ To install and configure this plugin:
 == Screenshots ==
 
 == Changelog ==
+
+= 1.2.0 =
+* Added support for Shipping Zones
+* Refactored script from jQuery to Vanilla JS
+* Added support for Free Shipping
+* Bulk Label Generation on the order listing screen
+* Bulk Label Printing on the order listing screen
+* Introduced weight-based pricing support
+* Added the ability to set the number of packages
 
 = 1.1.4 =
 * Tax support
