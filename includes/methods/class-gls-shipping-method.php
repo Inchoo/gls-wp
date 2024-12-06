@@ -78,11 +78,28 @@ function gls_shipping_method_init()
 					'weight_based_rates' => array(
 						'title'       => __('Weight Based Rates: max_weight|cost', 'gls-shipping-for-woocommerce'),
 						'type'        => 'textarea',
-						'description' => sprintf(__('Optional: Enter weight based rates (one per line). Format: max_weight|cost. Example: 1|100 means up to 5 %s costs 100. Leave empty to use default price.', 'gls-shipping-for-woocommerce'), $weight_unit),
+						'description' => sprintf(__('Optional: Enter weight based rates (one per line). Format: max_weight|cost. Example: 1|100 means up to 1 %s costs 100. Leave empty to use default price.', 'gls-shipping-for-woocommerce'), $weight_unit),
 						'default'     => '',
 						'placeholder' => 'max_weight|cost
 max_weight|cost',
 						'css'         => 'width:300px; height: 150px;',
+					),
+					'free_shipping_threshold' => array(
+						'title'       => __('Free Shipping Threshold', 'gls-shipping-for-woocommerce'),
+						'type'        => 'number',
+						'description' => __('Cart total amount above which shipping will be free. Set to 0 to disable.', 'gls-shipping-for-woocommerce'),
+						'default'     => '0',
+						'desc_tip'    => true,
+						'custom_attributes' => array(
+							'min'  => '0',
+							'step' => '0.01'
+						)
+					),
+					'free_shipping_before_discount' => array(
+						'title'       => __('Apply Free Shipping Before Discount', 'gls-shipping-for-woocommerce'),
+						'type'        => 'checkbox',
+						'description' => __('If checked, the free shipping threshold will be applied to the cart total before discounts. This settings applies for all of the GLS Shipping Methods.', 'gls-shipping-for-woocommerce'),
+						'default'     => 'no',
 					),
 					'supported_countries' => array(
 						'title'   => __('Supported Countries', 'gls-shipping-for-woocommerce'),
@@ -302,13 +319,18 @@ max_weight|cost',
 				$supported_countries = $this->get_option('supported_countries');
 				$weight_based_rates_raw = $this->get_option('weight_based_rates', '');
 				$default_price = $this->get_option('shipping_price', '0');
+				$free_shipping_threshold = $this->get_option('free_shipping_threshold', '0');
 
 				if (in_array($package['destination']['country'], $supported_countries)) {
 					$cart_weight = WC()->cart->get_cart_contents_weight();
+					$cart_total = WC()->cart->get_subtotal();
+					
 					$shipping_price = $default_price;
 
+					if ($free_shipping_threshold > 0 && $cart_total >= $free_shipping_threshold) {
+						$shipping_price = 0;
 					// Check if weight-based rates are set and valid
-					if (!empty(trim($weight_based_rates_raw))) {
+					} else if (!empty(trim($weight_based_rates_raw))) {
 						$weight_based_rates = array();
 						$lines = explode("\n", $weight_based_rates_raw);
 						foreach ($lines as $line) {
