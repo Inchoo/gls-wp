@@ -95,12 +95,6 @@ max_weight|cost',
 							'step' => '0.01'
 						)
 					),
-					'free_shipping_after_discount' => array(
-						'title'       => __('Apply Free Shipping After Discount', 'gls-shipping-for-woocommerce'),
-						'type'        => 'checkbox',
-						'description' => __('If checked, the free shipping threshold will be applied to the cart total after discounts. This settings applies for all of the GLS Shipping Methods.', 'gls-shipping-for-woocommerce'),
-						'default'     => 'no',
-					),
 					'supported_countries' => array(
 						'title'   => __('Supported Countries', 'gls-shipping-for-woocommerce'),
 						'type'    => 'multiselect',
@@ -322,17 +316,8 @@ max_weight|cost',
 				$free_shipping_threshold = $this->get_option('free_shipping_threshold', '0');
 
 				if (in_array($package['destination']['country'], $supported_countries)) {
-					// Get the GLS shipping method settings
-					$gls_settings = get_option('woocommerce_gls_shipping_method_settings', array());
-
-					// Check if free shipping after discount is enabled
-					$free_shipping_after_discount = isset($gls_settings['free_shipping_after_discount']) && $gls_settings['free_shipping_after_discount'] === 'yes';
-					if ($free_shipping_after_discount) {
-						$cart_total = WC()->cart->get_subtotal() - WC()->cart->get_discount_total();
-					} else {
-						$cart_total = WC()->cart->get_subtotal();
-					}
 					
+					$cart_total = WC()->cart->get_subtotal() - WC()->cart->get_discount_total();
 					$shipping_price = $default_price;
 
 					if ($free_shipping_threshold > 0 && $cart_total >= $free_shipping_threshold) {

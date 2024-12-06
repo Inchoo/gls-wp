@@ -143,21 +143,25 @@ class GLS_Shipping_Order
     public function save_print_labels($labels, $order_id, $order)
     {
         require_once(ABSPATH . 'wp-admin/includes/file.php');
-
+    
         WP_Filesystem();
         global $wp_filesystem;
-
+    
         $label_print = implode(array_map('chr', $labels));
         $upload_dir = wp_upload_dir();
-        $file_url = $upload_dir['url'] . '/shipping_label_' . $order_id . '.pdf';
-        $file_path = $upload_dir['path'] . '/shipping_label_' . $order_id . '.pdf';
+        
+        $timestamp = current_time('YmdHis');
+        $file_name = 'shipping_label_' . $order_id . '_' . $timestamp . '.pdf';
+        
+        $file_url = $upload_dir['url'] . '/' . $file_name;
+        $file_path = $upload_dir['path'] . '/' . $file_name;
 
         if ($wp_filesystem->put_contents($file_path, $label_print)) {
             $order->update_meta_data('_gls_print_label', $file_url);
             $order->save();
         }
-
     }
+    
 
     public function save_tracking_info($printLabelsInfoList, $order_id, $order)
     {
