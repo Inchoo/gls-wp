@@ -310,7 +310,7 @@ max_weight|cost',
 			 */
 			public function calculate_shipping($package = array())
 			{
-				$supported_countries = $this->get_option('supported_countries');
+				$supported_countries = $this->get_option('supported_countries', []);
 				$weight_based_rates_raw = $this->get_option('weight_based_rates', '');
 				$default_price = $this->get_option('shipping_price', '0');
 				$free_shipping_threshold = $this->get_option('free_shipping_threshold', '0');
