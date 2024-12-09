@@ -4,7 +4,7 @@
 		$(".gls-print-label").on("click", function () {
 			const orderId = $(this).attr("order-id");
 			const $button = $(this);
-			const count = $("#gls-label-count").val() || 1;
+			const count = $("#gls_label_count").val() || 1;
 			$button.prop("disabled", true);
 			generateGLSLabel(orderId, $button, count);
 		});

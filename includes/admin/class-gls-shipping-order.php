@@ -40,26 +40,38 @@ class GLS_Shipping_Order
     private function display_gls_pickup_info($order_id)
     {
         $order = wc_get_order($order_id);
-
+    
         $gls_pickup_info = $order->get_meta('_gls_pickup_info', true);
-        $tracking_code   = $order->get_meta('_gls_tracking_code', true);
-
+        $tracking_codes  = $order->get_meta('_gls_tracking_codes', true);
+        
+        // Legacy support, should be removed later on.
+        $tracking_code  = $order->get_meta('_gls_tracking_code', true);
+    
         if (!empty($gls_pickup_info)) {
             $pickup_info = json_decode($gls_pickup_info);
-
+    
             echo '<strong>' . esc_html__('GLS Pickup Location:', 'gls-shipping-for-woocommerce') . '</strong><br/>';
             echo '<strong>' . esc_html__('ID:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->id) . '<br>';
             echo '<strong>' . esc_html__('Name:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->name) . '<br>';
             echo '<strong>' . esc_html__('Address:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->contact->address) . ', ' . esc_html($pickup_info->contact->city) . ', ' . esc_html($pickup_info->contact->postalCode) . '<br>';
             echo '<strong>' . esc_html__('Country:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->contact->countryCode) . '<br>';
         }
-
-        if ($tracking_code) {
+    
+        if (!empty($tracking_codes) && is_array($tracking_codes)) {
+            $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
+            echo '<br/><strong>' . esc_html__('GLS Tracking Numbers:', 'gls-shipping-for-woocommerce') . '</strong><br>';
+            foreach ($tracking_codes as $tracking_code) {
+                $tracking_url = "https://gls-group.eu/" . $gls_shipping_method_settings['country'] . "/en/parcel-tracking/?match=" . $tracking_code;
+                echo '<a href="' . esc_url($tracking_url) . '" target="_blank">' . esc_html($tracking_code) . '</a><br>';
+            }
+        } else if (!empty($tracking_code)) {
+            // Legacy support, should be removed later on.
             $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
             $tracking_url = "https://gls-group.eu/" . $gls_shipping_method_settings['country'] . "/en/parcel-tracking/?match=" . $tracking_code;
             echo '<br/><strong>' . esc_html__('GLS Tracking Number: ', 'gls-shipping-for-woocommerce') . '<a href="' . esc_url($tracking_url) . '" target="_blank">' . esc_html($tracking_code) . '</a></strong><br>';
         }
     }
+    
 
     public function gls_shipping_info_meta_box_content($order_or_post_id)
     {
@@ -79,17 +91,17 @@ class GLS_Shipping_Order
                     <div style="margin-top:10px;display: flex; flex-direction: column;">
                         <div style="margin-bottom: 10px;">
                             <?php esc_html_e("Number of Packages:", "gls-shipping-for-woocommerce"); ?>
-                            <input type="number" id="gls-label-count" min="1" value="1" style="width: 50px; margin-right: 10px;">
+                            <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="1" style="width: 50px; margin-right: 10px;">
                         </div>
                         <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
                             <?php esc_html_e("Regenerate Shipping Label", "gls-shipping-for-woocommerce"); ?>
                         </button>
                     </div>
                 <?php } else { ?>
-                    <div style="display: flex; align-items: center;">
+                    <div style="margin-top:10px;display: flex; flex-direction: column;">
                         <div style="margin-bottom: 10px;">
-                            <?php esc_html_e("Number of Packages", "gls-shipping-for-woocommerce"); ?>
-                            <input type="number" id="gls-label-count" min="1" value="1" style="width: 50px; margin-right: 10px;">
+                            <?php esc_html_e("Number of Packages:", "gls-shipping-for-woocommerce"); ?>
+                            <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="1" style="width: 50px; margin-right: 10px;">
                         </div>
                         <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
                             <?php esc_html_e("Generate Shipping Label", "gls-shipping-for-woocommerce"); ?>
@@ -165,10 +177,26 @@ class GLS_Shipping_Order
 
     public function save_tracking_info($printLabelsInfoList, $order_id, $order)
     {
-        $tracking_code = $printLabelsInfoList[0]['ParcelNumber'] ?? null;
-        $parcel_id = $printLabelsInfoList[0]['ParcelId'] ?? null;
-        $order->update_meta_data('_gls_tracking_code', $tracking_code);
-        $order->update_meta_data('_gls_parcel_id', $parcel_id);
+        $tracking_codes = array();
+        $parcel_ids = array();
+    
+        foreach ($printLabelsInfoList as $labelInfo) {
+            if (isset($labelInfo['ParcelNumber'])) {
+                $tracking_codes[] = $labelInfo['ParcelNumber'];
+            }
+            if (isset($labelInfo['ParcelId'])) {
+                $parcel_ids[] = $labelInfo['ParcelId'];
+            }
+        }
+    
+        if (!empty($tracking_codes)) {
+            $order->update_meta_data('_gls_tracking_codes', $tracking_codes);
+        }
+    
+        if (!empty($parcel_ids)) {
+            $order->update_meta_data('_gls_parcel_ids', $parcel_ids);
+        }
+    
         $order->save();
     }
 }
