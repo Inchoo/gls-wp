@@ -328,10 +328,12 @@ max_weight|cost',
 						$lines = explode("\n", $weight_based_rates_raw);
 						foreach ($lines as $line) {
 							$rate = explode('|', trim($line));
-							if (count($rate) == 2 && is_numeric($rate[0]) && is_numeric($rate[1])) {
+							$weight = str_replace(',', '.', $rate[0]);
+							$price = str_replace(',', '.', $rate[1]);
+							if (count($rate) == 2 && is_numeric($weight) && is_numeric($price)) {
 								$weight_based_rates[] = array(
-									'weight' => floatval($rate[0]),
-									'price' => floatval($rate[1])
+									'weight' => floatval($weight),
+									'price' => floatval($price)
 								);
 							}
 						}
@@ -361,7 +363,7 @@ max_weight|cost',
 					$rate = array(
 						'id'       => $this->id,
 						'label'    => $this->title,
-						'cost'     => $shipping_price,
+						'cost'     => str_replace(',', '.', $shipping_price),
 						'calc_tax' => 'per_order'
 					);
 
