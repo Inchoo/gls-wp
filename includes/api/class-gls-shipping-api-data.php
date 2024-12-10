@@ -61,13 +61,22 @@ class GLS_Shipping_API_Data
     private function check_parcel_delivery_service($order)
     {
         $shipping_methods = $order->get_shipping_methods();
+        $gls_shipping_methods = [
+            GLS_SHIPPING_METHOD_PARCEL_LOCKER_ID,
+            GLS_SHIPPING_METHOD_PARCEL_SHOP_ID,
+            GLS_SHIPPING_METHOD_PARCEL_LOCKER_ZONES_ID,
+            GLS_SHIPPING_METHOD_PARCEL_SHOP_ZONES_ID
+        ];
+    
         foreach ($shipping_methods as $shipping_method) {
-            if ($shipping_method->get_method_id() === GLS_SHIPPING_METHOD_PARCEL_LOCKER_ID || $shipping_method->get_method_id() === GLS_SHIPPING_METHOD_PARCEL_SHOP_ID) {
+            if (in_array($shipping_method->get_method_id(), $gls_shipping_methods)) {
                 return true;
             }
         }
+    
         return false;
     }
+    
 
     /**
      * Gets pickup information for an order.
