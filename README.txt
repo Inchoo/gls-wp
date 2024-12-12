@@ -11,11 +11,20 @@ GLS Shipping plugin for WooCommerce
 
 == Description ==
 
-This plugin will enable GLS Shipping method for your website.
+This plugin seamlessly integrates GLS Shipping into your website, supporting both global shipping methods and custom Shipping Zones. It includes features for generating shipping labels and bulk label creation, streamlining your shipping process.
 
 ## Introduction ##
 
 This WooCommerce shipping plugin integrates with GLS Group to provide direct shipping capabilities within your WooCommerce store. This plugin uses external services to handle shipping processes and tracking effectively.
+
+## Supported Countries ##
+- Croatia
+- Czech Republic
+- Hungary
+- Romania
+- Slovenia
+- Slovakia
+- Serbia
 
 ## External Services ##
 This plugin makes use of the following third-party services:
@@ -36,7 +45,7 @@ This plugin makes use of the following third-party services:
 When using our plugin, certain data such as tracking numbers and geographical locations may be transmitted to third-party services mentioned above. We do not store this data on our servers. Please review the privacy policies of the respective services (linked above) to understand how they manage your data.
 
 = Links and Additional Information =
-For more details about GLS Shipping plugin for WooCommerce and how it integrates with your WordPress site, please visit our website: [LoyalGenie](https://gls-group.com/HR/en/)
+For more details about GLS Shipping plugin for WooCommerce and how it integrates with your WordPress site, please visit our website: [GLS Group](https://gls-group.com/HR/en/)
 To understand how we handle and protect your data, please review our Terms of Use and Privacy Policies available at the following links:
 * [Terms of Service](https://gls-group.com/HR/en/terms-conditions/) 
 * [Privacy Policy](https://gls-group.com/HR/en/privacy-policy/)
