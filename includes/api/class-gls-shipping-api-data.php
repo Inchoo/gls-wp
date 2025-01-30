@@ -394,7 +394,7 @@ class GLS_Shipping_API_Data
     {
         $delivery_address = [
             'Name' => $order->get_shipping_company() ?: $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
-            'Street' => $order->get_shipping_address_1(),
+            'Street' => $order->get_shipping_address_1() . ' ' . $order->get_shipping_address_2(),
             'City' => $order->get_shipping_city(),
             'ZipCode' => $order->get_shipping_postcode(),
             'CountryIsoCode' => $order->get_shipping_country(),
