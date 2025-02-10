@@ -3,7 +3,7 @@ Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 4.4
 Tested up to: 6.7
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -62,6 +62,9 @@ To install and configure this plugin:
 == Screenshots ==
 
 == Changelog ==
+
+= 1.2.1 =
+* Added support for Street Address second field
 
 = 1.2.0 =
 * Added support for Shipping Zones
