@@ -434,7 +434,6 @@ class GLS_Shipping_API_Data
             $parcel['PickupAddress'] = $this->get_pickup_address();
             $parcel['DeliveryAddress'] = $this->get_delivery_address($order);
             $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info);
-            $parcel['Content'] = $order->get_shipping_address_2();
 
             if ($order->get_shipping_country() === 'RS') {
                 $parcel['SenderIdentityCardNumber'] = $senderIdentityCardNumber;
@@ -490,7 +489,6 @@ class GLS_Shipping_API_Data
         $parcel['PickupAddress'] = $this->get_pickup_address();
         $parcel['DeliveryAddress'] = $this->get_delivery_address($order);
         $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info);
-        $parcel['Content'] = $order->get_shipping_address_2();
 
         if ($order->get_shipping_country() === 'RS') {
             $parcel['SenderIdentityCardNumber'] = $senderIdentityCardNumber;
