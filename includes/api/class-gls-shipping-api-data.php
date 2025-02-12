@@ -449,6 +449,7 @@ class GLS_Shipping_API_Data
         }
 
         $params = [
+            'WebshopEngine' => 'woocommercehr',
             'ParcelList' => $parcel_list,
             'PrintPosition' => (int)$this->get_option("print_position") ?: 1,
             'TypeOfPrinter' => $this->get_option("type_of_printer") ?: 'A4_2x2',
@@ -501,6 +502,7 @@ class GLS_Shipping_API_Data
         }
 
         $params = [
+            'WebshopEngine' => 'woocommercehr',
             'ParcelList' => [$parcel],
             'PrintPosition' => (int)$this->get_option("print_position") ?: 1,
             'TypeOfPrinter' => $this->get_option("type_of_printer") ?: 'A4_2x2',

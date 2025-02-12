@@ -56,7 +56,6 @@ class GLS_Shipping_API_Service
 	{
 		$post_fields['Username'] = $this->get_option("username");
 		$post_fields['Password'] = $this->get_password();
-		$post_fields['WebshopEngine'] = 'woocommercehr';
 
 		$params = array(
 			'headers'     => array('Content-Type' => 'application/json'),
