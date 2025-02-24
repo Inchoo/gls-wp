@@ -381,7 +381,7 @@ class GLS_Shipping_API_Data
             'ContactEmail' => get_option('admin_email')
         ];
 
-        return $pickup_address;
+        return apply_filters('gls_shipping_for_woocommerce_api_get_pickup_address', $pickup_address);
     }
 
     /**
