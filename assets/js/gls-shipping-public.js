@@ -109,9 +109,6 @@
 						glsMap.setAttribute("filter-type", "parcel-shop");
 						break;
 					default:
-						if (glsPickupInfo) {
-							glsPickupInfo.style.display = "none";
-						}
 						break;
 				}
 			}
