@@ -108,8 +108,6 @@
 					case "gls_shipping_method_parcel_shop":
 						glsMap.setAttribute("filter-type", "parcel-shop");
 						break;
-					default:
-						break;
 				}
 			}
 		}
