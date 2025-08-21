@@ -311,7 +311,11 @@ class GLS_Shipping_Pickup
             $required_fields = array('package_count', 'pickup_date_from', 'pickup_date_to', 'contact_name', 'contact_phone', 'contact_email');
             foreach ($required_fields as $field) {
                 if (empty($_POST[$field])) {
-                    wp_send_json_error(array('message' => sprintf(__('Field %s is required.', 'gls-shipping-for-woocommerce'), $field)));
+                    wp_send_json_error(array('message' => sprintf(
+                        /* translators: %s: field name that is required */
+                        __('Field %s is required.', 'gls-shipping-for-woocommerce'), 
+                        $field
+                    )));
                 }
             }
 

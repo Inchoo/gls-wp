@@ -221,6 +221,7 @@ class GLS_Shipping_Bulk
                 // Prepare success message
                 $message = sprintf(
                     _n(
+                        /* translators: %s: number of generated labels */
                         '%s GLS label was successfully generated.',
                         '%s GLS labels were successfully generated.',
                         $generated,
@@ -233,6 +234,7 @@ class GLS_Shipping_Bulk
                 if ($failed > 0) {
                     $message .= ' ' . sprintf(
                         _n(
+                            /* translators: %s: number of failed labels */
                             '%s label failed to generate.',
                             '%s labels failed to generate.',
                             $failed,
@@ -241,6 +243,7 @@ class GLS_Shipping_Bulk
                         number_format_i18n($failed)
                     );
                     $message .= ' ' . sprintf(
+                        /* translators: %s: comma-separated list of order IDs that failed */
                         __('Failed order IDs: %s', 'gls-shipping-for-woocommerce'),
                         implode(', ', $failed_orders)
                     );
@@ -258,6 +261,7 @@ class GLS_Shipping_Bulk
                     // Prepare success message
                     $message = sprintf(
                         _n(
+                            /* translators: %s: number of orders processed */
                             'GLS label for %s order has been generated. ',
                             'GLS labels for %s orders have been generated. ',
                             $printed,
@@ -270,6 +274,7 @@ class GLS_Shipping_Bulk
                     if ($failed > 0) {
                         $message .= sprintf(
                             _n(
+                                /* translators: %s: number of failed labels */
                                 '%s label failed to generate. ',
                                 '%s labels failed to generate. ',
                                 $failed,
@@ -284,6 +289,7 @@ class GLS_Shipping_Bulk
                     }
                     
                     $message .= sprintf(
+                        /* translators: %s: URL to download the PDF file */
                         __('<br><a href="%s" target="_blank">Click here to download the PDF</a>', 'gls-shipping-for-woocommerce'),
                         esc_url($pdf_url)
                     );
