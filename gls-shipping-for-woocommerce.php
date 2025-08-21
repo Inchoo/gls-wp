@@ -40,12 +40,16 @@ final class GLS_Shipping_For_Woo
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-assets.php');
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-checkout.php');
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-my-account.php');
+        require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-logo-display.php');
+        require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-product-restrictions.php');
 
         if (is_admin()) {
             require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-order.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-bulk.php');
+            require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-pickup.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/api/class-gls-shipping-api-data.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/api/class-gls-shipping-api-service.php');
+            require_once(GLS_SHIPPING_ABSPATH . 'includes/api/class-gls-shipping-pickup-api-service.php');
         }
 
         if (in_array('woocommerce/woocommerce.php', apply_filters('active_plugins', get_option('active_plugins')))) {

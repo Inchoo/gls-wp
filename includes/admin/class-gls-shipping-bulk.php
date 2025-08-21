@@ -36,6 +36,16 @@ class GLS_Shipping_Bulk
 
         // Enqueue admin styles
         add_action('admin_print_styles', array($this, 'admin_enqueue_styles'));
+
+        // Add GLS Parcel ID column to orders list (both standard and HPOS)
+        add_filter('manage_edit-shop_order_columns', array($this, 'add_gls_parcel_id_column'));
+        add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_gls_parcel_id_column'));
+        
+        // Column content for standard WooCommerce
+        add_action('manage_shop_order_posts_custom_column', array($this, 'populate_gls_parcel_id_column'), 10, 2);
+        
+        // Column content for HPOS - unified approach
+        add_action('manage_woocommerce_page_wc-orders_custom_column', array($this, 'populate_gls_parcel_id_column'), 10, 2);
     }
 
     // Add GLS-specific order actions
@@ -126,6 +136,35 @@ class GLS_Shipping_Bulk
             $pdf_url = $this->bulk_create_print_labels($body);
     
             if ($pdf_url) {
+                // Save tracking numbers to order meta
+                if (!empty($body['PrintLabelsInfoList'])) {
+                    foreach ($body['PrintLabelsInfoList'] as $labelInfo) {
+                        if (isset($labelInfo['ClientReference'])) {
+                            $order_id = str_replace('Order:', '', $labelInfo['ClientReference']);
+                            $order = wc_get_order($order_id);
+                            if ($order) {
+                                $tracking_codes = array();
+                                $parcel_ids = array();
+
+                                if (isset($labelInfo['ParcelNumber'])) {
+                                    $tracking_codes[] = $labelInfo['ParcelNumber'];
+                                }
+                                if (isset($labelInfo['ParcelId'])) {
+                                    $parcel_ids[] = $labelInfo['ParcelId'];
+                                }
+
+                                if (!empty($tracking_codes)) {
+                                    $order->update_meta_data('_gls_tracking_codes', $tracking_codes);
+                                }
+                                if (!empty($parcel_ids)) {
+                                    $order->update_meta_data('_gls_parcel_ids', $parcel_ids);
+                                }
+                                $order->save();
+                            }
+                        }
+                    }
+                }
+
                 // Add query args to URL for displaying notices and providing PDF link
                 $redirect = add_query_arg(
                     array(
@@ -273,8 +312,90 @@ class GLS_Shipping_Bulk
                 a.button.gls-generate-label::after {
                     content: '\\f502';
                 }
+				.wc-action-button-gls-download-label {
+					background: #c0e2ad !important;
+					color: #2c4700 !important;
+					border-color: #2c4700 !important;
+				}
+
+				.wc-action-button-gls-generate-label {
+					background: #c8e7f2 !important;
+					color: #2c4700 !important;
+					border-color: #2c4700 !important;
+				}
             ";
             wp_add_inline_style('woocommerce_admin_styles', $custom_css);
+        }
+    }
+
+    /**
+     * Add GLS Parcel ID column to orders list
+     */
+    public function add_gls_parcel_id_column($columns)
+    {
+        // Insert the GLS Parcel ID column after the order status column
+        $new_columns = array();
+        foreach ($columns as $key => $value) {
+            $new_columns[$key] = $value;
+            if ($key === 'order_status') {
+                $new_columns['gls_parcel_id'] = __('GLS Parcel ID', 'gls-shipping-for-woocommerce');
+            }
+        }
+        return $new_columns;
+    }
+
+    /**
+     * Populate GLS Parcel ID column content (works for both standard and HPOS)
+     */
+    public function populate_gls_parcel_id_column($column, $order_data)
+    {
+        if ($column === 'gls_parcel_id') {
+            // Handle different parameter types for standard vs HPOS
+            if (is_object($order_data)) {
+                // HPOS passes order object
+                $order_id = $order_data->get_id();
+            } else {
+                // Standard WooCommerce passes post ID
+                $order_id = $order_data;
+            }
+            $this->display_parcel_ids($order_id);
+        }
+    }
+
+    /**
+     * Display parcel IDs for an order
+     */
+    private function display_parcel_ids($order_id)
+    {
+        $order = wc_get_order($order_id);
+        if (!$order) {
+            echo '-';
+            return;
+        }
+
+        $parcel_ids = array();
+
+        // Get parcel IDs from _gls_parcel_ids meta (if exists)
+        $stored_parcel_ids = $order->get_meta('_gls_parcel_ids', true);
+        if (!empty($stored_parcel_ids)) {
+            if (is_array($stored_parcel_ids)) {
+                foreach ($stored_parcel_ids as $id) {
+                    if (!in_array($id, $parcel_ids)) {
+                        $parcel_ids[] = esc_html($id);
+                    }
+                }
+            } else {
+                if (!in_array($stored_parcel_ids, $parcel_ids)) {
+                    $parcel_ids[] = esc_html($stored_parcel_ids);
+                }
+            }
+        }
+
+        // Display the parcel IDs
+        if (!empty($parcel_ids)) {
+            echo implode(' ', $parcel_ids);
+        } else {
+            echo '-';
         }
     }
 }

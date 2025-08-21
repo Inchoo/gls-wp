@@ -101,7 +101,7 @@ max_weight|cost',
 						'class'   => 'wc-enhanced-select',
 						'css'     => 'width: 400px;',
 						'options' => WC()->countries->get_countries(),
-						'default' => array('HR', 'CZ', 'HU', 'RO', 'SI', 'SK', 'RS'),
+						'default' => array('AT', 'BE', 'BG', 'CZ', 'DE', 'DK', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IT', 'LU', 'NL', 'PL', 'PT', 'RO', 'RS', 'SI', 'SK'),
 						'desc_tip' => true,
 						'description' => __('Select countries to support for this shipping method.', 'gls-shipping-for-woocommerce'),
 					),
@@ -109,6 +109,23 @@ max_weight|cost',
 						'title'       => __('GLS API Settings', 'gls-shipping-for-woocommerce'),
 						'type'        => 'title',
 						'description' => __('API Settings for all of the GLS Shipping Options.', 'gls-shipping-for-woocommerce'),
+					),
+					'account_mode' => array(
+						'title'       => __('Account Mode', 'gls-shipping-for-woocommerce'),
+						'type'        => 'select',
+						'description' => __('Choose between single or multiple GLS accounts.', 'gls-shipping-for-woocommerce'),
+						'desc_tip'    => true,
+						'default'     => 'single',
+						'options'     => array(
+							'single'   => __('Single GLS Account', 'gls-shipping-for-woocommerce'),
+							'multiple' => __('Multiple GLS Accounts', 'gls-shipping-for-woocommerce'),
+						),
+					),
+					'gls_accounts_grid' => array(
+						'title'       => __('GLS Accounts', 'gls-shipping-for-woocommerce'),
+						'type'        => 'gls_accounts_grid',
+						'description' => __('Manage multiple GLS accounts. Each account can have different credentials and country settings.', 'gls-shipping-for-woocommerce'),
+						'desc_tip'    => true,
 					),
 					'client_id' => array(
 						'title'       => __('Client ID', 'gls-shipping-for-woocommerce'),
@@ -134,13 +151,27 @@ max_weight|cost',
 						'description' => __('Select the country for the GLS service.', 'gls-shipping-for-woocommerce'),
 						'desc_tip'    => true,
 						'options'     => array(
-							'HR' => __('Croatia', 'gls-shipping-for-woocommerce'),
+							'AT' => __('Austria', 'gls-shipping-for-woocommerce'),
+							'BE' => __('Belgium', 'gls-shipping-for-woocommerce'),
+							'BG' => __('Bulgaria', 'gls-shipping-for-woocommerce'),
 							'CZ' => __('Czech Republic', 'gls-shipping-for-woocommerce'),
+							'DE' => __('Germany', 'gls-shipping-for-woocommerce'),
+							'DK' => __('Denmark', 'gls-shipping-for-woocommerce'),
+							'ES' => __('Spain', 'gls-shipping-for-woocommerce'),
+							'FI' => __('Finland', 'gls-shipping-for-woocommerce'),
+							'FR' => __('France', 'gls-shipping-for-woocommerce'),
+							'GR' => __('Greece', 'gls-shipping-for-woocommerce'),
+							'HR' => __('Croatia', 'gls-shipping-for-woocommerce'),
 							'HU' => __('Hungary', 'gls-shipping-for-woocommerce'),
+							'IT' => __('Italy', 'gls-shipping-for-woocommerce'),
+							'LU' => __('Luxembourg', 'gls-shipping-for-woocommerce'),
+							'NL' => __('Netherlands', 'gls-shipping-for-woocommerce'),
+							'PL' => __('Poland', 'gls-shipping-for-woocommerce'),
+							'PT' => __('Portugal', 'gls-shipping-for-woocommerce'),
 							'RO' => __('Romania', 'gls-shipping-for-woocommerce'),
+							'RS' => __('Serbia', 'gls-shipping-for-woocommerce'),
 							'SI' => __('Slovenia', 'gls-shipping-for-woocommerce'),
 							'SK' => __('Slovakia', 'gls-shipping-for-woocommerce'),
-							'RS' => __('Serbia', 'gls-shipping-for-woocommerce'),
 						),
 					),
 					'mode' => array(
@@ -167,10 +198,11 @@ max_weight|cost',
 						'desc_tip' => true,
 					),
 					'content' => array(
-						'title' => __('Content. Only for Serbia.', 'gls-shipping-for-woocommerce'),
+						'title' => __('Content', 'gls-shipping-for-woocommerce'),
 						'type' => 'text',
-						'description' => __('Parcel info printed on label. Only for Serbia.', 'gls-shipping-for-woocommerce'),
-						'default' => '',
+						'description' => __('Parcel info printed on label. Use placeholders: {{order_id}}, {{customer_comment}}, {{customer_name}}, {{customer_email}}, {{customer_phone}}, {{order_total}}, {{shipping_method}}.', 'gls-shipping-for-woocommerce'),
+						'default' => 'Order: {{order_id}}',
+						'placeholder' => 'Order: {{order_id}} - {{customer_comment}}',
 						'desc_tip' => true,
 					),
 					'client_reference_format' => array(
@@ -295,10 +327,255 @@ max_weight|cost',
 						'desc_tip' => true,
 					),
 					'sub_section2' => array(
+						'title'       => __('Display Options', 'gls-shipping-for-woocommerce'),
+						'type'        => 'title',
+						'description' => __('Customize how GLS shipping methods are displayed to customers.', 'gls-shipping-for-woocommerce'),
+					),
+					'show_gls_logo' => array(
+						'title'       => __('Show GLS Logo', 'gls-shipping-for-woocommerce'),
+						'type'        => 'checkbox',
+						'label'       => __('Display GLS logo next to shipping methods', 'gls-shipping-for-woocommerce'),
+						'description' => __('Show the GLS logo icon next to all GLS shipping methods in cart and checkout to highlight your GLS delivery options.', 'gls-shipping-for-woocommerce'),
+						'desc_tip'    => true,
+						'default'     => 'no',
+					),
+					'sub_section3' => array(
 						'title'       => '',
 						'type'        => 'title',
 					),
 				);
+			}
+
+			/**
+			 * Generate custom field for GLS accounts grid
+			 */
+			public function generate_gls_accounts_grid_html($key, $data)
+			{
+				$field_key = $this->get_field_key($key);
+				$defaults = array(
+					'title'       => '',
+					'disabled'    => false,
+					'class'       => '',
+					'css'         => '',
+					'placeholder' => '',
+					'type'        => 'gls_accounts_grid',
+					'desc_tip'    => false,
+					'description' => '',
+				);
+
+				$data = wp_parse_args($data, $defaults);
+				$accounts = $this->get_option('gls_accounts_grid', array());
+				
+				ob_start();
+				?>
+				<tr valign="top" id="gls_accounts_row" style="<?php echo $this->get_option('account_mode', 'single') === 'single' ? 'display: none;' : ''; ?>">
+					<th scope="row" class="titledesc">
+						<label for="<?php echo esc_attr($field_key); ?>"><?php echo wp_kses_post($data['title']); ?> <?php echo $this->get_tooltip_html($data); ?></label>
+					</th>
+					<td class="forminp">
+						<fieldset>
+							<legend class="screen-reader-text"><span><?php echo wp_kses_post($data['title']); ?></span></legend>
+							<div id="gls-accounts-container">
+								<table class="gls-accounts-table wp-list-table widefat fixed striped" style="margin-bottom: 10px;">
+									<thead>
+										<tr>
+											<th><?php _e('Active', 'gls-shipping-for-woocommerce'); ?></th>
+											<th><?php _e('Client ID', 'gls-shipping-for-woocommerce'); ?></th>
+											<th><?php _e('Actions', 'gls-shipping-for-woocommerce'); ?></th>
+										</tr>
+									</thead>
+									<tbody id="gls-accounts-tbody">
+										<?php
+										if (!empty($accounts)) {
+											foreach ($accounts as $index => $account) {
+												$this->render_account_row($index, $account);
+											}
+										}
+										?>
+									</tbody>
+								</table>
+								<button type="button" id="add-gls-account" class="button button-secondary"><?php _e('Add New Account', 'gls-shipping-for-woocommerce'); ?></button>
+							</div>
+							<?php echo $this->get_description_html($data); ?>
+						</fieldset>
+					</td>
+				</tr>
+				<?php
+				return ob_get_clean();
+			}
+
+			/**
+			 * Render a single account row
+			 */
+			private function render_account_row($index, $account = array())
+			{
+				$account = wp_parse_args($account, array(
+					'name' => '',
+					'client_id' => '',
+					'username' => '',
+					'password' => '',
+					'country' => 'HR',
+					'mode' => 'production',
+					'active' => false,
+					'sender_name' => '',
+					'sender_street' => '',
+					'sender_city' => '',
+					'sender_postcode' => '',
+					'sender_country' => '',
+					'sender_phone' => '',
+					'sender_email' => ''
+				));
+
+				$countries = array(
+					'AT' => __('Austria', 'gls-shipping-for-woocommerce'),
+					'BE' => __('Belgium', 'gls-shipping-for-woocommerce'),
+					'BG' => __('Bulgaria', 'gls-shipping-for-woocommerce'),
+					'CZ' => __('Czech Republic', 'gls-shipping-for-woocommerce'),
+					'DE' => __('Germany', 'gls-shipping-for-woocommerce'),
+					'DK' => __('Denmark', 'gls-shipping-for-woocommerce'),
+					'ES' => __('Spain', 'gls-shipping-for-woocommerce'),
+					'FI' => __('Finland', 'gls-shipping-for-woocommerce'),
+					'FR' => __('France', 'gls-shipping-for-woocommerce'),
+					'GR' => __('Greece', 'gls-shipping-for-woocommerce'),
+					'HR' => __('Croatia', 'gls-shipping-for-woocommerce'),
+					'HU' => __('Hungary', 'gls-shipping-for-woocommerce'),
+					'IT' => __('Italy', 'gls-shipping-for-woocommerce'),
+					'LU' => __('Luxembourg', 'gls-shipping-for-woocommerce'),
+					'NL' => __('Netherlands', 'gls-shipping-for-woocommerce'),
+					'PL' => __('Poland', 'gls-shipping-for-woocommerce'),
+					'PT' => __('Portugal', 'gls-shipping-for-woocommerce'),
+					'RO' => __('Romania', 'gls-shipping-for-woocommerce'),
+					'RS' => __('Serbia', 'gls-shipping-for-woocommerce'),
+					'SI' => __('Slovenia', 'gls-shipping-for-woocommerce'),
+					'SK' => __('Slovakia', 'gls-shipping-for-woocommerce'),
+				);
+				?>
+				<tr class="gls-account-row" data-index="<?php echo $index; ?>">
+					<td>
+						<input type="radio" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>_active" value="<?php echo $index; ?>" <?php checked($account['active'], true); ?> class="account-active-radio" />
+					</td>
+					<td>
+						<span class="account-clientid-display"><?php echo esc_html($account['client_id'] ?: __('New Account', 'gls-shipping-for-woocommerce')); ?></span>
+					</td>
+					<td>
+						<button type="button" class="button button-small edit-account"><?php _e('Edit', 'gls-shipping-for-woocommerce'); ?></button>
+						<button type="button" class="button button-small delete-account"><?php _e('Delete', 'gls-shipping-for-woocommerce'); ?></button>
+						
+						<!-- Hidden fields to store all account data -->
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][name]" value="<?php echo esc_attr($account['name']); ?>" class="account-name" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][client_id]" value="<?php echo esc_attr($account['client_id']); ?>" class="account-client-id" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][username]" value="<?php echo esc_attr($account['username']); ?>" class="account-username" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][password]" value="<?php echo esc_attr($account['password']); ?>" class="account-password" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][country]" value="<?php echo esc_attr($account['country']); ?>" class="account-country" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][mode]" value="<?php echo esc_attr($account['mode']); ?>" class="account-mode" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][active]" value="<?php echo $account['active'] ? '1' : '0'; ?>" class="account-active-hidden" />
+						
+						<!-- Sender address fields -->
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_name]" value="<?php echo esc_attr($account['sender_name']); ?>" class="account-sender-name" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_street]" value="<?php echo esc_attr($account['sender_street']); ?>" class="account-sender-street" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_city]" value="<?php echo esc_attr($account['sender_city']); ?>" class="account-sender-city" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_postcode]" value="<?php echo esc_attr($account['sender_postcode']); ?>" class="account-sender-postcode" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_country]" value="<?php echo esc_attr($account['sender_country']); ?>" class="account-sender-country" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_phone]" value="<?php echo esc_attr($account['sender_phone']); ?>" class="account-sender-phone" />
+						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_email]" value="<?php echo esc_attr($account['sender_email']); ?>" class="account-sender-email" />
+					</td>
+				</tr>
+				<?php
+			}
+
+			/**
+			 * Validate gls_accounts_grid field type
+			 */
+			public function validate_gls_accounts_grid_field($key, $value)
+			{
+				if (empty($value) || !is_array($value)) {
+					return array();
+				}
+
+				$validated = array();
+				$active_account = isset($_POST[$this->get_field_key('gls_accounts_grid') . '_active']) ? 
+					intval($_POST[$this->get_field_key('gls_accounts_grid') . '_active']) : 0;
+
+				foreach ($value as $index => $account) {
+					if (!empty($account['client_id']) && !empty($account['username'])) {
+						$validated[$index] = array(
+							'name' => sanitize_text_field($account['client_id']), // Use client_id as name
+							'client_id' => sanitize_text_field($account['client_id']),
+							'username' => sanitize_text_field($account['username']),
+							'password' => sanitize_text_field($account['password']),
+							'country' => sanitize_text_field($account['country']),
+							'mode' => sanitize_text_field($account['mode']),
+							'active' => ($index == $active_account),
+							'sender_name' => sanitize_text_field($account['sender_name'] ?? ''),
+							'sender_street' => sanitize_text_field($account['sender_street'] ?? ''),
+							'sender_city' => sanitize_text_field($account['sender_city'] ?? ''),
+							'sender_postcode' => sanitize_text_field($account['sender_postcode'] ?? ''),
+							'sender_country' => sanitize_text_field($account['sender_country'] ?? ''),
+							'sender_phone' => sanitize_text_field($account['sender_phone'] ?? ''),
+							'sender_email' => sanitize_email($account['sender_email'] ?? '')
+						);
+					}
+				}
+				return $validated;
+			}
+
+			/**
+			 * Get the active GLS account
+			 */
+			public function get_active_gls_account()
+			{
+				$account_mode = $this->get_option('account_mode', 'single');
+				
+				if ($account_mode === 'single') {
+					// Return single account data
+					return array(
+						'client_id' => $this->get_option('client_id', ''),
+						'username' => $this->get_option('username', ''),
+						'password' => $this->get_option('password', ''),
+						'country' => $this->get_option('country', 'HR'),
+						'mode' => $this->get_option('mode', 'production')
+					);
+				}
+				
+				// Multiple accounts mode - find the active account
+				$accounts = $this->get_option('gls_accounts_grid', array());
+				
+				if (empty($accounts)) {
+					return false;
+				}
+				
+				// Find the active account
+				foreach ($accounts as $account) {
+					if (!empty($account['active']) && $account['active']) {
+						return $account;
+					}
+				}
+				
+				// Return first available account as fallback if no active account is set
+				return reset($accounts);
+			}
+			
+			/**
+			 * Get all available GLS accounts
+			 */
+			public function get_all_gls_accounts()
+			{
+				$account_mode = $this->get_option('account_mode', 'single');
+				
+				if ($account_mode === 'single') {
+					return array(
+						array(
+							'name' => __('Default Account', 'gls-shipping-for-woocommerce'),
+							'client_id' => $this->get_option('client_id', ''),
+							'username' => $this->get_option('username', ''),
+							'password' => $this->get_option('password', ''),
+							'country' => $this->get_option('country', 'HR'),
+							'mode' => $this->get_option('mode', 'production')
+						)
+					);
+				}
+				
+				return $this->get_option('gls_accounts_grid', array());
 			}
 
 			/**
