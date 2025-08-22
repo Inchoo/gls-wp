@@ -129,7 +129,7 @@ class GLS_Shipping_Product_Restrictions
             if (!empty($restricted_products)) {
                 $message = sprintf(
                     /* translators: %s: comma-separated list of product names that have shipping restrictions */
-                    __('⚠️ Some products in your cart (%s) cannot be shipped to parcel shops or parcel lockers. Only standard delivery options are available.', 'gls-shipping-for-woocommerce'),
+                    __('Some products in your cart (%s) cannot be shipped to parcel shops or parcel lockers. Only standard delivery options are available.', 'gls-shipping-for-woocommerce'),
                     '<strong>' . implode(', ', $restricted_products) . '</strong>'
                 );
                 

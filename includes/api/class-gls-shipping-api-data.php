@@ -395,51 +395,30 @@ class GLS_Shipping_API_Data
 
     /**
      * Gets the pickup address for the shipment.
+     * 
+     * Updated to use the new dedicated sender address helper.
      *
      * @param \WC_Order $order The WooCommerce order instance.
      * @return array The pickup address information.
      */
     public function get_pickup_address($order)
     {
-        // Check if we have custom sender address from active account
-        $custom_name = $this->get_option('sender_name');
-        $custom_street = $this->get_option('sender_street');
-        $custom_city = $this->get_option('sender_city');
-        $custom_postcode = $this->get_option('sender_postcode');
-        $custom_country = $this->get_option('sender_country');
-        $custom_phone = $this->get_option('sender_phone');
-        $custom_email = $this->get_option('sender_email');
+        // Get default sender address from dedicated helper
+        $sender_address = GLS_Shipping_Sender_Address_Helper::get_default_sender_address();
         
-        // Use custom address if available, otherwise fallback to store defaults
-        if (!empty($custom_name) || !empty($custom_street) || !empty($custom_city)) {
-            // Use custom sender address
-            $pickup_address = [
-                'Name' => !empty($custom_name) ? $custom_name : get_bloginfo('name'),
-                'Street' => !empty($custom_street) ? $custom_street : (get_option('woocommerce_store_address') . ' ' . get_option('woocommerce_store_address_2')),
-                'City' => !empty($custom_city) ? $custom_city : get_option('woocommerce_store_city'),
-                'ZipCode' => !empty($custom_postcode) ? $custom_postcode : get_option('woocommerce_store_postcode'),
-                'CountryIsoCode' => !empty($custom_country) ? $custom_country : $this->get_store_country(),
-                'ContactName' => !empty($custom_name) ? $custom_name : get_bloginfo('name'),
-                'ContactPhone' => !empty($custom_phone) ? $custom_phone : $this->get_option('phone_number'),
-                'ContactEmail' => !empty($custom_email) ? $custom_email : get_option('admin_email')
-            ];
+        // If no sender address configured, use store address directly
+        if (empty($sender_address['name']) && empty($sender_address['street'])) {
+            $pickup_address = GLS_Shipping_Sender_Address_Helper::get_store_address_for_api();
+            // Add phone from settings if available
+            if (!empty($this->get_option('phone_number'))) {
+                $pickup_address['ContactPhone'] = $this->get_option('phone_number');
+            }
         } else {
-            // Use default store address
-            $store_address = get_option('woocommerce_store_address');
-            $store_address_2 = get_option('woocommerce_store_address_2');
-            $store_city = get_option('woocommerce_store_city');
-            $store_postcode = get_option('woocommerce_store_postcode');
-
-            $pickup_address = [
-                'Name' => get_bloginfo('name'),
-                'Street' => $store_address . ' ' . $store_address_2,
-                'City' => $store_city,
-                'ZipCode' => $store_postcode,
-                'CountryIsoCode' => $this->get_store_country(),
-                'ContactName' => get_bloginfo('name'),
-                'ContactPhone' => $this->get_option('phone_number'),
-                'ContactEmail' => get_option('admin_email')
-            ];
+            // Format for API using helper
+            $pickup_address = GLS_Shipping_Sender_Address_Helper::format_for_api_pickup(
+                $sender_address, 
+                $this->get_option('phone_number')
+            );
         }
 
         return apply_filters('gls_shipping_for_woocommerce_api_get_pickup_address', $pickup_address, $order);
@@ -455,6 +434,8 @@ class GLS_Shipping_API_Data
         $split_country = explode(":", $store_raw_country);
         return isset($split_country[0]) ? $split_country[0] : '';
     }
+
+
 
     /**
      * Gets the delivery address for a specific order.

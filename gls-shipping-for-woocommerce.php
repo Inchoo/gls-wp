@@ -37,6 +37,9 @@ final class GLS_Shipping_For_Woo
 
     private function includes()
     {
+        // Load helpers first
+        require_once(GLS_SHIPPING_ABSPATH . 'includes/helpers/class-gls-shipping-sender-address-helper.php');
+        
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-assets.php');
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-checkout.php');
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-my-account.php');

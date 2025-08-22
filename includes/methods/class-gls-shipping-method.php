@@ -127,6 +127,12 @@ max_weight|cost',
 						'description' => __('Manage multiple GLS accounts. Each account can have different credentials and country settings.', 'gls-shipping-for-woocommerce'),
 						'desc_tip'    => true,
 					),
+					'sender_addresses_grid' => array(
+						'title'       => __('Sender Addresses', 'gls-shipping-for-woocommerce'),
+						'type'        => 'sender_addresses_grid',
+						'description' => __('Manage multiple sender addresses. Each address can be set as default for shipments.', 'gls-shipping-for-woocommerce'),
+						'desc_tip'    => true,
+					),
 					'client_id' => array(
 						'title'       => __('Client ID', 'gls-shipping-for-woocommerce'),
 						'type'        => 'text',
@@ -347,6 +353,64 @@ max_weight|cost',
 			}
 
 			/**
+			 * Generate custom field for sender addresses grid
+			 */
+			public function generate_sender_addresses_grid_html($key, $data)
+			{
+				$field_key = $this->get_field_key($key);
+				$defaults = array(
+					'title'       => '',
+					'disabled'    => false,
+					'class'       => '',
+					'css'         => '',
+					'placeholder' => '',
+					'type'        => 'sender_addresses_grid',
+					'desc_tip'    => false,
+					'description' => '',
+				);
+
+				$data = wp_parse_args($data, $defaults);
+				$addresses = $this->get_option('sender_addresses_grid', array());
+				
+				ob_start();
+				?>
+				<tr valign="top" id="sender_addresses_row">
+					<th scope="row" class="titledesc">
+						<label for="<?php echo esc_attr($field_key); ?>"><?php echo wp_kses_post($data['title']); ?> <?php echo $this->get_tooltip_html($data); ?></label>
+					</th>
+					<td class="forminp">
+						<fieldset>
+							<legend class="screen-reader-text"><span><?php echo wp_kses_post($data['title']); ?></span></legend>
+							<div id="sender-addresses-container">
+								<table class="sender-addresses-table wp-list-table widefat fixed striped" style="margin-bottom: 10px;">
+									<thead>
+										<tr>
+											<th><?php _e('Default', 'gls-shipping-for-woocommerce'); ?></th>
+											<th><?php _e('Name', 'gls-shipping-for-woocommerce'); ?></th>
+											<th><?php _e('Actions', 'gls-shipping-for-woocommerce'); ?></th>
+										</tr>
+									</thead>
+									<tbody id="sender-addresses-tbody">
+										<?php
+										if (!empty($addresses)) {
+											foreach ($addresses as $index => $address) {
+												$this->render_address_row($index, $address);
+											}
+										}
+										?>
+									</tbody>
+								</table>
+								<button type="button" id="add-sender-address" class="button button-secondary"><?php _e('Add New Address', 'gls-shipping-for-woocommerce'); ?></button>
+							</div>
+							<?php echo $this->get_description_html($data); ?>
+						</fieldset>
+					</td>
+				</tr>
+				<?php
+				return ob_get_clean();
+			}
+
+			/**
 			 * Generate custom field for GLS accounts grid
 			 */
 			public function generate_gls_accounts_grid_html($key, $data)
@@ -405,6 +469,49 @@ max_weight|cost',
 			}
 
 			/**
+			 * Render a single address row
+			 */
+			private function render_address_row($index, $address = array())
+			{
+				$address = wp_parse_args($address, array(
+					'name' => '',
+					'street' => '',
+					'house_number' => '',
+					'city' => '',
+					'postcode' => '',
+					'country' => 'HR',
+					'phone' => '',
+					'email' => '',
+					'is_default' => false
+				));
+				?>
+				<tr class="sender-address-row" data-index="<?php echo $index; ?>">
+					<td>
+						<input type="radio" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>_default" value="<?php echo $index; ?>" <?php checked($address['is_default'], true); ?> class="address-default-radio" />
+					</td>
+					<td>
+						<span class="address-name-display"><?php echo esc_html($address['name'] ?: __('New Address', 'gls-shipping-for-woocommerce')); ?></span>
+					</td>
+					<td>
+						<button type="button" class="button button-small edit-address"><?php _e('Edit', 'gls-shipping-for-woocommerce'); ?></button>
+						<button type="button" class="button button-small delete-address"><?php _e('Delete', 'gls-shipping-for-woocommerce'); ?></button>
+						
+						<!-- Hidden fields to store all address data -->
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][name]" value="<?php echo esc_attr($address['name']); ?>" class="address-name" />
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][street]" value="<?php echo esc_attr($address['street']); ?>" class="address-street" />
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][house_number]" value="<?php echo esc_attr($address['house_number']); ?>" class="address-house-number" />
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][city]" value="<?php echo esc_attr($address['city']); ?>" class="address-city" />
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][postcode]" value="<?php echo esc_attr($address['postcode']); ?>" class="address-postcode" />
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][country]" value="<?php echo esc_attr($address['country']); ?>" class="address-country" />
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][phone]" value="<?php echo esc_attr($address['phone']); ?>" class="address-phone" />
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][email]" value="<?php echo esc_attr($address['email']); ?>" class="address-email" />
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][is_default]" value="<?php echo $address['is_default'] ? '1' : '0'; ?>" class="address-is-default" />
+					</td>
+				</tr>
+				<?php
+			}
+
+			/**
 			 * Render a single account row
 			 */
 			private function render_account_row($index, $account = array())
@@ -416,14 +523,7 @@ max_weight|cost',
 					'password' => '',
 					'country' => 'HR',
 					'mode' => 'production',
-					'active' => false,
-					'sender_name' => '',
-					'sender_street' => '',
-					'sender_city' => '',
-					'sender_postcode' => '',
-					'sender_country' => '',
-					'sender_phone' => '',
-					'sender_email' => ''
+					'active' => false
 				));
 
 				$countries = array(
@@ -469,15 +569,6 @@ max_weight|cost',
 						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][country]" value="<?php echo esc_attr($account['country']); ?>" class="account-country" />
 						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][mode]" value="<?php echo esc_attr($account['mode']); ?>" class="account-mode" />
 						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][active]" value="<?php echo $account['active'] ? '1' : '0'; ?>" class="account-active-hidden" />
-						
-						<!-- Sender address fields -->
-						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_name]" value="<?php echo esc_attr($account['sender_name']); ?>" class="account-sender-name" />
-						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_street]" value="<?php echo esc_attr($account['sender_street']); ?>" class="account-sender-street" />
-						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_city]" value="<?php echo esc_attr($account['sender_city']); ?>" class="account-sender-city" />
-						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_postcode]" value="<?php echo esc_attr($account['sender_postcode']); ?>" class="account-sender-postcode" />
-						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_country]" value="<?php echo esc_attr($account['sender_country']); ?>" class="account-sender-country" />
-						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_phone]" value="<?php echo esc_attr($account['sender_phone']); ?>" class="account-sender-phone" />
-						<input type="hidden" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>[<?php echo $index; ?>][sender_email]" value="<?php echo esc_attr($account['sender_email']); ?>" class="account-sender-email" />
 					</td>
 				</tr>
 				<?php
@@ -505,18 +596,66 @@ max_weight|cost',
 							'password' => sanitize_text_field($account['password']),
 							'country' => sanitize_text_field($account['country']),
 							'mode' => sanitize_text_field($account['mode']),
-							'active' => ($index == $active_account),
-							'sender_name' => sanitize_text_field($account['sender_name'] ?? ''),
-							'sender_street' => sanitize_text_field($account['sender_street'] ?? ''),
-							'sender_city' => sanitize_text_field($account['sender_city'] ?? ''),
-							'sender_postcode' => sanitize_text_field($account['sender_postcode'] ?? ''),
-							'sender_country' => sanitize_text_field($account['sender_country'] ?? ''),
-							'sender_phone' => sanitize_text_field($account['sender_phone'] ?? ''),
-							'sender_email' => sanitize_email($account['sender_email'] ?? '')
+							'active' => ($index == $active_account)
 						);
 					}
 				}
 				return $validated;
+			}
+
+			/**
+			 * Validate sender_addresses_grid field type
+			 */
+			public function validate_sender_addresses_grid_field($key, $value)
+			{
+				if (!is_array($value)) {
+					return array();
+				}
+
+				$validated_addresses = array();
+				$has_default = false;
+
+				foreach ($value as $index => $address) {
+					if (is_array($address)) {
+						// Validate required fields
+						$required_fields = array('name', 'street', 'house_number', 'city', 'postcode', 'country');
+						$is_valid = true;
+
+						foreach ($required_fields as $field) {
+							if (empty($address[$field])) {
+								$is_valid = false;
+								break;
+							}
+						}
+
+						if ($is_valid) {
+							$validated_address = array(
+								'name' => sanitize_text_field($address['name']),
+								'street' => sanitize_text_field($address['street']),
+								'house_number' => sanitize_text_field($address['house_number']),
+								'city' => sanitize_text_field($address['city']),
+								'postcode' => sanitize_text_field($address['postcode']),
+								'country' => sanitize_text_field($address['country']),
+								'phone' => sanitize_text_field($address['phone'] ?? ''),
+								'email' => sanitize_email($address['email'] ?? ''),
+								'is_default' => !empty($address['is_default']) && $address['is_default'] === '1'
+							);
+
+							// Ensure only one default address
+							if ($validated_address['is_default']) {
+								if ($has_default) {
+									$validated_address['is_default'] = false;
+								} else {
+									$has_default = true;
+								}
+							}
+
+							$validated_addresses[] = $validated_address;
+						}
+					}
+				}
+
+				return $validated_addresses;
 			}
 
 			/**
@@ -577,6 +716,8 @@ max_weight|cost',
 				
 				return $this->get_option('gls_accounts_grid', array());
 			}
+
+
 
 			/**
 			 * Calculates the shipping rate based on the package details.

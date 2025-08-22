@@ -52,10 +52,16 @@ class GLS_Shipping_Pickup
         wp_enqueue_script('jquery-ui-datepicker');
         wp_enqueue_style('jquery-ui-datepicker', 'https://code.jquery.com/ui/1.12.1/themes/ui-lightness/jquery-ui.css');
         
+        // Get addresses for JavaScript
+        $all_addresses = GLS_Shipping_Sender_Address_Helper::get_all_addresses_with_store_fallback();
+        
         $translation_array = array(
             'ajaxNonce' => wp_create_nonce('gls-pickup-nonce'),
             'adminAjaxUrl' => admin_url('admin-ajax.php'),
+            'addresses' => $all_addresses,
         );
+        
+        wp_localize_script('jquery', 'glsPickupData', $translation_array);
         
         wp_add_inline_script('jquery', '
             jQuery(document).ready(function($) {
@@ -78,22 +84,30 @@ class GLS_Shipping_Pickup
                     $submitBtn.prop("disabled", true).text("' . __('Scheduling...', 'gls-shipping-for-woocommerce') . '");
                     $responseDiv.html("");
                     
+                    // Get selected address data
+                    const selectedIndex = $("#sender_address_select").val();
+                    const selectedAddress = addresses[selectedIndex];
+                    
                     // Prepare form data
                     const formData = {
                         action: "gls_schedule_pickup",
                         nonce: "' . wp_create_nonce('gls-pickup-nonce') . '",
                         package_count: $("#package_count").val(),
                         pickup_date_from: $("#pickup_date_from").val(),
+                        pickup_time_from: $("#pickup_time_from").val(),
                         pickup_date_to: $("#pickup_date_to").val(),
-                        contact_name: $("#contact_name").val(),
-                        contact_phone: $("#contact_phone").val(),
-                        contact_email: $("#contact_email").val(),
-                        address_name: $("#address_name").val(),
-                        street: $("#street").val(),
-                        house_number: $("#house_number").val(),
-                        city: $("#city").val(),
-                        zip_code: $("#zip_code").val(),
-                        country_code: $("#country_code").val()
+                        pickup_time_to: $("#pickup_time_to").val(),
+                        sender_address_index: selectedIndex,
+                        // Address data from selected address
+                        contact_name: selectedAddress.name || "",
+                        contact_phone: selectedAddress.phone || "",
+                        contact_email: selectedAddress.email || "",
+                        address_name: selectedAddress.name || "",
+                        street: selectedAddress.street || "",
+                        house_number: selectedAddress.house_number || "",
+                        city: selectedAddress.city || "",
+                        zip_code: selectedAddress.postcode || "",
+                        country_code: selectedAddress.country || "HR"
                     };
                     
                     // Submit AJAX request
@@ -116,6 +130,33 @@ class GLS_Shipping_Pickup
                         }
                     });
                 });
+
+                // Set minimum date to today
+                const today = new Date().toISOString().split("T")[0];
+                $("#pickup_date_from, #pickup_date_to").attr("min", today);
+                
+                // Address selection handler
+                const addresses = glsPickupData.addresses;
+                $("#sender_address_select").on("change", function() {
+                    const selectedIndex = $(this).val();
+                    const selectedAddress = addresses[selectedIndex];
+                    
+                    if (selectedAddress) {
+                        // Show address details
+                        const addressText = selectedAddress.name + "<br>" +
+                            selectedAddress.street + " " + (selectedAddress.house_number || "") + "<br>" +
+                            selectedAddress.postcode + " " + selectedAddress.city + "<br>" +
+                            selectedAddress.country + "<br>" +
+                            "Phone: " + (selectedAddress.phone || "N/A") + "<br>" +
+                            "Email: " + (selectedAddress.email || "N/A");
+                        
+                        $("#address-details-text").html(addressText);
+                        $("#selected-address-details").show();
+                    }
+                });
+                
+                // Trigger initial population
+                $("#sender_address_select").trigger("change");
             });
         ');
     }
@@ -125,8 +166,10 @@ class GLS_Shipping_Pickup
      */
     public function pickup_admin_page()
     {
-        // Get store address defaults
-        $store_address = $this->get_store_address_defaults();
+        // Get all addresses (including store fallback as first option)
+        $all_addresses = GLS_Shipping_Sender_Address_Helper::get_all_addresses_with_store_fallback();
+        // Use first address (store) as default for field population
+        $store_address = !empty($all_addresses) ? $all_addresses[0] : array();
         
         ?>
         <div class="wrap">
@@ -151,8 +194,9 @@ class GLS_Shipping_Pickup
                                 <label for="pickup_date_from"><?php esc_html_e('Pickup Date From', 'gls-shipping-for-woocommerce'); ?> *</label>
                             </th>
                             <td>
-                                <input type="text" id="pickup_date_from" name="pickup_date_from" required class="regular-text" placeholder="YYYY-MM-DD" />
-                                <p class="description"><?php esc_html_e('Earliest date for pickup.', 'gls-shipping-for-woocommerce'); ?></p>
+                                <input type="date" id="pickup_date_from" name="pickup_date_from" required class="regular-text" style="width: 160px;" />
+                                <input type="time" id="pickup_time_from" name="pickup_time_from" value="08:00" class="regular-text" style="width: 120px; margin-left: 10px;" />
+                                <p class="description"><?php esc_html_e('Earliest date and time for pickup.', 'gls-shipping-for-woocommerce'); ?></p>
                             </td>
                         </tr>
                         
@@ -161,8 +205,9 @@ class GLS_Shipping_Pickup
                                 <label for="pickup_date_to"><?php esc_html_e('Pickup Date To', 'gls-shipping-for-woocommerce'); ?> *</label>
                             </th>
                             <td>
-                                <input type="text" id="pickup_date_to" name="pickup_date_to" required class="regular-text" placeholder="YYYY-MM-DD" />
-                                <p class="description"><?php esc_html_e('Latest date for pickup.', 'gls-shipping-for-woocommerce'); ?></p>
+                                <input type="date" id="pickup_date_to" name="pickup_date_to" required class="regular-text" style="width: 160px;" />
+                                <input type="time" id="pickup_time_to" name="pickup_time_to" value="17:00" class="regular-text" style="width: 120px; margin-left: 10px;" />
+                                <p class="description"><?php esc_html_e('Latest date and time for pickup.', 'gls-shipping-for-woocommerce'); ?></p>
                             </td>
                         </tr>
                     </tbody>
@@ -173,90 +218,23 @@ class GLS_Shipping_Pickup
                     <tbody>
                         <tr>
                             <th scope="row">
-                                <label for="contact_name"><?php esc_html_e('Contact Name', 'gls-shipping-for-woocommerce'); ?> *</label>
+                                <label for="sender_address_select"><?php esc_html_e('Pickup Address', 'gls-shipping-for-woocommerce'); ?> *</label>
                             </th>
                             <td>
-                                <input type="text" id="contact_name" name="contact_name" value="<?php echo esc_attr($store_address['contact_name']); ?>" required class="regular-text" />
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="contact_phone"><?php esc_html_e('Contact Phone', 'gls-shipping-for-woocommerce'); ?> *</label>
-                            </th>
-                            <td>
-                                <input type="tel" id="contact_phone" name="contact_phone" value="<?php echo esc_attr($store_address['contact_phone']); ?>" required class="regular-text" />
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="contact_email"><?php esc_html_e('Contact Email', 'gls-shipping-for-woocommerce'); ?> *</label>
-                            </th>
-                            <td>
-                                <input type="email" id="contact_email" name="contact_email" value="<?php echo esc_attr($store_address['contact_email']); ?>" required class="regular-text" />
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="address_name"><?php esc_html_e('Company/Address Name', 'gls-shipping-for-woocommerce'); ?> *</label>
-                            </th>
-                            <td>
-                                <input type="text" id="address_name" name="address_name" value="<?php echo esc_attr($store_address['address_name']); ?>" required class="regular-text" />
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="street"><?php esc_html_e('Street', 'gls-shipping-for-woocommerce'); ?> *</label>
-                            </th>
-                            <td>
-                                <input type="text" id="street" name="street" value="<?php echo esc_attr($store_address['street']); ?>" required class="regular-text" />
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="house_number"><?php esc_html_e('House Number', 'gls-shipping-for-woocommerce'); ?> *</label>
-                            </th>
-                            <td>
-                                <input type="text" id="house_number" name="house_number" value="<?php echo esc_attr($store_address['house_number']); ?>" required class="regular-text" />
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="city"><?php esc_html_e('City', 'gls-shipping-for-woocommerce'); ?> *</label>
-                            </th>
-                            <td>
-                                <input type="text" id="city" name="city" value="<?php echo esc_attr($store_address['city']); ?>" required class="regular-text" />
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="zip_code"><?php esc_html_e('ZIP Code', 'gls-shipping-for-woocommerce'); ?> *</label>
-                            </th>
-                            <td>
-                                <input type="text" id="zip_code" name="zip_code" value="<?php echo esc_attr($store_address['zip_code']); ?>" required class="regular-text" />
-                            </td>
-                        </tr>
-                        
-                        <tr>
-                            <th scope="row">
-                                <label for="country_code"><?php esc_html_e('Country Code', 'gls-shipping-for-woocommerce'); ?> *</label>
-                            </th>
-                            <td>
-                                <select id="country_code" name="country_code" required class="regular-text">
-                                    <option value="HR" <?php selected($store_address['country_code'], 'HR'); ?>>Croatia (HR)</option>
-                                    <option value="SI" <?php selected($store_address['country_code'], 'SI'); ?>>Slovenia (SI)</option>
-                                    <option value="RS" <?php selected($store_address['country_code'], 'RS'); ?>>Serbia (RS)</option>
-                                    <option value="HU" <?php selected($store_address['country_code'], 'HU'); ?>>Hungary (HU)</option>
-                                    <option value="RO" <?php selected($store_address['country_code'], 'RO'); ?>>Romania (RO)</option>
-                                    <option value="SK" <?php selected($store_address['country_code'], 'SK'); ?>>Slovakia (SK)</option>
-                                    <option value="CZ" <?php selected($store_address['country_code'], 'CZ'); ?>>Czech Republic (CZ)</option>
+                                <select id="sender_address_select" name="sender_address_select" class="regular-text" required>
+                                    <?php foreach ($all_addresses as $index => $address): ?>
+                                        <option value="<?php echo esc_attr($index); ?>" <?php selected($index, 0); ?>>
+                                            <?php echo esc_html($address['name'] . ' - ' . $address['city']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
                                 </select>
+                                <p class="description"><?php esc_html_e('Choose the pickup address from configured sender addresses or store default.', 'gls-shipping-for-woocommerce'); ?></p>
+                                
+                                <!-- Display selected address details -->
+                                <div id="selected-address-details" style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-left: 4px solid #0073aa; display: none;">
+                                    <strong><?php esc_html_e('Selected Address Details:', 'gls-shipping-for-woocommerce'); ?></strong><br>
+                                    <span id="address-details-text"></span>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -270,26 +248,7 @@ class GLS_Shipping_Pickup
         <?php
     }
 
-    /**
-     * Get store address defaults from WooCommerce settings
-     */
-    private function get_store_address_defaults()
-    {
-        $country = get_option('woocommerce_default_country', 'HR');
-        $country_code = strpos($country, ':') !== false ? substr($country, 0, strpos($country, ':')) : $country;
-        
-        return array(
-            'contact_name' => get_option('woocommerce_store_address', ''),
-            'contact_phone' => get_option('woocommerce_store_phone', ''),
-            'contact_email' => get_option('admin_email', ''),
-            'address_name' => get_bloginfo('name'),
-            'street' => get_option('woocommerce_store_address', ''),
-            'house_number' => get_option('woocommerce_store_address_2', ''),
-            'city' => get_option('woocommerce_store_city', ''),
-            'zip_code' => get_option('woocommerce_store_postcode', ''),
-            'country_code' => $country_code
-        );
-    }
+
 
     /**
      * Handle pickup request AJAX
@@ -319,11 +278,20 @@ class GLS_Shipping_Pickup
                 }
             }
 
+            // Combine date and time fields
+            $pickup_date_from = sanitize_text_field($_POST['pickup_date_from']);
+            $pickup_time_from = !empty($_POST['pickup_time_from']) ? sanitize_text_field($_POST['pickup_time_from']) : '08:00';
+            $pickup_datetime_from = $pickup_date_from . ' ' . $pickup_time_from;
+
+            $pickup_date_to = sanitize_text_field($_POST['pickup_date_to']);
+            $pickup_time_to = !empty($_POST['pickup_time_to']) ? sanitize_text_field($_POST['pickup_time_to']) : '17:00';
+            $pickup_datetime_to = $pickup_date_to . ' ' . $pickup_time_to;
+
             // Create pickup request via API
             $pickup_data = array(
                 'package_count' => intval($_POST['package_count']),
-                'pickup_date_from' => sanitize_text_field($_POST['pickup_date_from']),
-                'pickup_date_to' => sanitize_text_field($_POST['pickup_date_to']),
+                'pickup_date_from' => $pickup_datetime_from,
+                'pickup_date_to' => $pickup_datetime_to,
                 'contact_name' => sanitize_text_field($_POST['contact_name']),
                 'contact_phone' => sanitize_text_field($_POST['contact_phone']),
                 'contact_email' => sanitize_email($_POST['contact_email']),

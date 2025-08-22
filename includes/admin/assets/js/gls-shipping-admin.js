@@ -4,6 +4,9 @@
 		handleAccountModeToggle();
 		handleAccountsGrid();
 		
+		// GLS Sender Addresses Management
+		handleSenderAddressesGrid();
+		
 		function handleAccountModeToggle() {
 			const $accountMode = $('#woocommerce_gls_shipping_method_account_mode');
 			const $accountsRow = $('#gls_accounts_row');
@@ -93,15 +96,6 @@
 						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][country]" value="HR" class="account-country" />
 						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][mode]" value="production" class="account-mode" />
 						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][active]" value="0" class="account-active-hidden" />
-						
-						<!-- Sender address fields -->
-						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][sender_name]" value="" class="account-sender-name" />
-						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][sender_street]" value="" class="account-sender-street" />
-						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][sender_city]" value="" class="account-sender-city" />
-						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][sender_postcode]" value="" class="account-sender-postcode" />
-						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][sender_country]" value="" class="account-sender-country" />
-						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][sender_phone]" value="" class="account-sender-phone" />
-						<input type="hidden" name="woocommerce_gls_shipping_method_gls_accounts_grid[${index}][sender_email]" value="" class="account-sender-email" />
 					</td>
 				</tr>
 			`;
@@ -127,14 +121,7 @@
 				username: $row.find('.account-username').val(),
 				password: $row.find('.account-password').val(),
 				country: $row.find('.account-country').val(),
-				mode: $row.find('.account-mode').val(),
-				sender_name: $row.find('.account-sender-name').val(),
-				sender_street: $row.find('.account-sender-street').val(),
-				sender_city: $row.find('.account-sender-city').val(),
-				sender_postcode: $row.find('.account-sender-postcode').val(),
-				sender_country: $row.find('.account-sender-country').val(),
-				sender_phone: $row.find('.account-sender-phone').val(),
-				sender_email: $row.find('.account-sender-email').val()
+				mode: $row.find('.account-mode').val()
 			};
 			
 			// Add modal styles if not already added
@@ -188,11 +175,7 @@
 				countryOptions += `<option value="${code}" ${selected}>${name}</option>`;
 			}
 			
-			let senderCountryOptions = '';
-			for (const [code, name] of Object.entries(countries)) {
-				const selected = code === account.sender_country ? 'selected' : '';
-				senderCountryOptions += `<option value="${code}" ${selected}>${name}</option>`;
-			}
+
 			
 			const modal = `
 				<div id="gls-account-modal" style="display: none;">
@@ -232,43 +215,6 @@
 							</tr>
 						</table>
 						
-						<h4>Sender Address (Optional - fallback to store default)</h4>
-						<table class="form-table">
-							<tr>
-								<th><label>Company/Name</label></th>
-								<td><input type="text" id="modal-sender-name" value="${account.sender_name}" style="width: 100%;" /></td>
-							</tr>
-							<tr>
-								<th><label>Street Address</label></th>
-								<td><input type="text" id="modal-sender-street" value="${account.sender_street}" style="width: 100%;" /></td>
-							</tr>
-							<tr>
-								<th><label>City</label></th>
-								<td><input type="text" id="modal-sender-city" value="${account.sender_city}" style="width: 100%;" /></td>
-							</tr>
-							<tr>
-								<th><label>Postcode</label></th>
-								<td><input type="text" id="modal-sender-postcode" value="${account.sender_postcode}" style="width: 100%;" /></td>
-							</tr>
-							<tr>
-								<th><label>Country</label></th>
-								<td>
-									<select id="modal-sender-country" style="width: 100%;">
-										<option value="">Use store default</option>
-										${senderCountryOptions}
-									</select>
-								</td>
-							</tr>
-							<tr>
-								<th><label>Phone</label></th>
-								<td><input type="text" id="modal-sender-phone" value="${account.sender_phone}" style="width: 100%;" /></td>
-							</tr>
-							<tr>
-								<th><label>Email</label></th>
-								<td><input type="email" id="modal-sender-email" value="${account.sender_email}" style="width: 100%;" /></td>
-							</tr>
-						</table>
-						
 						<p class="submit">
 							<button type="button" class="button-primary" id="save-account">Save Changes</button>
 							<button type="button" class="button" id="cancel-edit">Cancel</button>
@@ -301,15 +247,6 @@
 				$row.find('.account-password').val(password);
 				$row.find('.account-country').val($('#modal-country').val());
 				$row.find('.account-mode').val($('#modal-mode').val());
-				
-				// Update sender address fields
-				$row.find('.account-sender-name').val($('#modal-sender-name').val());
-				$row.find('.account-sender-street').val($('#modal-sender-street').val());
-				$row.find('.account-sender-city').val($('#modal-sender-city').val());
-				$row.find('.account-sender-postcode').val($('#modal-sender-postcode').val());
-				$row.find('.account-sender-country').val($('#modal-sender-country').val());
-				$row.find('.account-sender-phone').val($('#modal-sender-phone').val());
-				$row.find('.account-sender-email').val($('#modal-sender-email').val());
 				
 				// Update display values
 				$row.find('.account-clientid-display').text(clientId);
@@ -529,5 +466,257 @@
 			html += '</div>';
 			$("#gls-tracking-status").html(html);
 		}
+		
+		function handleSenderAddressesGrid() {
+			let addressIndex = $('.sender-address-row').length;
+			
+			// Add new address
+			$(document).on('click', '#add-sender-address', function() {
+				const newRow = createAddressRow(addressIndex);
+				$('#sender-addresses-tbody').append(newRow);
+				addressIndex++;
+			});
+			
+			// Delete address
+			$(document).on('click', '.delete-address', function() {
+				if (confirm('Are you sure you want to delete this address?')) {
+					$(this).closest('tr').remove();
+					reindexAddresses();
+				}
+			});
+			
+			// Edit address (modal functionality)
+			$(document).on('click', '.edit-address', function() {
+				const $row = $(this).closest('tr');
+				const index = $row.data('index');
+				openEditModal($row, index);
+			});
+			
+			// Handle default selection
+			$(document).on('change', '.address-default-radio', function() {
+				// Uncheck all other radios
+				$('.address-default-radio').not(this).prop('checked', false);
+				
+				// Update hidden fields
+				$('.address-is-default').val('0');
+				$(this).closest('tr').find('.address-is-default').val('1');
+			});
+		}
+		
+		function createAddressRow(index) {
+			return `
+				<tr class="sender-address-row" data-index="${index}">
+					<td>
+						<input type="radio" name="woocommerce_gls_shipping_method_sender_addresses_grid_default" value="${index}" class="address-default-radio" />
+					</td>
+					<td>
+						<span class="address-name-display">New Address</span>
+					</td>
+					<td>
+						<button type="button" class="button button-small edit-address">Edit</button>
+						<button type="button" class="button button-small delete-address">Delete</button>
+						
+						<!-- Hidden fields to store all address data -->
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][name]" value="" class="address-name" />
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][street]" value="" class="address-street" />
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][house_number]" value="" class="address-house-number" />
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][city]" value="" class="address-city" />
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][postcode]" value="" class="address-postcode" />
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][country]" value="HR" class="address-country" />
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][phone]" value="" class="address-phone" />
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][email]" value="" class="address-email" />
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][is_default]" value="0" class="address-is-default" />
+					</td>
+				</tr>
+			`;
+		}
+		
+		function reindexAddresses() {
+			$('.sender-address-row').each(function(newIndex) {
+				$(this).attr('data-index', newIndex);
+				$(this).find('input, select').each(function() {
+					const name = $(this).attr('name');
+					if (name) {
+						const newName = name.replace(/\[\d+\]/, '[' + newIndex + ']');
+						$(this).attr('name', newName);
+					}
+				});
+			});
+		}
+		
+		function openEditModal($row, index) {
+			// Add modal styles if not already added
+			if ($('#gls-modal-styles').length === 0) {
+				$('head').append(`
+					<style id="gls-modal-styles">
+						#sender-address-modal {
+							position: fixed;
+							top: 0;
+							left: 0;
+							width: 100%;
+							height: 100%;
+							background-color: rgba(0,0,0,0.5);
+							z-index: 100000;
+						}
+						.gls-modal-content {
+							position: relative;
+							background-color: #fff;
+							margin: 5% auto;
+							padding: 20px;
+							width: 90%;
+							max-width: 600px;
+							max-height: 80vh;
+							overflow-y: auto;
+							border-radius: 4px;
+							box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+						}
+						.sender-addresses-table input[type="text"] {
+							width: 100%;
+							max-width: 150px;
+						}
+						.sender-addresses-table select {
+							width: 100%;
+							max-width: 120px;
+						}
+					</style>
+				`);
+			}
+			
+			const address = {
+				name: $row.find('.address-name').val(),
+				street: $row.find('.address-street').val(),
+				house_number: $row.find('.address-house-number').val(),
+				city: $row.find('.address-city').val(),
+				postcode: $row.find('.address-postcode').val(),
+				country: $row.find('.address-country').val(),
+				phone: $row.find('.address-phone').val(),
+				email: $row.find('.address-email').val(),
+				is_default: $row.find('.address-is-default').val() === '1'
+			};
+			
+			const countries = {
+				'AT': 'Austria', 'BE': 'Belgium', 'BG': 'Bulgaria', 'CZ': 'Czech Republic',
+				'DE': 'Germany', 'DK': 'Denmark', 'ES': 'Spain', 'FI': 'Finland',
+				'FR': 'France', 'GR': 'Greece', 'HR': 'Croatia', 'HU': 'Hungary',
+				'IT': 'Italy', 'LU': 'Luxembourg', 'NL': 'Netherlands', 'PL': 'Poland',
+				'PT': 'Portugal', 'RO': 'Romania', 'RS': 'Serbia', 'SI': 'Slovenia', 'SK': 'Slovakia'
+			};
+			
+			let countryOptions = '';
+			for (const [code, name] of Object.entries(countries)) {
+				const selected = code === address.country ? 'selected' : '';
+				countryOptions += `<option value="${code}" ${selected}>${name}</option>`;
+			}
+			
+			const modal = `
+				<div id="sender-address-modal" style="display: none;">
+					<div class="gls-modal-content">
+						<h3>Edit Sender Address</h3>
+						
+						<table class="form-table">
+							<tr>
+								<th><label>Name *</label></th>
+								<td><input type="text" id="modal-address-name" value="${address.name}" style="width: 100%;" /></td>
+							</tr>
+							<tr>
+								<th><label>Street *</label></th>
+								<td><input type="text" id="modal-address-street" value="${address.street}" style="width: 100%;" /></td>
+							</tr>
+							<tr>
+								<th><label>House Number *</label></th>
+								<td><input type="text" id="modal-address-house-number" value="${address.house_number}" style="width: 100%;" /></td>
+							</tr>
+							<tr>
+								<th><label>City *</label></th>
+								<td><input type="text" id="modal-address-city" value="${address.city}" style="width: 100%;" /></td>
+							</tr>
+							<tr>
+								<th><label>Postcode *</label></th>
+								<td><input type="text" id="modal-address-postcode" value="${address.postcode}" style="width: 100%;" /></td>
+							</tr>
+							<tr>
+								<th><label>Country</label></th>
+								<td>
+									<select id="modal-address-country" style="width: 100%;">
+										${countryOptions}
+									</select>
+								</td>
+							</tr>
+							<tr>
+								<th><label>Phone</label></th>
+								<td><input type="text" id="modal-address-phone" value="${address.phone}" style="width: 100%;" /></td>
+							</tr>
+							<tr>
+								<th><label>Email</label></th>
+								<td><input type="email" id="modal-address-email" value="${address.email}" style="width: 100%;" /></td>
+							</tr>
+							<tr>
+								<th><label>Set as Default</label></th>
+								<td><input type="checkbox" id="modal-address-is-default" ${address.is_default ? 'checked' : ''} /></td>
+							</tr>
+						</table>
+						
+						<p class="submit">
+							<button type="button" class="button-primary" id="save-address">Save Changes</button>
+							<button type="button" class="button" id="cancel-edit">Cancel</button>
+						</p>
+					</div>
+				</div>
+			`;
+			
+			$('body').append(modal);
+			$('#sender-address-modal').show();
+			
+			$('#save-address').off('click').on('click', function() {
+				// Validate required fields
+				const name = $('#modal-address-name').val().trim();
+				const street = $('#modal-address-street').val().trim();
+				const houseNumber = $('#modal-address-house-number').val().trim();
+				const city = $('#modal-address-city').val().trim();
+				const postcode = $('#modal-address-postcode').val().trim();
+				
+				if (!name || !street || !houseNumber || !city || !postcode) {
+					alert('Please fill in all required fields (marked with *)');
+					return;
+				}
+				
+				// Update hidden fields
+				$row.find('.address-name').val(name);
+				$row.find('.address-street').val(street);
+				$row.find('.address-house-number').val(houseNumber);
+				$row.find('.address-city').val(city);
+				$row.find('.address-postcode').val(postcode);
+				$row.find('.address-country').val($('#modal-address-country').val());
+				$row.find('.address-phone').val($('#modal-address-phone').val());
+				$row.find('.address-email').val($('#modal-address-email').val());
+				
+				// Handle default setting
+				const isDefault = $('#modal-address-is-default').is(':checked');
+				if (isDefault) {
+					$('.address-default-radio').prop('checked', false);
+					$('.address-is-default').val('0');
+					$row.find('.address-default-radio').prop('checked', true);
+					$row.find('.address-is-default').val('1');
+				} else {
+					$row.find('.address-is-default').val('0');
+				}
+				
+				// Update display values
+				$row.find('.address-name-display').text(name);
+				
+				$('#sender-address-modal').hide();
+			});
+			
+			$('#cancel-edit').off('click').on('click', function() {
+				$('#sender-address-modal').hide();
+			});
+		}
+		
+		// Close modal when clicking outside or on close button
+		$(document).on('click', '#sender-address-modal', function(e) {
+			if (e.target === this) {
+				$(this).hide();
+			}
+		});
 	});
 })(jQuery);
