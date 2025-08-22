@@ -28,7 +28,39 @@ class GLS_Shipping_API_Service
 
 	public function get_option($key)
 	{
+		// Check if we're using multiple accounts mode
+		$account_mode = isset($this->service_settings['account_mode']) ? $this->service_settings['account_mode'] : 'single';
+		
+		if ($account_mode === 'multiple') {
+			$active_account = $this->get_active_account();
+			if ($active_account && isset($active_account[$key])) {
+				return $active_account[$key];
+			}
+		}
+		
 		return isset($this->service_settings[$key]) ? $this->service_settings[$key] : null;
+	}
+	
+	/**
+	 * Get the active account from multiple accounts
+	 */
+	private function get_active_account()
+	{
+		$accounts = isset($this->service_settings['gls_accounts_grid']) ? $this->service_settings['gls_accounts_grid'] : array();
+		
+		if (empty($accounts)) {
+			return false;
+		}
+		
+		// Find the active account
+		foreach ($accounts as $account) {
+			if (!empty($account['active']) && $account['active']) {
+				return $account;
+			}
+		}
+		
+		// Return first account as fallback
+		return reset($accounts);
 	}
 
 
@@ -110,6 +142,48 @@ class GLS_Shipping_API_Service
 			'failed_orders' => $failed_orders
 		];
 		
+	}
+
+	public function get_parcel_status($parcel_number)
+	{
+		$tracking_api_url = $this->get_api_url('ParcelService', 'GetParcelStatuses');
+		
+		$post_fields = array(
+			'Username' => $this->get_option("username"),
+			'Password' => $this->get_password(),
+			'ParcelNumber' => intval($parcel_number),
+			'ReturnPOD' => true
+		);
+
+		$params = array(
+			'headers'     => array('Content-Type' => 'application/json'),
+			'body'        => wp_json_encode($post_fields),
+			'method'      => 'POST',
+			'timeout' 	  => 60,
+			'data_format' => 'body',
+		);
+
+		$response = wp_remote_post($tracking_api_url, $params);
+
+		if (is_wp_error($response)) {
+			$error_message = esc_html($response->get_error_message());
+			$this->log_error($error_message, $post_fields);
+			throw new Exception('Error communicating with GLS API: ' . esc_html($error_message));
+		}
+
+		$body = json_decode(wp_remote_retrieve_body($response), true);
+
+		// Check for errors in the tracking response
+		if (!empty($body['GetParcelStatusErrors'])) {
+			$error_message = 'Tracking error: ' . implode(', ', $body['GetParcelStatusErrors']);
+			throw new Exception($error_message);
+		}
+
+		if ($this->get_option("logging") === 'yes') {
+			$this->log_response($body, $response, $post_fields);
+		}
+
+		return $body;
 	}
 
 	private function log_error($error_message, $params)
