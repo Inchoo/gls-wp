@@ -96,8 +96,15 @@ class GLS_Shipping_Assets
             $translation_array = array(
                 'ajaxNonce' => wp_create_nonce('import-nonce'),
                 'adminAjaxUrl' => admin_url('admin-ajax.php'),
+                'pickup_location' => __('Pickup Location', 'gls-shipping-for-woocommerce'),
+                'name' => __('Name', 'gls-shipping-for-woocommerce'),
+                'address' => __('Address', 'gls-shipping-for-woocommerce'),
+                'country' => __('Country', 'gls-shipping-for-woocommerce'),
             );
-            wp_enqueue_script('gls-shipping-backend', GLS_SHIPPING_URL . 'includes/admin/assets/js/gls-shipping-admin.js', array(), time(), true);
+            
+            // GLS map scripts will be loaded dynamically when needed
+            
+            wp_enqueue_script('gls-shipping-backend', GLS_SHIPPING_URL . 'includes/admin/assets/js/gls-shipping-admin.js', array('jquery'), time(), true);
             wp_localize_script(
                 'gls-shipping-backend',
                 'gls_croatia',
@@ -105,6 +112,8 @@ class GLS_Shipping_Assets
             );
         }
     }
+
+
 }
 
 GLS_Shipping_Assets::init();

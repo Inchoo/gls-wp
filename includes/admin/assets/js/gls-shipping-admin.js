@@ -718,5 +718,174 @@
 				$(this).hide();
 			}
 		});
+
+		// Handle GLS pickup location changes in admin
+		handleGLSPickupLocationChange();
+
+		function handleGLSPickupLocationChange() {
+			var glsScriptLoaded = false;
+			var glsDialogsCreated = false;
+
+			// Handle "Change pickup location" button clicks
+			$(document).on('click', '.gls-change-pickup-location', function() {
+				var $button = $(this);
+				var orderId = $button.data('order-id');
+				var pickupType = $button.data('pickup-type');
+				
+				// Disable button during loading
+				$button.prop('disabled', true).text('Loading...');
+				
+				// Load GLS script and create dialogs if not already done
+				loadGLSMapResources(function() {
+					// Re-enable button
+					$button.prop('disabled', false).text('Change Pickup Location');
+					
+					// Show the appropriate map modal
+					if (pickupType === 'locker') {
+						showAdminMapModal("gls-map-locker", orderId);
+					} else {
+						showAdminMapModal("gls-map-shop", orderId);
+					}
+				});
+			});
+
+			function loadGLSMapResources(callback) {
+				// If already loaded, just call callback
+				if (glsScriptLoaded && glsDialogsCreated) {
+					callback();
+					return;
+				}
+
+				// Load the GLS DPM script first
+				if (!glsScriptLoaded) {
+					var script = document.createElement('script');
+					script.type = 'module';
+					script.src = 'https://map.gls-croatia.com/widget/gls-dpm.js';
+					script.onload = function() {
+						glsScriptLoaded = true;
+						createMapDialogs();
+						setupMapEventListeners();
+						callback();
+					};
+					script.onerror = function() {
+						alert('Failed to load GLS map. Please try again.');
+						// Re-enable any disabled buttons
+						$('.gls-change-pickup-location').prop('disabled', false).text('Change Pickup Location');
+					};
+					document.head.appendChild(script);
+				} else {
+					// Script already loaded, just create dialogs if needed
+					if (!glsDialogsCreated) {
+						createMapDialogs();
+						setupMapEventListeners();
+					}
+					callback();
+				}
+			}
+
+			function createMapDialogs() {
+				if (glsDialogsCreated) return;
+
+				// Create locker dialog
+				var lockerDialog = document.createElement('gls-dpm-dialog');
+				lockerDialog.setAttribute('country', 'hr');
+				lockerDialog.setAttribute('style', 'position: relative; z-index: 9999;');
+				lockerDialog.setAttribute('class', 'inchoo-gls-map gls-map-locker');
+				lockerDialog.setAttribute('filter-type', 'parcel-locker');
+				document.body.appendChild(lockerDialog);
+
+				// Create shop dialog
+				var shopDialog = document.createElement('gls-dpm-dialog');
+				shopDialog.setAttribute('country', 'hr');
+				shopDialog.setAttribute('style', 'position: relative; z-index: 9999;');
+				shopDialog.setAttribute('class', 'inchoo-gls-map gls-map-shop');
+				shopDialog.setAttribute('filter-type', 'parcel-shop');
+				document.body.appendChild(shopDialog);
+
+				glsDialogsCreated = true;
+			}
+
+			function setupMapEventListeners() {
+				// Initialize map elements
+				var mapElements = document.getElementsByClassName("inchoo-gls-map");
+				
+				if (mapElements.length > 0) {
+					for (var i = 0; i < mapElements.length; i++) {
+						// Remove any existing listeners to avoid duplicates
+						mapElements[i].removeEventListener("change", handleMapChange);
+						// Add new listener
+						mapElements[i].addEventListener("change", handleMapChange);
+					}
+				}
+			}
+
+			function handleMapChange(e) {
+				var pickupInfo = e.detail;
+				var orderId = $('.gls-change-pickup-location').data('order-id');
+				
+				// Update the pickup location via AJAX
+				updatePickupLocation(orderId, pickupInfo);
+			}
+
+			function showAdminMapModal(mapClass, orderId) {
+				var mapElement = document.querySelector("." + mapClass);
+				if (mapElement) {
+					// Get country from the order billing/shipping address if available
+					var selectedCountry = 'hr'; // Default to Croatia
+					
+					// Try to get country from billing fields
+					var billingCountryElement = document.getElementById("_billing_country");
+					if (billingCountryElement && billingCountryElement.value) {
+						selectedCountry = billingCountryElement.value.toLowerCase();
+					}
+					
+					mapElement.setAttribute("country", selectedCountry);
+					mapElement.showModal();
+				}
+			}
+
+			function updatePickupLocation(orderId, pickupInfo) {
+				$.ajax({
+					url: gls_croatia.adminAjaxUrl,
+					type: "POST",
+					data: {
+						action: "gls_update_pickup_location",
+						orderId: orderId,
+						pickupInfo: JSON.stringify(pickupInfo),
+						postNonce: gls_croatia.ajaxNonce
+					},
+					success: function (response) {
+						if (response.success) {
+							// Update the pickup display with new information
+							updatePickupDisplay(pickupInfo);
+						} else {
+							alert("Error updating pickup location: " + response.data.error);
+						}
+					},
+					error: function () {
+						alert("An error occurred while updating the pickup location.");
+					}
+				});
+			}
+
+			function updatePickupDisplay(pickupInfo) {
+				var $display = $('#gls-pickup-display');
+				if ($display.length) {
+					var html = '<strong>' + gls_croatia.pickup_location + ':</strong><br/>';
+					html += '<strong>ID:</strong> ' + pickupInfo.id + '<br>';
+					html += '<strong>' + gls_croatia.name + ':</strong> ' + pickupInfo.name + '<br>';
+					html += '<strong>' + gls_croatia.address + ':</strong> ' + pickupInfo.contact.address + ', ' + pickupInfo.contact.city + ', ' + pickupInfo.contact.postalCode + '<br>';
+					html += '<strong>' + gls_croatia.country + ':</strong> ' + pickupInfo.contact.countryCode + '<br>';
+					
+					// Keep the change button
+					var $button = $display.find('.gls-change-pickup-location');
+					if ($button.length) {
+						html += '<br/>' + $button[0].outerHTML;
+					}
+					
+					$display.html(html);
+				}
+			}
+		}
 	});
 })(jQuery);

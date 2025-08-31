@@ -18,6 +18,7 @@ class GLS_Shipping_Order
         add_action('add_meta_boxes', array($this, 'add_gls_shipping_info_meta_box'));
         add_action('wp_ajax_gls_generate_label', array($this, 'generate_label_and_tracking_number'));
         add_action('wp_ajax_gls_get_parcel_status', array($this, 'get_parcel_status'));
+        add_action('wp_ajax_gls_update_pickup_location', array($this, 'update_pickup_location'));
     }
 
     public function add_gls_shipping_info_meta_box()
@@ -50,12 +51,48 @@ class GLS_Shipping_Order
     
         if (!empty($gls_pickup_info)) {
             $pickup_info = json_decode($gls_pickup_info);
+            
+            // Check if this order uses pickup services (parcel locker or parcel shop)
+            $shipping_methods = $order->get_shipping_methods();
+            $uses_pickup_service = false;
+            $pickup_type = '';
+            
+            $map_selection_methods = array(
+                'gls_shipping_method_parcel_locker',
+                'gls_shipping_method_parcel_shop',
+                'gls_shipping_method_parcel_locker_zones',
+                'gls_shipping_method_parcel_shop_zones'
+            );
+            
+            foreach ($shipping_methods as $shipping_method) {
+                if (in_array($shipping_method->get_method_id(), $map_selection_methods)) {
+                    $uses_pickup_service = true;
+                    if (strpos($shipping_method->get_method_id(), 'locker') !== false) {
+                        $pickup_type = 'locker';
+                    } else {
+                        $pickup_type = 'shop';
+                    }
+                    break;
+                }
+            }
     
+            echo '<div id="gls-pickup-display">';
             echo '<strong>' . esc_html__('GLS Pickup Location:', 'gls-shipping-for-woocommerce') . '</strong><br/>';
             echo '<strong>' . esc_html__('ID:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->id) . '<br>';
             echo '<strong>' . esc_html__('Name:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->name) . '<br>';
             echo '<strong>' . esc_html__('Address:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->contact->address) . ', ' . esc_html($pickup_info->contact->city) . ', ' . esc_html($pickup_info->contact->postalCode) . '<br>';
             echo '<strong>' . esc_html__('Country:', 'gls-shipping-for-woocommerce') . '</strong> ' . esc_html($pickup_info->contact->countryCode) . '<br>';
+            
+            // Add change pickup location button if this order uses pickup services
+            if ($uses_pickup_service) {
+                echo '<br/>';
+                if ($pickup_type === 'locker') {
+                    echo '<button type="button" class="button button-secondary gls-change-pickup-location" data-order-id="' . esc_attr($order_id) . '" data-pickup-type="locker">' . esc_html__('Change Pickup Location', 'gls-shipping-for-woocommerce') . '</button>';
+                } else {
+                    echo '<button type="button" class="button button-secondary gls-change-pickup-location" data-order-id="' . esc_attr($order_id) . '" data-pickup-type="shop">' . esc_html__('Change Pickup Location', 'gls-shipping-for-woocommerce') . '</button>';
+                }
+            }
+            echo '</div>';
         }
     
         if (!empty($tracking_codes) && is_array($tracking_codes)) {
@@ -455,6 +492,54 @@ class GLS_Shipping_Order
         
         <?php
         return ob_get_clean();
+    }
+
+    /**
+     * Handle AJAX request to update pickup location
+     */
+    public function update_pickup_location()
+    {
+        if (!wp_verify_nonce(sanitize_text_field($_POST['postNonce']), 'import-nonce')) {
+            wp_send_json_error(array('error' => 'Invalid security token'));
+            wp_die();
+        }
+
+        $order_id = intval($_POST['orderId']);
+        $pickup_info = isset($_POST['pickupInfo']) ? sanitize_text_field(stripslashes($_POST['pickupInfo'])) : '';
+
+        if (empty($order_id) || empty($pickup_info)) {
+            wp_send_json_error(array('error' => 'Missing order ID or pickup information'));
+            wp_die();
+        }
+
+        try {
+            $order = wc_get_order($order_id);
+            if (!$order) {
+                wp_send_json_error(array('error' => 'Order not found'));
+                wp_die();
+            }
+
+            // Update the pickup location
+            $order->update_meta_data('_gls_pickup_info', $pickup_info);
+            $order->save();
+
+            // Add order note about the change
+            $pickup_data = json_decode($pickup_info);
+            if ($pickup_data) {
+                $note = sprintf(
+                    __('GLS pickup location changed to: %s (%s)', 'gls-shipping-for-woocommerce'),
+                    $pickup_data->name,
+                    $pickup_data->id
+                );
+                $order->add_order_note($note);
+            }
+
+            wp_send_json_success(array('message' => __('Pickup location updated successfully', 'gls-shipping-for-woocommerce')));
+        } catch (Exception $e) {
+            wp_send_json_error(array('error' => $e->getMessage()));
+        }
+
+        wp_die();
     }
 }
 
