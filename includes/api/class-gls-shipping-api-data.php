@@ -125,12 +125,22 @@ class GLS_Shipping_API_Data
         // Find the active account
         foreach ($accounts as $account) {
             if (!empty($account['active']) && $account['active']) {
+                // Verify the account has required credentials
+                if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
+                    return $account;
+                }
+            }
+        }
+        
+        // Fallback: return first account with valid credentials
+        foreach ($accounts as $account) {
+            if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
                 return $account;
             }
         }
         
-        // Return first account as fallback
-        return reset($accounts);
+        // No valid accounts found
+        return false;
     }
 
     /**

@@ -390,6 +390,18 @@ max_weight|cost',
 										</tr>
 									</thead>
 									<tbody id="sender-addresses-tbody">
+										<!-- Default "No custom address" option -->
+										<tr class="sender-address-row" data-index="none">
+											<td>
+												<input type="radio" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>_default" value="none" <?php checked(!$this->has_default_address($addresses), true); ?> class="address-default-radio" />
+											</td>
+											<td>
+												<span class="address-name-display" style="font-style: italic; color: #666;"><?php _e('No custom sender address (use default from store settings)', 'gls-shipping-for-woocommerce'); ?></span>
+											</td>
+											<td>
+												<!-- No actions for default option -->
+											</td>
+										</tr>
 										<?php
 										if (!empty($addresses)) {
 											foreach ($addresses as $index => $address) {
@@ -465,6 +477,24 @@ max_weight|cost',
 				</tr>
 				<?php
 				return ob_get_clean();
+			}
+
+			/**
+			 * Check if any address is set as default
+			 */
+			private function has_default_address($addresses)
+			{
+				if (empty($addresses)) {
+					return false;
+				}
+				
+				foreach ($addresses as $address) {
+					if (!empty($address['is_default']) && $address['is_default']) {
+						return true;
+					}
+				}
+				
+				return false;
 			}
 
 			/**
@@ -584,10 +614,14 @@ max_weight|cost',
 
 				$validated = array();
 				$active_account = isset($_POST[$this->get_field_key('gls_accounts_grid') . '_active']) ? 
-					intval($_POST[$this->get_field_key('gls_accounts_grid') . '_active']) : 0;
+					intval($_POST[$this->get_field_key('gls_accounts_grid') . '_active']) : -1;
+				
+				$has_active_account = false;
+				$first_valid_index = -1;
 
 				foreach ($value as $index => $account) {
-					if (!empty($account['client_id']) && !empty($account['username'])) {
+					// Only validate accounts with required credentials
+					if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
 						$validated[$index] = array(
 							'name' => sanitize_text_field($account['client_id']), // Use client_id as name
 							'client_id' => sanitize_text_field($account['client_id']),
@@ -597,8 +631,31 @@ max_weight|cost',
 							'mode' => sanitize_text_field($account['mode']),
 							'active' => ($index == $active_account)
 						);
+						
+						// Track if we have an active account
+						if ($index == $active_account) {
+							$has_active_account = true;
+						}
+						
+						// Remember first valid account
+						if ($first_valid_index == -1) {
+							$first_valid_index = $index;
+						}
 					}
 				}
+				
+				// If no active account is selected but we have valid accounts, make the first one active
+				if (!$has_active_account && !empty($validated) && $first_valid_index != -1) {
+					$validated[$first_valid_index]['active'] = true;
+					
+					// Add admin notice to inform user
+					add_action('admin_notices', function() {
+						echo '<div class="notice notice-warning is-dismissible">';
+						echo '<p>' . __('No active GLS account was selected. The first valid account has been automatically set as active.', 'gls-shipping-for-woocommerce') . '</p>';
+						echo '</div>';
+					});
+				}
+				
 				return $validated;
 			}
 
@@ -685,12 +742,22 @@ max_weight|cost',
 				// Find the active account
 				foreach ($accounts as $account) {
 					if (!empty($account['active']) && $account['active']) {
+						// Verify the account has required credentials
+						if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
+							return $account;
+						}
+					}
+				}
+				
+				// Fallback: return first account with valid credentials
+				foreach ($accounts as $account) {
+					if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
 						return $account;
 					}
 				}
 				
-				// Return first available account as fallback if no active account is set
-				return reset($accounts);
+				// No valid accounts found
+				return false;
 			}
 			
 			/**

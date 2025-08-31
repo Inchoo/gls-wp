@@ -49,7 +49,7 @@
 			$(document).on('click', '.edit-account', function() {
 				const $row = $(this).closest('tr');
 				const index = $row.data('index');
-				openEditModal($row, index);
+				openAccountEditModal($row, index);
 			});
 			
 			// Handle active account radio button changes
@@ -114,14 +114,14 @@
 			});
 		}
 		
-		function openEditModal($row, index) {
+		function openAccountEditModal($row, index) {
 			const account = {
-				name: $row.find('.account-name').val(),
-				client_id: $row.find('.account-client-id').val(),
-				username: $row.find('.account-username').val(),
-				password: $row.find('.account-password').val(),
-				country: $row.find('.account-country').val(),
-				mode: $row.find('.account-mode').val()
+				name: $row.find('.account-name').val() || '',
+				client_id: $row.find('.account-client-id').val() || '',
+				username: $row.find('.account-username').val() || '',
+				password: $row.find('.account-password').val() || '',
+				country: $row.find('.account-country').val() || 'HR',
+				mode: $row.find('.account-mode').val() || 'production'
 			};
 			
 			// Add modal styles if not already added
@@ -468,7 +468,7 @@
 		}
 		
 		function handleSenderAddressesGrid() {
-			let addressIndex = $('.sender-address-row').length;
+			let addressIndex = $('.sender-address-row[data-index!="none"]').length;
 			
 			// Add new address
 			$(document).on('click', '#add-sender-address', function() {
@@ -489,17 +489,23 @@
 			$(document).on('click', '.edit-address', function() {
 				const $row = $(this).closest('tr');
 				const index = $row.data('index');
-				openEditModal($row, index);
+				openAddressEditModal($row, index);
 			});
 			
 			// Handle default selection
 			$(document).on('change', '.address-default-radio', function() {
+				const selectedValue = $(this).val();
+				
 				// Uncheck all other radios
 				$('.address-default-radio').not(this).prop('checked', false);
 				
 				// Update hidden fields
 				$('.address-is-default').val('0');
-				$(this).closest('tr').find('.address-is-default').val('1');
+				
+				// Only set to default if it's not the "none" option
+				if (selectedValue !== 'none') {
+					$(this).closest('tr').find('.address-is-default').val('1');
+				}
 			});
 		}
 		
@@ -532,7 +538,7 @@
 		}
 		
 		function reindexAddresses() {
-			$('.sender-address-row').each(function(newIndex) {
+			$('.sender-address-row[data-index!="none"]').each(function(newIndex) {
 				$(this).attr('data-index', newIndex);
 				$(this).find('input, select').each(function() {
 					const name = $(this).attr('name');
@@ -544,7 +550,7 @@
 			});
 		}
 		
-		function openEditModal($row, index) {
+		function openAddressEditModal($row, index) {
 			// Add modal styles if not already added
 			if ($('#gls-modal-styles').length === 0) {
 				$('head').append(`
@@ -583,14 +589,14 @@
 			}
 			
 			const address = {
-				name: $row.find('.address-name').val(),
-				street: $row.find('.address-street').val(),
-				house_number: $row.find('.address-house-number').val(),
-				city: $row.find('.address-city').val(),
-				postcode: $row.find('.address-postcode').val(),
-				country: $row.find('.address-country').val(),
-				phone: $row.find('.address-phone').val(),
-				email: $row.find('.address-email').val(),
+				name: $row.find('.address-name').val() || '',
+				street: $row.find('.address-street').val() || '',
+				house_number: $row.find('.address-house-number').val() || '',
+				city: $row.find('.address-city').val() || '',
+				postcode: $row.find('.address-postcode').val() || '',
+				country: $row.find('.address-country').val() || 'HR',
+				phone: $row.find('.address-phone').val() || '',
+				email: $row.find('.address-email').val() || '',
 				is_default: $row.find('.address-is-default').val() === '1'
 			};
 			
