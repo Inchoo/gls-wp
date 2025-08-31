@@ -37,7 +37,7 @@ class GLS_Shipping_Bulk
         // Enqueue admin styles
         add_action('admin_print_styles', array($this, 'admin_enqueue_styles'));
 
-        // Add GLS Parcel ID column to orders list (both standard and HPOS)
+        // Add GLS Tracking Number column to orders list (both standard and HPOS)
         add_filter('manage_edit-shop_order_columns', array($this, 'add_gls_parcel_id_column'));
         add_filter('manage_woocommerce_page_wc-orders_columns', array($this, 'add_gls_parcel_id_column'));
         
@@ -335,23 +335,23 @@ class GLS_Shipping_Bulk
     }
 
     /**
-     * Add GLS Parcel ID column to orders list
+     * Add GLS Tracking Number column to orders list
      */
     public function add_gls_parcel_id_column($columns)
     {
-        // Insert the GLS Parcel ID column after the order status column
+        // Insert the GLS Tracking Number column after the order status column
         $new_columns = array();
         foreach ($columns as $key => $value) {
             $new_columns[$key] = $value;
             if ($key === 'order_status') {
-                $new_columns['gls_parcel_id'] = __('GLS Parcel ID', 'gls-shipping-for-woocommerce');
+                $new_columns['gls_parcel_id'] = __('GLS Tracking Number', 'gls-shipping-for-woocommerce');
             }
         }
         return $new_columns;
     }
 
     /**
-     * Populate GLS Parcel ID column content (works for both standard and HPOS)
+     * Populate GLS Tracking Number column content (works for both standard and HPOS)
      */
     public function populate_gls_parcel_id_column($column, $order_data)
     {
@@ -369,7 +369,7 @@ class GLS_Shipping_Bulk
     }
 
     /**
-     * Display parcel IDs for an order
+     * Display tracking numbers for an order
      */
     private function display_parcel_ids($order_id)
     {
@@ -379,27 +379,33 @@ class GLS_Shipping_Bulk
             return;
         }
 
-        $parcel_ids = array();
+        $tracking_numbers = array();
 
-        // Get parcel IDs from _gls_parcel_ids meta (if exists)
-        $stored_parcel_ids = $order->get_meta('_gls_parcel_ids', true);
-        if (!empty($stored_parcel_ids)) {
-            if (is_array($stored_parcel_ids)) {
-                foreach ($stored_parcel_ids as $id) {
-                    if (!in_array($id, $parcel_ids)) {
-                        $parcel_ids[] = esc_html($id);
+        // Get tracking numbers from _gls_tracking_codes meta (preferred)
+        $stored_tracking_codes = $order->get_meta('_gls_tracking_codes', true);
+        if (!empty($stored_tracking_codes)) {
+            if (is_array($stored_tracking_codes)) {
+                foreach ($stored_tracking_codes as $tracking_code) {
+                    if (!in_array($tracking_code, $tracking_numbers)) {
+                        $tracking_numbers[] = esc_html($tracking_code);
                     }
                 }
             } else {
-                if (!in_array($stored_parcel_ids, $parcel_ids)) {
-                    $parcel_ids[] = esc_html($stored_parcel_ids);
+                if (!in_array($stored_tracking_codes, $tracking_numbers)) {
+                    $tracking_numbers[] = esc_html($stored_tracking_codes);
                 }
+            }
+        } else {
+            // Legacy support - check for single tracking code
+            $legacy_tracking_code = $order->get_meta('_gls_tracking_code', true);
+            if (!empty($legacy_tracking_code)) {
+                $tracking_numbers[] = esc_html($legacy_tracking_code);
             }
         }
 
-        // Display the parcel IDs
-        if (!empty($parcel_ids)) {
-            echo implode(' ', $parcel_ids);
+        // Display the tracking numbers
+        if (!empty($tracking_numbers)) {
+            echo implode(' ', $tracking_numbers);
         } else {
             echo '-';
         }

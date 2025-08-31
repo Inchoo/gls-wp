@@ -12,8 +12,6 @@ if (!defined('ABSPATH')) {
 
 class GLS_Shipping_Product_Restrictions
 {
-    private static $notice_added = false;
-
     public function __construct()
     {
         // Add product shipping restriction field
@@ -23,9 +21,8 @@ class GLS_Shipping_Product_Restrictions
         // Filter shipping methods based on cart contents
         add_filter('woocommerce_package_rates', array($this, 'filter_shipping_methods_by_cart_restrictions'), 10, 2);
         
-        // Add notice when shipping methods are restricted
-        add_action('woocommerce_review_order_before_shipping', array($this, 'add_shipping_restriction_notice'));
-        add_action('woocommerce_cart_totals_before_shipping', array($this, 'add_shipping_restriction_notice'));
+        // Add WooCommerce notice when shipping methods are restricted
+        add_action('woocommerce_check_cart_items', array($this, 'add_shipping_restriction_notice'));
     }
 
     /**
@@ -113,11 +110,11 @@ class GLS_Shipping_Product_Restrictions
     }
 
     /**
-     * Add notice when shipping methods are restricted due to cart contents
+     * Add WooCommerce notice when shipping methods are restricted due to cart contents
      */
     public function add_shipping_restriction_notice()
     {
-        if (is_admin() || !WC()->cart || self::$notice_added) {
+        if (is_admin() || !WC()->cart) {
             return;
         }
 
@@ -130,11 +127,11 @@ class GLS_Shipping_Product_Restrictions
                 $message = sprintf(
                     /* translators: %s: comma-separated list of product names that have shipping restrictions */
                     __('Some products in your cart (%s) cannot be shipped to parcel shops or parcel lockers. Only standard delivery options are available.', 'gls-shipping-for-woocommerce'),
-                    '<strong>' . implode(', ', $restricted_products) . '</strong>'
+                    implode(', ', $restricted_products)
                 );
                 
-                echo '<div class="woocommerce-info" style="margin-bottom: 15px;">' . $message . '</div>';
-                self::$notice_added = true;
+                // Use WooCommerce's built-in notice system
+                wc_add_notice($message, 'notice');
             }
         }
     }
