@@ -88,10 +88,26 @@ class GLS_Shipping_Bulk
             $failed_orders = array();
             foreach ($order_ids as $order_id) {
                 try {
+                    // Get saved order settings
+                    $order = wc_get_order($order_id);
+                    if (!$order) {
+                        throw new Exception("Order not found: $order_id");
+                    }
+                    
+                    // Retrieve saved order meta
+                    $saved_print_position = $order->get_meta('_gls_print_position', true);
+                    $saved_cod_reference = $order->get_meta('_gls_cod_reference', true);
+                    $saved_services = $order->get_meta('_gls_services', true);
+                    
+                    // Use saved values or defaults
+                    $print_position = !empty($saved_print_position) ? intval($saved_print_position) : null;
+                    $cod_reference = !empty($saved_cod_reference) ? $saved_cod_reference : null;
+                    $services = !empty($saved_services) ? $saved_services : null;
+                    
                     // Prepare data for API request
                     $count = 1;
                     $prepare_data = new GLS_Shipping_API_Data($order_id);
-                    $data = $prepare_data->generate_post_fields($count);
+                    $data = $prepare_data->generate_post_fields($count, $print_position, $cod_reference, $services);
 
                     // Send order to GLS API
                     $api = new GLS_Shipping_API_Service();

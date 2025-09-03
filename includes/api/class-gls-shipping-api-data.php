@@ -477,6 +477,8 @@ class GLS_Shipping_API_Data
     public function generate_post_fields_multi()
     {
         $parcel_list = [];
+        $has_custom_print_position = false;
+        $first_print_position = null;
 
         foreach ($this->orders as $order_data) {
             $order = $order_data['order'];
@@ -489,6 +491,24 @@ class GLS_Shipping_API_Data
             $orderId = $order->get_id();
             $clientReference = str_replace('{{order_id}}', $orderId, $clientReferenceFormat);
 
+            // Get saved order settings
+            $saved_services = $order->get_meta('_gls_services', true);
+            $saved_cod_reference = $order->get_meta('_gls_cod_reference', true);
+            $saved_print_position = $order->get_meta('_gls_print_position', true);
+
+            // Use saved services if available
+            $services = !empty($saved_services) ? $saved_services : null;
+
+            // Track print positions for multi-order processing
+            if (!empty($saved_print_position)) {
+                $print_position = intval($saved_print_position);
+                if ($first_print_position === null) {
+                    $first_print_position = $print_position;
+                } elseif ($first_print_position !== $print_position) {
+                    $has_custom_print_position = true;
+                }
+            }
+
             $parcel = [
                 'ClientNumber' => (int)$this->get_option("client_id"),
                 'ClientReference' => $clientReference,
@@ -496,7 +516,7 @@ class GLS_Shipping_API_Data
             ];
             $parcel['PickupAddress'] = $this->get_pickup_address($order);
             $parcel['DeliveryAddress'] = $this->get_delivery_address($order);
-            $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info);
+            $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info, $services);
 
             // Add SenderIdentityCardNumber for Serbia
             if ($order->get_shipping_country() === 'RS') {
@@ -510,16 +530,27 @@ class GLS_Shipping_API_Data
 
             if ($order->get_payment_method() === 'cod') {
                 $parcel['CODAmount'] = $order->get_total();
-                $parcel['CODReference'] = $orderId;
+                // Use saved COD reference if available, otherwise use order ID
+                $parcel['CODReference'] = !empty($saved_cod_reference) ? $saved_cod_reference : $orderId;
             }
 
             $parcel_list[] = $parcel;
         }
 
+        // Determine print position for the whole batch
+        $final_print_position = 1; // Default
+        if ($first_print_position !== null && !$has_custom_print_position) {
+            // All orders have the same custom print position
+            $final_print_position = $first_print_position;
+        } else {
+            // Use global setting if orders have different print positions or none set
+            $final_print_position = (int)$this->get_option("print_position") ?: 1;
+        }
+
         $params = [
             'WebshopEngine' => 'woocommercehr',
             'ParcelList' => $parcel_list,
-            'PrintPosition' => (int)$this->get_option("print_position") ?: 1,
+            'PrintPosition' => $final_print_position,
             'TypeOfPrinter' => $this->get_option("type_of_printer") ?: 'A4_2x2',
             'ShowPrintDialog' => false
         ];
