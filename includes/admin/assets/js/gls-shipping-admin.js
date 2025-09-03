@@ -741,7 +741,6 @@
 			$(document).on('click', '.gls-change-pickup-location', function() {
 				var $button = $(this);
 				var orderId = $button.data('order-id');
-				var pickupType = $button.data('pickup-type');
 				
 				// Disable button during loading
 				$button.prop('disabled', true).text('Loading...');
@@ -751,12 +750,8 @@
 					// Re-enable button
 					$button.prop('disabled', false).text('Change Pickup Location');
 					
-					// Show the appropriate map modal
-					if (pickupType === 'locker') {
-						showAdminMapModal("gls-map-locker", orderId);
-					} else {
-						showAdminMapModal("gls-map-shop", orderId);
-					}
+					// Show unified map modal that allows selection of any pickup type
+					showAdminMapModal("gls-map-unified", orderId);
 				});
 			});
 
@@ -813,6 +808,14 @@
 				shopDialog.setAttribute('filter-type', 'parcel-shop');
 				document.body.appendChild(shopDialog);
 
+				// Create unified dialog for admin edit orders (shows all pickup types)
+				var unifiedDialog = document.createElement('gls-dpm-dialog');
+				unifiedDialog.setAttribute('country', 'hr');
+				unifiedDialog.setAttribute('style', 'position: relative; z-index: 9999;');
+				unifiedDialog.setAttribute('class', 'inchoo-gls-map gls-map-unified');
+				// Don't set filter-type to show all location types
+				document.body.appendChild(unifiedDialog);
+
 				glsDialogsCreated = true;
 			}
 
@@ -832,7 +835,8 @@
 
 			function handleMapChange(e) {
 				var pickupInfo = e.detail;
-				var orderId = $('.gls-change-pickup-location').data('order-id');
+				var mapElement = e.target;
+				var orderId = mapElement.getAttribute('data-order-id');
 				
 				// Update the pickup location via AJAX
 				updatePickupLocation(orderId, pickupInfo);
@@ -851,6 +855,10 @@
 					}
 					
 					mapElement.setAttribute("country", selectedCountry);
+					
+					// Store order ID for later use in handleMapChange
+					mapElement.setAttribute("data-order-id", orderId);
+					
 					mapElement.showModal();
 				}
 			}
@@ -888,10 +896,21 @@
 					html += '<strong>' + gls_croatia.address + ':</strong> ' + pickupInfo.contact.address + ', ' + pickupInfo.contact.city + ', ' + pickupInfo.contact.postalCode + '<br>';
 					html += '<strong>' + gls_croatia.country + ':</strong> ' + pickupInfo.contact.countryCode + '<br>';
 					
-					// Keep the change button
+					// Determine pickup type from the selected location
+					var pickupType = 'shop'; // Default to shop
+					if (pickupInfo.type && pickupInfo.type.toLowerCase().includes('locker')) {
+						pickupType = 'locker';
+					} else if (pickupInfo.lockerIds && pickupInfo.lockerIds.length > 0) {
+						// Alternative way to detect locker
+						pickupType = 'locker';
+					}
+					
+					// Update/create the change button with the correct pickup type
 					var $button = $display.find('.gls-change-pickup-location');
-					if ($button.length) {
-						html += '<br/>' + $button[0].outerHTML;
+					var orderId = $button.length ? $button.data('order-id') : '';
+					
+					if (orderId) {
+						html += '<br/><button type="button" class="button button-secondary gls-change-pickup-location" data-order-id="' + orderId + '" data-pickup-type="' + pickupType + '">Change Pickup Location</button>';
 					}
 					
 					$display.html(html);
