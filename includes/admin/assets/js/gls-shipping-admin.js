@@ -625,6 +625,10 @@
 								<td><input type="text" id="modal-address-name" value="${address.name}" style="width: 100%;" /></td>
 							</tr>
 							<tr>
+								<th><label>Contact Name</label></th>
+								<td><input type="text" id="modal-address-contact-name" value="${address.contact_name || ''}" style="width: 100%;" /></td>
+							</tr>
+							<tr>
 								<th><label>Street *</label></th>
 								<td><input type="text" id="modal-address-street" value="${address.street}" style="width: 100%;" /></td>
 							</tr>
@@ -688,6 +692,7 @@
 				
 				// Update hidden fields
 				$row.find('.address-name').val(name);
+				$row.find('.address-contact-name').val($('#modal-address-contact-name').val());
 				$row.find('.address-street').val(street);
 				$row.find('.address-house-number').val(houseNumber);
 				$row.find('.address-city').val(city);

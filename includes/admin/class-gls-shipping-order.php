@@ -185,7 +185,7 @@ class GLS_Shipping_Order
                         </button>
                         <?php if (!empty($gls_tracking_number)) { ?>
                         <button type="button" class="button gls-get-status" order-id="<?php echo esc_attr($order->get_id()); ?>" parcel-number="<?php echo esc_attr($gls_tracking_number); ?>" style="margin-top: 10px;">
-                            <?php esc_html_e("Get Order Status", "gls-shipping-for-woocommerce"); ?>
+                            <?php esc_html_e("Get Parcel Status", "gls-shipping-for-woocommerce"); ?>
                         </button>
                         <?php } ?>
                     </div>

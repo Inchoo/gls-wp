@@ -99,7 +99,7 @@ class GLS_Shipping_Pickup
                         pickup_time_to: $("#pickup_time_to").val(),
                         sender_address_index: selectedIndex,
                         // Address data from selected address
-                        contact_name: selectedAddress.name || "",
+                        contact_name: selectedAddress.contact_name || selectedAddress.name || "",
                         contact_phone: selectedAddress.phone || "",
                         contact_email: selectedAddress.email || "",
                         address_name: selectedAddress.name || "",
@@ -152,6 +152,9 @@ class GLS_Shipping_Pickup
                         
                         $("#address-details-text").html(addressText);
                         $("#selected-address-details").show();
+                    } else {
+                        // Hide address details if no valid address selected
+                        $("#selected-address-details").hide();
                     }
                 });
                 

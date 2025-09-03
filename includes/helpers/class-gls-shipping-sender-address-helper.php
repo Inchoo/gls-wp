@@ -81,14 +81,19 @@ class GLS_Shipping_Sender_Address_Helper
      */
     public static function get_store_fallback_address()
     {
+        // Get phone number from plugin settings
+        $settings = get_option("woocommerce_gls_shipping_method_settings", array());
+        $store_phone = isset($settings['phone_number']) ? $settings['phone_number'] : '';
+        
         return array(
-            'name' => get_option('woocommerce_store_address_2', get_bloginfo('name')),
+            'name' => get_bloginfo('name'),
+            'contact_name' => get_bloginfo('name'),
             'street' => get_option('woocommerce_store_address', ''),
             'house_number' => '',
             'city' => get_option('woocommerce_store_city', ''),
             'postcode' => get_option('woocommerce_store_postcode', ''),
             'country' => self::get_store_country(),
-            'phone' => '',
+            'phone' => $store_phone,
             'email' => get_option('admin_email', ''),
             'is_default' => false
         );
@@ -105,7 +110,6 @@ class GLS_Shipping_Sender_Address_Helper
         
         // Always add store address as first option
         $store_address = self::get_store_fallback_address();
-        $store_address['name'] = __('Store Address', 'gls-shipping-for-woocommerce') . ' (' . $store_address['name'] . ')';
         $addresses[] = $store_address;
         
         // Add configured sender addresses
@@ -269,7 +273,7 @@ class GLS_Shipping_Sender_Address_Helper
             'City' => !empty($sender_address['city']) ? $sender_address['city'] : get_option('woocommerce_store_city'),
             'ZipCode' => !empty($sender_address['postcode']) ? $sender_address['postcode'] : get_option('woocommerce_store_postcode'),
             'CountryIsoCode' => !empty($sender_address['country']) ? $sender_address['country'] : self::get_store_country(),
-            'ContactName' => !empty($sender_address['name']) ? $sender_address['name'] : get_bloginfo('name'),
+            'ContactName' => !empty($sender_address['contact_name']) ? $sender_address['contact_name'] : (!empty($sender_address['name']) ? $sender_address['name'] : get_bloginfo('name')),
             'ContactPhone' => !empty($sender_address['phone']) ? $sender_address['phone'] : $fallback_phone,
             'ContactEmail' => !empty($sender_address['email']) ? $sender_address['email'] : get_option('admin_email')
         );

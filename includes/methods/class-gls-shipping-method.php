@@ -504,6 +504,7 @@ max_weight|cost',
 			{
 				$address = wp_parse_args($address, array(
 					'name' => '',
+					'contact_name' => '',
 					'street' => '',
 					'house_number' => '',
 					'city' => '',
@@ -527,6 +528,7 @@ max_weight|cost',
 						
 						<!-- Hidden fields to store all address data -->
 						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][name]" value="<?php echo esc_attr($address['name']); ?>" class="address-name" />
+						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][contact_name]" value="<?php echo esc_attr($address['contact_name']); ?>" class="address-contact-name" />
 						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][street]" value="<?php echo esc_attr($address['street']); ?>" class="address-street" />
 						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][house_number]" value="<?php echo esc_attr($address['house_number']); ?>" class="address-house-number" />
 						<input type="hidden" name="<?php echo $this->get_field_key('sender_addresses_grid'); ?>[<?php echo $index; ?>][city]" value="<?php echo esc_attr($address['city']); ?>" class="address-city" />

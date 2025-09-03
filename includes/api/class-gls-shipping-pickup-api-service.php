@@ -199,6 +199,23 @@ private function convert_date_to_dotnet_format($date_string)
             throw new Exception('GLS API Error: ' . $error_message);
         }
 
+        // Check for pickup request specific errors
+        if (isset($body['PickupRequestErrors']) && !empty($body['PickupRequestErrors'])) {
+            $pickup_errors = $body['PickupRequestErrors'];
+            $error_messages = array();
+            
+            foreach ($pickup_errors as $error) {
+                if (isset($error['ErrorCode']) && $error['ErrorCode'] !== 0) {
+                    $error_msg = isset($error['ErrorDescription']) ? $error['ErrorDescription'] : 'Unknown pickup error';
+                    $error_messages[] = $error_msg;
+                }
+            }
+            
+            if (!empty($error_messages)) {
+                throw new Exception('GLS Pickup Error: ' . implode('; ', $error_messages));
+            }
+        }
+
         return $body;
     }
 
