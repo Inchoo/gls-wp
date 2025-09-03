@@ -95,12 +95,18 @@ class GLS_Shipping_Pickup_API_Service
         return array_values($passwordData);
     }
 
-    /**
+        /**
      * Convert date to .NET format
      */
-    private function convert_date_to_dotnet_format($date_string)
+private function convert_date_to_dotnet_format($date_string)
     {
-        $timestamp = strtotime($date_string . ' 09:00:00'); // Set to 9 AM
+        $timestamp = strtotime($date_string);
+        
+        // Handle invalid date
+        if ($timestamp === false) {
+            throw new Exception('Invalid date format: ' . $date_string);
+        }
+        
         return '/Date(' . ($timestamp * 1000) . ')/';
     }
 
