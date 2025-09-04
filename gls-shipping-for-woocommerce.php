@@ -49,6 +49,7 @@ final class GLS_Shipping_For_Woo
         if (is_admin()) {
             require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-order.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-bulk.php');
+            require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-pickup-history.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-pickup.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/api/class-gls-shipping-api-data.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/api/class-gls-shipping-api-service.php');

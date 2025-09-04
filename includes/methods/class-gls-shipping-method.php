@@ -606,6 +606,48 @@ max_weight|cost',
 			}
 
 			/**
+			 * Validate account_mode field type
+			 */
+			public function validate_account_mode_field($key, $value)
+			{
+				// Sanitize the value
+				$sanitized_value = sanitize_text_field($value);
+				
+				// If user selected multiple mode, check if they have any valid accounts
+				if ($sanitized_value === 'multiple') {
+					$accounts_data = isset($_POST[$this->get_field_key('gls_accounts_grid')]) ? $_POST[$this->get_field_key('gls_accounts_grid')] : array();
+					
+					// Check if there are any accounts with required credentials
+					$has_valid_accounts = false;
+					if (is_array($accounts_data)) {
+						foreach ($accounts_data as $account) {
+							if (is_array($account) && 
+								!empty($account['client_id']) && 
+								!empty($account['username']) && 
+								!empty($account['password'])) {
+								$has_valid_accounts = true;
+								break;
+							}
+						}
+					}
+					
+					// If no valid accounts found, force back to single mode
+					if (!$has_valid_accounts) {
+						// Add admin notice to inform user
+						add_action('admin_notices', function() {
+							echo '<div class="notice notice-warning is-dismissible">';
+							echo '<p>' . __('Multiple accounts mode was not saved because no valid GLS accounts were found. Please add at least one account to use multiple accounts mode.', 'gls-shipping-for-woocommerce') . '</p>';
+							echo '</div>';
+						});
+						
+						return 'single';
+					}
+				}
+				
+				return $sanitized_value;
+			}
+
+			/**
 			 * Validate gls_accounts_grid field type
 			 */
 			public function validate_gls_accounts_grid_field($key, $value)
