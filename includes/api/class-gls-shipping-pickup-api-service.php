@@ -222,12 +222,26 @@ private function convert_date_to_dotnet_format($date_string)
     /**
      * Log pickup response
      */
+    private function sanitize_request_data_for_logging($request_data)
+    {
+        $sanitized = $request_data;
+        // Remove sensitive data from logs
+        if (isset($sanitized['Username'])) {
+            $sanitized['Username'] = '***REDACTED***';
+        }
+        if (isset($sanitized['Password'])) {
+            $sanitized['Password'] = '***REDACTED***';
+        }
+        return $sanitized;
+    }
+
     private function log_pickup_response($response, $request_data)
     {
+        $sanitized_request_data = $this->sanitize_request_data_for_logging($request_data);
         $log_entry = array(
             'timestamp' => current_time('mysql'),
             'action' => 'pickup_request',
-            'request' => $request_data,
+            'request' => $sanitized_request_data,
             'response' => $response
         );
 
@@ -243,7 +257,7 @@ private function convert_date_to_dotnet_format($date_string)
             'timestamp' => current_time('mysql'),
             'action' => 'pickup_request_error',
             'error' => $error_message,
-            'request_data' => $pickup_data
+            'request_data' => $pickup_data // pickup_data doesn't contain credentials, safe to log
         );
 
         error_log('GLS Pickup API Error: ' . wp_json_encode($log_entry));

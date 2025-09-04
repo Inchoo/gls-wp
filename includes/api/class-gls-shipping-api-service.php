@@ -120,7 +120,36 @@ class GLS_Shipping_API_Service
 			throw new Exception('Error communicating with GLS API: ' . esc_html($error_message));
 		}
 
+		$response_code = wp_remote_retrieve_response_code($response);
 		$body = json_decode(wp_remote_retrieve_body($response), true);
+
+		// Check for HTTP errors (like 401 Unauthorized, 403 Forbidden, etc.)
+		if ($response_code >= 400) {
+			$error_message = 'GLS API HTTP Error ' . $response_code;
+			if ($response_code == 401) {
+				$error_message = 'Authentication failed - check your GLS API credentials';
+			} elseif ($response_code == 403) {
+				$error_message = 'Access forbidden - check your GLS API permissions';
+			} elseif (isset($body['Message'])) {
+				$error_message .= ': ' . esc_html($body['Message']);
+			}
+			$this->log_error($error_message, $post_fields);
+			throw new Exception($error_message);
+		}
+
+		// Check for JSON decode errors
+		if (json_last_error() !== JSON_ERROR_NONE) {
+			$error_message = 'Invalid JSON response from GLS API: ' . json_last_error_msg();
+			$this->log_error($error_message, $post_fields);
+			throw new Exception($error_message);
+		}
+
+		// Check for general API errors (authentication, authorization, etc.)
+		if (isset($body['ErrorCode']) && $body['ErrorCode'] !== 0) {
+			$error_message = isset($body['ErrorDescription']) ? esc_html($body['ErrorDescription']) : 'Unknown GLS API error';
+			$this->log_error($error_message, $post_fields);
+			throw new Exception($error_message);
+		}
 
 		$failed_orders = [];
 
@@ -128,6 +157,14 @@ class GLS_Shipping_API_Service
 			foreach ($body['PrintLabelsErrorList'] as $error) {
 				$error_message = esc_html($error['ErrorDescription']) ?? esc_html('GLS API error.');
 				$error_code = $error['ErrorCode'] ?? '';
+				
+				// If ClientReferenceList is empty, this is likely a general error (like authentication)
+				if (empty($error['ClientReferenceList'])) {
+					$this->log_error($error_message, $post_fields);
+					throw new Exception($error_message);
+				}
+				
+				// Process order-specific errors
 				foreach ($error['ClientReferenceList'] as $clientRef) {
 					$order_id = str_replace('Order:', '', $clientRef);
 					$failed_orders[] = [
@@ -196,19 +233,34 @@ class GLS_Shipping_API_Service
 		return $body;
 	}
 
+	private function sanitize_params_for_logging($params)
+	{
+		$sanitized = $params;
+		// Remove sensitive data from logs
+		if (isset($sanitized['Username'])) {
+			$sanitized['Username'] = '***REDACTED***';
+		}
+		if (isset($sanitized['Password'])) {
+			$sanitized['Password'] = '***REDACTED***';
+		}
+		return $sanitized;
+	}
+
 	private function log_error($error_message, $params)
 	{
+		$sanitized_params = $this->sanitize_params_for_logging($params);
 		error_log('** API request to: ' . $this->api_url . ' FAILED ** 
-			Request Params: {' . wp_json_encode($params) . '} 
+			Request Params: {' . wp_json_encode($sanitized_params) . '} 
 			Error: ' . $error_message . ' 
 			** END **');
 	}
 
 	private function log_response($body, $response, $params)
 	{
+		$sanitized_params = $this->sanitize_params_for_logging($params);
 		unset($body['Labels']);
 		error_log('** API request to: ' . $this->api_url . ' SUCCESS ** 
-				Request Params: {' . wp_json_encode($params) . '} 
+				Request Params: {' . wp_json_encode($sanitized_params) . '} 
 				Response Body: ' . wp_json_encode($body) . ' 
 				** END **');
 	}
