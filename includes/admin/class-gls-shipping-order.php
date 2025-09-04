@@ -19,6 +19,10 @@ class GLS_Shipping_Order
         add_action('wp_ajax_gls_generate_label', array($this, 'generate_label_and_tracking_number'));
         add_action('wp_ajax_gls_get_parcel_status', array($this, 'get_parcel_status'));
         add_action('wp_ajax_gls_update_pickup_location', array($this, 'update_pickup_location'));
+        
+        // Save GLS settings when order is updated
+        add_action('woocommerce_process_shop_order_meta', array($this, 'save_gls_order_settings'), 10, 2);
+        add_action('save_post_shop_order', array($this, 'save_gls_order_settings'), 10, 2);
     }
 
     public function add_gls_shipping_info_meta_box()
@@ -142,7 +146,7 @@ class GLS_Shipping_Order
                     <div style="margin-top:10px;display: flex; flex-direction: column;">
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <span><?php esc_html_e("Number of Packages:", "gls-shipping-for-woocommerce"); ?></span>
-                            <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="1" style="width: 60px;">
+                            <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="<?php echo esc_attr($order->get_meta('_gls_label_count', true) ?: 1); ?>" style="width: 60px;">
                         </div>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <?php 
@@ -193,7 +197,7 @@ class GLS_Shipping_Order
                     <div style="margin-top:10px;display: flex; flex-direction: column;">
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <span><?php esc_html_e("Number of Packages:", "gls-shipping-for-woocommerce"); ?></span>
-                            <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="1" style="width: 60px;">
+                            <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="<?php echo esc_attr($order->get_meta('_gls_label_count', true) ?: 1); ?>" style="width: 60px;">
                         </div>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <?php 
@@ -257,27 +261,7 @@ class GLS_Shipping_Order
         $services = isset($_POST['services']) ? json_decode(stripslashes($_POST['services']), true) : null;
         
         try {
-            $order = wc_get_order($order_id);
-            
-            // Save print position to order meta if provided
-            if ($print_position !== null) {
-                $order->update_meta_data('_gls_print_position', $print_position);
-            }
-            
-            // Save COD reference to order meta if provided
-            if ($cod_reference !== null) {
-                $order->update_meta_data('_gls_cod_reference', $cod_reference);
-            }
-            
-            // Save services to order meta if provided
-            if ($services !== null) {
-                $order->update_meta_data('_gls_services', $services);
-            }
-            
-            if ($print_position !== null || $cod_reference !== null || $services !== null) {
-                $order->save();
-            }
-
+            // Generate label with provided parameters
             $prepare_data = new GLS_Shipping_API_Data($order_id);
             $data = $prepare_data->generate_post_fields($count, $print_position, $cod_reference, $services);
     
@@ -540,6 +524,101 @@ class GLS_Shipping_Order
         }
 
         wp_die();
+    }
+
+    /**
+     * Save GLS settings from POST data
+     *
+     * @param int $order_id The order ID
+     */
+    public function save_gls_order_settings($order_id)
+    {
+        // Verify this is an admin request
+        if (!is_admin()) {
+            return;
+        }
+
+		// If this is an autosave, our form has not been submitted, so we don't want to do anything.
+		if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
+			return;
+
+		if (did_action('save_post_shop_order') > 1) return;
+
+        // Check if this is an order edit page
+        $screen = get_current_screen();
+        if (!$screen || !in_array($screen->id, ['shop_order', 'woocommerce_page_wc-orders'])) {
+            return;
+        }
+
+        $order = wc_get_order($order_id);
+        if (!$order) {
+            return;
+        }
+
+        // Save number of packages if provided
+        if (isset($_POST['gls_label_count']) && !empty($_POST['gls_label_count'])) {
+            $label_count = intval($_POST['gls_label_count']);
+            if ($label_count > 0) {
+                $order->update_meta_data('_gls_label_count', $label_count);
+            }
+        }
+
+        // Save print position if provided (check both possible fields)
+        $print_position = null;
+        if (isset($_POST['gls_print_position']) && !empty($_POST['gls_print_position'])) {
+            $print_position = intval($_POST['gls_print_position']);
+        } elseif (isset($_POST['gls_print_position_new']) && !empty($_POST['gls_print_position_new'])) {
+            $print_position = intval($_POST['gls_print_position_new']);
+        }
+        
+        if ($print_position !== null) {
+            $order->update_meta_data('_gls_print_position', $print_position);
+        }
+
+        // Save COD reference if provided (check both possible fields)
+        $cod_reference = null;
+        if (isset($_POST['gls_cod_reference']) && $_POST['gls_cod_reference'] !== '') {
+            $cod_reference = sanitize_text_field($_POST['gls_cod_reference']);
+        } elseif (isset($_POST['gls_cod_reference_new']) && $_POST['gls_cod_reference_new'] !== '') {
+            $cod_reference = sanitize_text_field($_POST['gls_cod_reference_new']);
+        }
+        
+        if ($cod_reference !== null) {
+            $order->update_meta_data('_gls_cod_reference', $cod_reference);
+        }
+
+        // Save services if any are set
+        $services = array();
+        $service_fields = array(
+            'gls_service_24h',
+            'gls_contact_service',
+            'gls_flexible_delivery_service',
+            'gls_flexible_delivery_sms_service',
+            'gls_sms_service',
+            'gls_sms_pre_advice_service',
+            'gls_addressee_only_service',
+            'gls_insurance_service'
+        );
+
+        foreach ($service_fields as $field) {
+            if (isset($_POST[$field])) {
+                $services[$field] = sanitize_text_field($_POST[$field]);
+            }
+        }
+
+        // Special handling for text fields
+        if (isset($_POST['gls_express_delivery_service'])) {
+            $services['express_delivery_service'] = sanitize_text_field($_POST['gls_express_delivery_service']);
+        }
+        if (isset($_POST['gls_sms_service_text'])) {
+            $services['sms_service_text'] = sanitize_text_field($_POST['gls_sms_service_text']);
+        }
+
+        if (!empty($services)) {
+            $order->update_meta_data('_gls_services', $services);
+        }
+
+        $order->save();
     }
 }
 
