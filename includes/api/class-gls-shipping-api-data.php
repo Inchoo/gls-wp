@@ -91,6 +91,18 @@ class GLS_Shipping_API_Data
     }
 
     /**
+     * Gets phone number with shipping priority over billing.
+     *
+     * @param \WC_Order $order The WooCommerce order instance.
+     * @return string The phone number, preferring shipping over billing.
+     */
+    private function get_order_phone($order)
+    {
+        $shipping_phone = $order->get_shipping_phone();
+        return !empty($shipping_phone) ? $shipping_phone : $order->get_billing_phone();
+    }
+
+    /**
      * Retrieves a specific setting option.
      *
      * @param string $key The key of the option to retrieve.
@@ -186,7 +198,7 @@ class GLS_Shipping_API_Data
         // Contact Service
         $contact_service = $custom_services['contact_service'] ?? $this->get_option('contact_service');
         if (!$is_parcel_delivery_service && $contact_service === 'yes') {
-            $recipientPhoneNumber = $order->get_billing_phone();
+            $recipientPhoneNumber = $this->get_order_phone($order);
             $service_list[] = [
                 'Code' => 'CS1',
                 'CS1Parameter' => [
@@ -210,7 +222,7 @@ class GLS_Shipping_API_Data
         // Flexible Delivery SMS Service
         $flexible_delivery_sms_service = $custom_services['flexible_delivery_sms_service'] ?? $this->get_option('flexible_delivery_sms_service');
         if (!$is_parcel_delivery_service && $flexible_delivery_sms_service === 'yes' && $flexible_delivery_service === 'yes' && !$express_service_is_valid) {
-            $recipientPhoneNumber = $order->get_billing_phone();
+            $recipientPhoneNumber = $this->get_order_phone($order);
             $service_list[] = [
                 'Code' => 'FSS',
                 'FSSParameter' => [
@@ -223,7 +235,7 @@ class GLS_Shipping_API_Data
         $sms_service = $custom_services['sms_service'] ?? $this->get_option('sms_service');
         if ($sms_service === 'yes') {
             $sm1Text = $custom_services['sms_service_text'] ?? $this->get_option('sms_service_text');
-            $recipientPhoneNumber = $order->get_billing_phone();
+            $recipientPhoneNumber = $this->get_order_phone($order);
             $service_list[] = [
                 'Code' => 'SM1',
                 'SM1Parameter' => [
@@ -235,7 +247,7 @@ class GLS_Shipping_API_Data
         // SMS Pre-advice Service
         $sms_pre_advice_service = $custom_services['sms_pre_advice_service'] ?? $this->get_option('sms_pre_advice_service');
         if ($sms_pre_advice_service === 'yes') {
-            $recipientPhoneNumber = $order->get_billing_phone();
+            $recipientPhoneNumber = $this->get_order_phone($order);
             $service_list[] = [
                 'Code' => 'SM2',
                 'SM2Parameter' => [
@@ -462,7 +474,7 @@ class GLS_Shipping_API_Data
             'ZipCode' => $order->get_shipping_postcode(),
             'CountryIsoCode' => $order->get_shipping_country(),
             'ContactName' => $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
-            'ContactPhone' => $order->get_billing_phone(),
+            'ContactPhone' => $this->get_order_phone($order),
             'ContactEmail' => $order->get_billing_email()
         ];
 
@@ -637,7 +649,7 @@ class GLS_Shipping_API_Data
             '{{order_id}}' => $order->get_id(),
             '{{customer_name}}' => trim($order->get_billing_first_name() . ' ' . $order->get_billing_last_name()),
             '{{customer_email}}' => $order->get_billing_email(),
-            '{{customer_phone}}' => $order->get_billing_phone(),
+            '{{customer_phone}}' => $this->get_order_phone($order),
             '{{customer_comment}}' => $order->get_customer_note(),
             '{{order_total}}' => $order->get_total(),
             '{{shipping_method}}' => $order->get_shipping_method(),
