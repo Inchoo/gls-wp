@@ -291,7 +291,7 @@ class GLS_Shipping_Pickup
 
             <h2><?php echo esc_html(sprintf(__('Pickup Details #%d', 'gls-shipping-for-woocommerce'), $pickup->id)); ?></h2>
             
-            <div class="pickup-details-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+            <div class="pickup-details-container">
                 <div class="pickup-info">
                     <h3><?php esc_html_e('Request Information', 'gls-shipping-for-woocommerce'); ?></h3>
                     <table class="form-table">
@@ -376,20 +376,6 @@ class GLS_Shipping_Pickup
                             </td>
                         </tr>
                     </table>
-                    <?php endif; ?>
-                </div>
-
-                <div class="pickup-response">
-                    <?php if ($pickup->response_data): ?>
-                    <h3><?php esc_html_e('API Response', 'gls-shipping-for-woocommerce'); ?></h3>
-                    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; font-size: 12px;"><?php echo esc_html(wp_json_encode($pickup->response_data, JSON_PRETTY_PRINT)); ?></pre>
-                    <?php endif; ?>
-
-                    <?php if ($pickup->error_message): ?>
-                    <h3><?php esc_html_e('Error Message', 'gls-shipping-for-woocommerce'); ?></h3>
-                    <div style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; border-left: 4px solid #dc3545;">
-                        <?php echo esc_html($pickup->error_message); ?>
-                    </div>
                     <?php endif; ?>
                 </div>
             </div>

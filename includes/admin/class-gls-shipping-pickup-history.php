@@ -120,8 +120,8 @@ class GLS_Shipping_Pickup_History
         }
         $total_items = $wpdb->get_var($count_sql);
 
-        // Get records
-        $sql = "SELECT * FROM {$this->table_name} {$where_sql} ORDER BY created_at DESC LIMIT %d OFFSET %d";
+        // Get records - order by newest first (created_at DESC), then by ID DESC as secondary sort
+        $sql = "SELECT * FROM {$this->table_name} {$where_sql} ORDER BY created_at DESC, id DESC LIMIT %d OFFSET %d";
         $query_values = array_merge($where_values, array($per_page, $offset));
         $records = $wpdb->get_results($wpdb->prepare($sql, $query_values));
 
