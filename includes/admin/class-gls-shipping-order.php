@@ -260,6 +260,15 @@ class GLS_Shipping_Order
         $cod_reference = isset($_POST['codReference']) ? sanitize_text_field($_POST['codReference']) : null;
         $services = isset($_POST['services']) ? json_decode(stripslashes($_POST['services']), true) : null;
         
+        // If no COD reference provided via POST, get it from saved order meta
+        if (empty($cod_reference)) {
+            $order = wc_get_order($order_id);
+            if ($order) {
+                $saved_cod_reference = $order->get_meta('_gls_cod_reference', true);
+                $cod_reference = !empty($saved_cod_reference) ? $saved_cod_reference : null;
+            }
+        }
+        
         try {
             // Generate label with provided parameters
             $prepare_data = new GLS_Shipping_API_Data($order_id);
