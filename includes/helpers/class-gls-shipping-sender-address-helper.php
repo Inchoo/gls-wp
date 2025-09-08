@@ -17,19 +17,14 @@ class GLS_Shipping_Sender_Address_Helper
     {
         $sender_addresses = self::get_all_sender_addresses();
         
-        // Find default address
+        // Look for the default address
         foreach ($sender_addresses as $address) {
             if (!empty($address['is_default'])) {
                 return $address;
             }
         }
         
-        // If no default found, return first address
-        if (!empty($sender_addresses)) {
-            return $sender_addresses[0];
-        }
-        
-        // Fallback to WooCommerce store address
+        // No default found = "none" was selected = use WooCommerce store address
         return self::get_store_fallback_address();
     }
 
@@ -42,25 +37,6 @@ class GLS_Shipping_Sender_Address_Helper
     {
         $settings = get_option("woocommerce_gls_shipping_method_settings", array());
         return $settings['sender_addresses_grid'] ?? array();
-    }
-
-    /**
-     * Get sender address by specific criteria (for future extensibility)
-     * 
-     * @param array $criteria Optional criteria for selecting sender address
-     * @return array Sender address
-     */
-    public static function get_sender_address($criteria = array())
-    {
-        // For now, just return default address
-        // This can be extended later to select based on order country, customer type, etc.
-        
-        // Future example:
-        // if (isset($criteria['country'])) {
-        //     return self::get_sender_address_by_country($criteria['country']);
-        // }
-        
-        return self::get_default_sender_address();
     }
 
     /**
@@ -108,15 +84,16 @@ class GLS_Shipping_Sender_Address_Helper
     {
         $addresses = array();
         
-        // Always add store address as first option
-        $store_address = self::get_store_fallback_address();
-        $addresses[] = $store_address;
-        
         // Add configured sender addresses
         $sender_addresses = self::get_all_sender_addresses();
         foreach ($sender_addresses as $address) {
             $addresses[] = $address;
         }
+        
+        // Always add store address as option (for pickup interface)
+        $store_address = self::get_store_fallback_address();
+        $store_address['name'] = __('WooCommerce Store Address', 'gls-shipping-for-woocommerce');
+        $addresses[] = $store_address;
         
         return $addresses;
     }
