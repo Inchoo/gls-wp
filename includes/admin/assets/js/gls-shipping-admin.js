@@ -524,6 +524,7 @@
 						
 						<!-- Hidden fields to store all address data -->
 						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][name]" value="" class="address-name" />
+						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][contact_name]" value="" class="address-contact-name" />
 						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][street]" value="" class="address-street" />
 						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][house_number]" value="" class="address-house-number" />
 						<input type="hidden" name="woocommerce_gls_shipping_method_sender_addresses_grid[${index}][city]" value="" class="address-city" />
@@ -590,6 +591,7 @@
 			
 			const address = {
 				name: $row.find('.address-name').val() || '',
+				contact_name: $row.find('.address-contact-name').val() || '',
 				street: $row.find('.address-street').val() || '',
 				house_number: $row.find('.address-house-number').val() || '',
 				city: $row.find('.address-city').val() || '',
