@@ -1,0 +1,16 @@
+{
+  "name": "gls-shipping-blocks",
+  "version": "1.3.0",
+  "description": "GLS Shipping for WooCommerce - Blocks support",
+  "scripts": {
+    "build": "wp-scripts build",
+    "dev": "wp-scripts start",
+    "format": "wp-scripts format",
+    "lint:css": "wp-scripts lint-style",
+    "lint:js": "wp-scripts lint-js",
+    "packages-update": "wp-scripts packages-update"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^26.0.0"
+  }
+}

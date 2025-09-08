@@ -42,6 +42,10 @@ final class GLS_Shipping_For_Woo
         
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-assets.php');
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-checkout.php');
+        
+        // Initialize blocks checkout after WooCommerce is loaded
+        require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-checkout-blocks.php');
+        
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-my-account.php');
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-logo-display.php');
         require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-product-restrictions.php');
@@ -121,12 +125,21 @@ final class GLS_Shipping_For_Woo
     {
         add_filter('woocommerce_shipping_methods', array($this, 'add_gls_shipping_methods'));
         add_action('init', array($this, 'load_textdomain'));
+        add_action('woocommerce_loaded', array($this, 'init_blocks_checkout'));
     }
 
 
     public function load_textdomain()
     {
         load_plugin_textdomain('gls-shipping-for-woocommerce', false, basename(dirname(__FILE__)) . '/languages/');
+    }
+
+    public function init_blocks_checkout()
+    {
+        // Initialize blocks checkout now that WooCommerce is loaded
+        if (function_exists('woocommerce_register_additional_checkout_field')) {
+            new GLS_Shipping_Checkout_Blocks();
+        }
     }
 
     public function add_gls_shipping_methods($methods)

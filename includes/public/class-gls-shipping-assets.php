@@ -58,13 +58,62 @@ class GLS_Shipping_Assets
             'address' => __('Address', 'gls-shipping-for-woocommerce'),
             'country' => __('Country', 'gls-shipping-for-woocommerce'),
         );
+        
+        // Load GLS map widget
         wp_enqueue_script('gls-shipping-dpm', 'https://map.gls-croatia.com/widget/gls-dpm.js', array(), GLS_SHIPPING_VERSION, false);
-        wp_enqueue_script('gls-shipping-public', GLS_SHIPPING_URL . 'assets/js/gls-shipping-public.js', array('jquery', 'gls-shipping-dpm'), GLS_SHIPPING_VERSION, false);
-        wp_localize_script(
-            'gls-shipping-public',
-            'gls_croatia',
-            $translation_array
-        );
+        
+        // Check if we're using WooCommerce Blocks checkout
+        $is_checkout = is_checkout();
+        $has_checkout_block = has_block('woocommerce/checkout');
+        
+        if ($has_checkout_block && $is_checkout) {
+            // Blocks checkout - enqueue React components directly here
+            if (file_exists(GLS_SHIPPING_ABSPATH . '/assets/blocks/build/gls-shipping-blocks-frontend.js')) {
+                wp_enqueue_script(
+                    'gls-shipping-blocks-frontend',
+                    GLS_SHIPPING_URL . '/assets/blocks/build/gls-shipping-blocks-frontend.js',
+                    array('wp-element', 'wp-i18n', 'wp-data', 'wc-blocks-checkout'),
+                    GLS_SHIPPING_VERSION,
+                    true
+                );
+                
+                wp_set_script_translations(
+                    'gls-shipping-blocks-frontend',
+                    'gls-shipping-for-woocommerce',
+                    GLS_SHIPPING_ABSPATH . 'languages'
+                );
+            }
+            
+            // Data will be passed via localize_script
+            wp_localize_script(
+                'gls-shipping-dpm',
+                'glsShipping',
+                array(
+                    'gls_methods' => array(
+                        GLS_SHIPPING_METHOD_PARCEL_LOCKER_ID,
+                        GLS_SHIPPING_METHOD_PARCEL_SHOP_ID,
+                        GLS_SHIPPING_METHOD_PARCEL_LOCKER_ZONES_ID,
+                        GLS_SHIPPING_METHOD_PARCEL_SHOP_ZONES_ID
+                    ),
+                    'translations' => array(
+                        'select_parcel_locker' => __('Select Parcel Locker', 'gls-shipping-for-woocommerce'),
+                        'select_parcel_shop' => __('Select Parcel Shop', 'gls-shipping-for-woocommerce'),
+                        'pickup_location' => __('Pickup Location:', 'gls-shipping-for-woocommerce'),
+                        'name' => __('Name', 'gls-shipping-for-woocommerce'),
+                        'address' => __('Address', 'gls-shipping-for-woocommerce'),
+                        'country' => __('Country', 'gls-shipping-for-woocommerce'),
+                    ),
+                )
+            );
+        } else {
+            // Classic checkout
+            wp_enqueue_script('gls-shipping-public', GLS_SHIPPING_URL . 'assets/js/gls-shipping-public.js', array('jquery', 'gls-shipping-dpm'), GLS_SHIPPING_VERSION, false);
+            wp_localize_script(
+                'gls-shipping-public',
+                'gls_croatia',
+                $translation_array
+            );
+        }
     }
 
 

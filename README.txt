@@ -1,8 +1,10 @@
 === GLS Shipping for WooCommerce ===
 Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
-Requires at least: 4.4
+Requires at least: 5.8
 Tested up to: 6.7
+Requires PHP: 7.4
+WC requires at least: 9.6.1
 Stable tag: 1.3.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -25,6 +27,13 @@ This WooCommerce shipping plugin integrates with GLS Group to provide direct shi
 - Slovenia
 - Slovakia
 - Serbia
+
+## WooCommerce Checkout Blocks Support ##
+This plugin supports both Classic Checkout and new WooCommerce Checkout Blocks.
+
+**Minimum Requirements:**
+- WooCommerce 9.6.1+ (required for stable checkout blocks APIs)
+- Older versions of WooCommerce are not supported
 
 ## External Services ##
 This plugin makes use of the following third-party services:

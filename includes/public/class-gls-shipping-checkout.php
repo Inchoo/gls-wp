@@ -41,6 +41,7 @@ class GLS_Shipping_Checkout
             GLS_SHIPPING_METHOD_PARCEL_SHOP_ZONES_ID
         );
 
+        // Classic checkout hooks
         add_filter('woocommerce_cart_shipping_method_full_label', array($this, 'add_gls_button_to_shipping_method'), 10, 2);
         add_action('woocommerce_checkout_update_order_meta', array($this, 'save_gls_parcel_shop_info'));
         add_action('woocommerce_review_order_after_shipping', array($this, 'display_pickup_information'));
