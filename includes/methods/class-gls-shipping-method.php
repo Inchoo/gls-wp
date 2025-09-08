@@ -731,6 +731,7 @@ max_weight|cost',
 						if ($is_valid) {
 							$validated_address = array(
 								'name' => sanitize_text_field($address['name']),
+								'contact_name' => sanitize_text_field($address['contact_name'] ?? ''),
 								'street' => sanitize_text_field($address['street']),
 								'house_number' => sanitize_text_field($address['house_number']),
 								'city' => sanitize_text_field($address['city']),
