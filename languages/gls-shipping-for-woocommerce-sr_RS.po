@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/gls-wp\n"
 "POT-Creation-Date: 2025-08-22T09:50:00+00:00\n"
-"PO-Revision-Date: 2025-09-11 15:42+0000\n"
+"PO-Revision-Date: 2025-09-11 21:56+0000\n"
 "Last-Translator: \n"
 "Language-Team: Serbian\n"
 "Language: sr_RS\n"
@@ -13,7 +13,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10 >= 2 && "
 "n%10<=4 &&(n%100<10||n%100 >= 20)? 1 : 2);\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.6.7; wp-6.5.3\n"
+"X-Loco-Version: 2.8.0; wp-6.8.1; php-8.2.17"
 
 #: includes/admin/class-gls-shipping-pickup.php:500
 msgid "%d items"
@@ -183,6 +183,8 @@ msgstr "Izaberite između jednog ili više GLS računa."
 msgid ""
 "Choose the pickup address from configured sender addresses or store default."
 msgstr ""
+"Odaberite adresu za preuzimanje iz konfiguriranih adresa pošiljalaca ili "
+"zadane adrese radnje."
 
 #: includes/methods/class-gls-shipping-method.php:131
 #: includes/methods/class-gls-shipping-method.php:458
@@ -317,7 +319,7 @@ msgstr "Skini GLS adresnicu"
 
 #: includes/admin/class-gls-shipping-pickup.php:183
 msgid "Earliest date and time for pickup."
-msgstr ""
+msgstr "Najraniji datum i vrijeme preuzimanja."
 
 #: includes/methods/class-gls-shipping-method.php:526
 #: includes/methods/class-gls-shipping-method.php:592
@@ -410,10 +412,9 @@ msgid "Enter your GLS Username."
 msgstr "Unesite vaše GLS korisničko ime"
 
 #: includes/admin/class-gls-shipping-pickup.php:308
-#, fuzzy
 #| msgid "Error:"
 msgid "Error"
-msgstr "Greška:"
+msgstr "Greška"
 
 #: includes/methods/class-gls-shipping-method.php:258
 msgid "Express Delivery Service (T09, T10, T12)"
@@ -654,6 +655,8 @@ msgid ""
 "Manage multiple sender addresses. Each address can be set as default for "
 "shipments."
 msgstr ""
+"Upravljajte više adresa pošiljalaca. Svaka adresa može biti postavljena kao "
+"zadana za pošiljke."
 
 #: includes/methods/class-gls-shipping-method.php:178
 msgid "Mode"
@@ -664,6 +667,8 @@ msgid ""
 "Multiple accounts mode was not saved because no valid GLS accounts were "
 "found. Please add at least one account to use multiple accounts mode."
 msgstr ""
+"Način rada s više računa nije sačuvan jer nisu pronađeni važeći GLS računi. "
+"Molimo dodajte barem jedan račun da biste koristili način rada s više računa."
 
 #: includes/methods/class-gls-shipping-method.php:121
 msgid "Multiple GLS Accounts"
@@ -693,17 +698,21 @@ msgstr "Novi račun"
 
 #: includes/methods/class-gls-shipping-method.php:523
 msgid "New Address"
-msgstr ""
+msgstr "Nova adresa"
 
 #: includes/methods/class-gls-shipping-method.php:698
 msgid ""
 "No active GLS account was selected. The first valid account has been "
 "automatically set as active."
 msgstr ""
+"Nije odabran nijedan aktivni GLS račun. Prvi važeći račun je automatski "
+"postavljen kao aktivan."
 
 #: includes/methods/class-gls-shipping-method.php:399
 msgid "No custom sender address (use default from store settings)"
-msgstr "Nema prilagođene adrese pošiljaoca (koristi podrazumevanu iz podešavanja prodavnice)"
+msgstr ""
+"Nema prilagođene adrese pošiljaoca (koristi podrazumevanu iz podešavanja "
+"prodavnice)"
 
 #: includes/admin/class-gls-shipping-pickup.php:450
 msgid "No pickup requests found."
@@ -804,7 +813,7 @@ msgstr "Lozinka"
 
 #: includes/admin/class-gls-shipping-pickup.php:311
 msgid "Pending"
-msgstr ""
+msgstr "Na čekanju"
 
 #: includes/admin/class-gls-shipping-pickup.php:270
 #: includes/admin/class-gls-shipping-pickup.php:548
@@ -967,11 +976,11 @@ msgstr "Odaberite vrstu pisača."
 
 #: includes/admin/class-gls-shipping-pickup.php:219
 msgid "Selected Address Details:"
-msgstr ""
+msgstr "Detalji odabrane adrese:"
 
 #: includes/methods/class-gls-shipping-method.php:188
 msgid "Sender Addresses"
-msgstr ""
+msgstr "Adresa pošiljaoca"
 
 #: includes/methods/class-gls-shipping-method.php:200
 msgid "Sender Identity Card Number. Required for Serbia."
@@ -1078,7 +1087,7 @@ msgstr "Španija"
 
 #: includes/admin/class-gls-shipping-pickup.php:299
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #: includes/methods/class-gls-shipping-method.php:328
 #: includes/methods/class-gls-shipping-method.php:330
@@ -1091,7 +1100,7 @@ msgstr "Broj telefona koji će se poslati GLS-u kao kontakt informacija."
 
 #: includes/admin/class-gls-shipping-pickup.php:305
 msgid "Success"
-msgstr ""
+msgstr "Uspješno"
 
 #: includes/methods/class-gls-shipping-method-parcel-locker.php:87
 #: includes/methods/class-gls-shipping-method-parcel-shop.php:87

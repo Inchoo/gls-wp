@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/gls-wp\n"
 "POT-Creation-Date: 2025-08-22T09:50:00+00:00\n"
-"PO-Revision-Date: 2025-09-11 19:48+0000\n"
+"PO-Revision-Date: 2025-09-11 21:53+0000\n"
 "Last-Translator: \n"
 "Language-Team: Romanian\n"
 "Language: ro_RO\n"
@@ -174,6 +174,9 @@ msgid ""
 "lockers. This will hide those shipping options when this product is in the "
 "cart."
 msgstr ""
+"Bifați această casetă dacă acest produs nu poate fi livrat către magazine de "
+"colete sau dulapuri pentru colete. Această acțiune va ascunde opțiunile de "
+"livrare atunci când produsul se află în coș."
 
 #: includes/methods/class-gls-shipping-method.php:116
 msgid "Choose between single or multiple GLS accounts."
@@ -183,6 +186,8 @@ msgstr "Alegeți între unul sau mai multe conturi GLS."
 msgid ""
 "Choose the pickup address from configured sender addresses or store default."
 msgstr ""
+"Alegeți adresa de preluare dintre adresele expeditorului configurate sau "
+"adresa implicită din magazin."
 
 #: includes/methods/class-gls-shipping-method.php:131
 #: includes/methods/class-gls-shipping-method.php:458
@@ -649,12 +654,16 @@ msgid ""
 "Manage multiple GLS accounts. Each account can have different credentials "
 "and country settings."
 msgstr ""
+"Gestionați mai multe conturi GLS. Fiecare cont poate avea acreditări și "
+"setări de țară diferite."
 
 #: includes/methods/class-gls-shipping-method.php:190
 msgid ""
 "Manage multiple sender addresses. Each address can be set as default for "
 "shipments."
 msgstr ""
+"Gestionați mai multe adrese de expeditor. Fiecare adresă poate fi setată ca "
+"implicită pentru expedieri."
 
 #: includes/methods/class-gls-shipping-method.php:178
 msgid "Mode"
@@ -665,6 +674,9 @@ msgid ""
 "Multiple accounts mode was not saved because no valid GLS accounts were "
 "found. Please add at least one account to use multiple accounts mode."
 msgstr ""
+"Modul conturi multiple nu a fost salvat deoarece nu au fost găsite conturi "
+"GLS valide. Adăugați cel puțin un cont pentru a utiliza modul conturi "
+"multiple."
 
 #: includes/methods/class-gls-shipping-method.php:121
 msgid "Multiple GLS Accounts"
@@ -701,6 +713,8 @@ msgid ""
 "No active GLS account was selected. The first valid account has been "
 "automatically set as active."
 msgstr ""
+"Nu a fost selectat niciun cont GLS activ. Primul cont valid a fost setat "
+"automat ca activ."
 
 #: includes/methods/class-gls-shipping-method.php:399
 msgid "No custom sender address (use default from store settings)"
@@ -749,6 +763,9 @@ msgid ""
 "Optional: Enter weight based rates (one per line). Format: max_weight|cost. "
 "Example: 1|100 means up to 1 %s costs 100. Leave empty to use default price."
 msgstr ""
+"Opțional: Introduceți tarife bazate pe ponderare (unul pe linie). Format: "
+"max_weight|cost. Exemplu: 1|100 înseamnă că până la 1 %s costă 100. Lăsați "
+"câmpul gol pentru a utiliza prețul implicit."
 
 #: includes/methods/class-gls-shipping-method.php:214
 msgid "Order Reference Format"
@@ -768,6 +785,9 @@ msgid ""
 "{{customer_comment}}, {{customer_name}}, {{customer_email}}, "
 "{{customer_phone}}, {{order_total}}, {{shipping_method}}."
 msgstr ""
+"Informațiile despre colet sunt tipărite pe etichetă. Folosiți provizorii: "
+"{{order_id}}, {{customer_comment}}, {{customer_name}}, {{customer_email}}, "
+"{{customer_phone}}, {{order_total}}, {{shipping_method}}."
 
 #: includes/methods/class-gls-shipping-method-parcel-locker-zones.php:21
 #: includes/methods/class-gls-shipping-method-parcel-locker.php:19
@@ -776,6 +796,9 @@ msgid ""
 "Parcel Locker can be selected from the interactive GLS Parcel Shop and GLS "
 "Locker finder map."
 msgstr ""
+"Serviciul de livrare Parcel Shop (PSD) care expediază colete către GLS "
+"Locker. GLS Parcel Locker poate fi selectat de pe harta interactivă de "
+"căutare a GLS Parcel Shop și GLS Locker."
 
 #: includes/methods/class-gls-shipping-method-parcel-shop-zones.php:21
 #: includes/methods/class-gls-shipping-method-parcel-shop.php:19
@@ -784,11 +807,14 @@ msgid ""
 " GLS Parcel Shop can be selected from the interactive GLS Parcel Shop and "
 "GLS Locker finder map."
 msgstr ""
+"Serviciul de livrare colete (PSD) care expediază colete către magazinul de "
+"colete GLS. GLS Parcel Shop poate fi selectat de pe harta interactivă GLS "
+"Parcel Shop și GLS Locker."
 
 #: includes/methods/class-gls-shipping-method-zones.php:21
 #: includes/methods/class-gls-shipping-method.php:21
 msgid "Parcels are shipped to the customer’s address."
-msgstr ""
+msgstr "Coletele sunt expediate la adresa clientului."
 
 #: includes/methods/class-gls-shipping-method.php:143
 msgid "Password"
@@ -996,6 +1022,8 @@ msgid ""
 "Show the GLS logo icon next to all GLS shipping methods in cart and checkout "
 "to highlight your GLS delivery options."
 msgstr ""
+"Afișați pictograma cu sigla GLS lângă toate metodele de livrare GLS în coș "
+"și la finalizarea comenzii pentru a evidenția opțiunile de livrare GLS."
 
 #: includes/methods/class-gls-shipping-method.php:120
 msgid "Single GLS Account"
@@ -1058,6 +1086,9 @@ msgid ""
 "Some products in your cart (%s) cannot be shipped to parcel shops or parcel "
 "lockers. Only standard delivery options are available."
 msgstr ""
+"Unele produse din coșul dvs. (%s) nu pot fi livrate către magazine de colete "
+"sau dulapuri pentru colete. Sunt disponibile doar opțiunile de livrare "
+"standard."
 
 #: includes/methods/class-gls-shipping-method-parcel-locker.php:98
 #: includes/methods/class-gls-shipping-method-parcel-shop.php:98

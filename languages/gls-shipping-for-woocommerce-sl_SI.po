@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/gls-wp\n"
 "POT-Creation-Date: 2025-08-22T09:50:00+00:00\n"
-"PO-Revision-Date: 2025-09-11 15:43+0000\n"
+"PO-Revision-Date: 2025-09-11 22:17+0000\n"
 "Last-Translator: \n"
 "Language-Team: Slovenian\n"
 "Language: sl_SI\n"
@@ -13,7 +13,7 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : "
 "n%100==3||n%100==4 ? 2 : 3;\n"
 "X-Generator: Loco https://localise.biz/\n"
-"X-Loco-Version: 2.6.7; wp-6.6.1\n"
+"X-Loco-Version: 2.8.0; wp-6.8.1; php-8.2.17"
 
 #: includes/admin/class-gls-shipping-pickup.php:500
 msgid "%d items"
@@ -175,6 +175,9 @@ msgid ""
 "lockers. This will hide those shipping options when this product is in the "
 "cart."
 msgstr ""
+"Označite to polje, če tega izdelka ni mogoče poslati v trgovine s paketi ali "
+"omarice za pakete. S tem boste skrili te možnosti pošiljanja, ko je ta "
+"izdelek v košarici."
 
 #: includes/methods/class-gls-shipping-method.php:116
 msgid "Choose between single or multiple GLS accounts."
@@ -184,6 +187,8 @@ msgstr "Izberite med enim ali več GLS računi."
 msgid ""
 "Choose the pickup address from configured sender addresses or store default."
 msgstr ""
+"Izberite naslov za prevzem med konfiguriranimi naslovi pošiljatelja ali "
+"privzetim naslovom trgovine."
 
 #: includes/methods/class-gls-shipping-method.php:131
 #: includes/methods/class-gls-shipping-method.php:458
@@ -218,7 +223,7 @@ msgstr "Vsebina"
 
 #: includes/admin/class-gls-shipping-pickup.php:397
 msgid "Count"
-msgstr ""
+msgstr "Šteti"
 
 #: includes/methods/class-gls-shipping-method.php:149
 #: includes/public/class-gls-shipping-assets.php:59
@@ -411,10 +416,9 @@ msgid "Enter your GLS Username."
 msgstr "Vnesite svoje GLS uporabniško ime."
 
 #: includes/admin/class-gls-shipping-pickup.php:308
-#, fuzzy
 #| msgid "Error:"
 msgid "Error"
-msgstr "Napaka:"
+msgstr "Napaka"
 
 #: includes/methods/class-gls-shipping-method.php:258
 msgid "Express Delivery Service (T09, T10, T12)"
@@ -648,12 +652,16 @@ msgid ""
 "Manage multiple GLS accounts. Each account can have different credentials "
 "and country settings."
 msgstr ""
+"Upravljajte več računov GLS. Vsak račun ima lahko različne poverilnice in "
+"nastavitve države."
 
 #: includes/methods/class-gls-shipping-method.php:190
 msgid ""
 "Manage multiple sender addresses. Each address can be set as default for "
 "shipments."
 msgstr ""
+"Upravljajte več naslovov pošiljateljev. Vsak naslov je mogoče nastaviti kot "
+"privzeti za pošiljke."
 
 #: includes/methods/class-gls-shipping-method.php:178
 msgid "Mode"
@@ -664,6 +672,8 @@ msgid ""
 "Multiple accounts mode was not saved because no valid GLS accounts were "
 "found. Please add at least one account to use multiple accounts mode."
 msgstr ""
+"Način več računov ni bil shranjen, ker ni bilo mogoče najti veljavnih "
+"računov GLS. Za uporabo načina več računov dodajte vsaj en račun."
 
 #: includes/methods/class-gls-shipping-method.php:121
 msgid "Multiple GLS Accounts"
@@ -700,10 +710,14 @@ msgid ""
 "No active GLS account was selected. The first valid account has been "
 "automatically set as active."
 msgstr ""
+"Izbran ni bil noben aktiven račun GLS. Prvi veljaven račun je bil samodejno "
+"nastavljen kot aktiven."
 
 #: includes/methods/class-gls-shipping-method.php:399
 msgid "No custom sender address (use default from store settings)"
-msgstr "Ni prilagojenega naslova pošiljatelja (uporabi privzetega iz nastavitev trgovine)"
+msgstr ""
+"Ni prilagojenega naslova pošiljatelja (uporabi privzetega iz nastavitev "
+"trgovine)"
 
 #: includes/admin/class-gls-shipping-pickup.php:450
 msgid "No pickup requests found."
@@ -768,6 +782,9 @@ msgid ""
 "{{customer_comment}}, {{customer_name}}, {{customer_email}}, "
 "{{customer_phone}}, {{order_total}}, {{shipping_method}}."
 msgstr ""
+"Podatki o paketu so natisnjeni na etiketi. Uporabite nadomestne znake: "
+"{{order_id}}, {{customer_comment}}, {{customer_name}}, {{customer_email}}, "
+"{{customer_phone}}, {{order_total}}, {{shipping_method}}."
 
 #: includes/methods/class-gls-shipping-method-parcel-locker-zones.php:21
 #: includes/methods/class-gls-shipping-method-parcel-locker.php:19
@@ -926,7 +943,7 @@ msgstr "Peskovnik"
 #: includes/admin/class-gls-shipping-pickup.php:160
 msgid ""
 "Schedule a pickup request with GLS to collect packages from your location."
-msgstr ""
+msgstr "Naročite se na prevzem paketov pri GLS na vaši lokaciji."
 
 #: includes/admin/class-gls-shipping-pickup.php:137
 #: includes/admin/class-gls-shipping-pickup.php:227
@@ -1000,6 +1017,8 @@ msgid ""
 "Show the GLS logo icon next to all GLS shipping methods in cart and checkout "
 "to highlight your GLS delivery options."
 msgstr ""
+"V košarici in blagajni prikažite ikono logotipa GLS poleg vseh načinov "
+"dostave GLS, da poudarite možnosti dostave GLS."
 
 #: includes/methods/class-gls-shipping-method.php:120
 msgid "Single GLS Account"
@@ -1062,6 +1081,8 @@ msgid ""
 "Some products in your cart (%s) cannot be shipped to parcel shops or parcel "
 "lockers. Only standard delivery options are available."
 msgstr ""
+"Nekaterih izdelkov v vaši košarici (%s) ni mogoče poslati v trgovine s "
+"paketi ali omarice za pakete. Na voljo so samo standardne možnosti dostave."
 
 #: includes/methods/class-gls-shipping-method-parcel-locker.php:98
 #: includes/methods/class-gls-shipping-method-parcel-shop.php:98
@@ -1140,7 +1161,8 @@ msgstr "Uporabniško ime"
 
 #: includes/admin/class-gls-shipping-order.php:483
 msgid "Variables: #ParcelNr#, #COD#, #PickupDate#, #From_Name#, #ClientRef#"
-msgstr "Spremenljivke: #ParcelNr#, #COD#, #PickupDate#, #From_Name#, #ClientRef#"
+msgstr ""
+"Spremenljivke: #ParcelNr#, #COD#, #PickupDate#, #From_Name#, #ClientRef#"
 
 #: includes/admin/class-gls-shipping-pickup.php:444
 msgid "View"

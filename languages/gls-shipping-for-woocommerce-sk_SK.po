@@ -1,9 +1,9 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/gls-wp\n"
 "POT-Creation-Date: 2025-08-22T09:50:00+00:00\n"
-"PO-Revision-Date: 2025-09-11 15:42+0000\n"
+"PO-Revision-Date: 2025-09-11 22:12+0000\n"
 "Last-Translator: \n"
 "Language-Team: Slovak\n"
 "Language: sk_SK\n"
@@ -12,7 +12,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=( n == 1 ) ? 0 : ( n >= 2 && n <= 4 ) ? 1 : "
 "2;\n"
-"X-Generator: Loco https://localise.biz/"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.8.0; wp-6.8.1; php-8.2.17"
 
 #: includes/admin/class-gls-shipping-pickup.php:500
 msgid "%d items"
@@ -171,6 +172,9 @@ msgid ""
 "lockers. This will hide those shipping options when this product is in the "
 "cart."
 msgstr ""
+"Zaškrtnite toto políčko, ak tento produkt nie je možné odoslať do balíkových "
+"obchodov alebo balíkových schránk. Týmto sa tieto možnosti dopravy skryjú, "
+"keď je tento produkt v košíku."
 
 #: includes/methods/class-gls-shipping-method.php:116
 msgid "Choose between single or multiple GLS accounts."
@@ -180,6 +184,8 @@ msgstr "Vyberte medzi jedným alebo viacerými GLS účtami."
 msgid ""
 "Choose the pickup address from configured sender addresses or store default."
 msgstr ""
+"Vyberte adresu vyzdvihnutia z nakonfigurovaných adries odosielateľa alebo "
+"predvolenú adresu obchodu."
 
 #: includes/methods/class-gls-shipping-method.php:131
 #: includes/methods/class-gls-shipping-method.php:458
@@ -409,10 +415,9 @@ msgid "Enter your GLS Username."
 msgstr "Zadajte vaše GLS prihlasovacie meno."
 
 #: includes/admin/class-gls-shipping-pickup.php:308
-#, fuzzy
 #| msgid "Error:"
 msgid "Error"
-msgstr "Chyba:"
+msgstr "Chyba"
 
 #: includes/methods/class-gls-shipping-method.php:258
 msgid "Express Delivery Service (T09, T10, T12)"
@@ -645,12 +650,16 @@ msgid ""
 "Manage multiple GLS accounts. Each account can have different credentials "
 "and country settings."
 msgstr ""
+"Spravujte viacero účtov GLS. Každý účet môže mať iné poverenia a nastavenia "
+"krajiny."
 
 #: includes/methods/class-gls-shipping-method.php:190
 msgid ""
 "Manage multiple sender addresses. Each address can be set as default for "
 "shipments."
 msgstr ""
+"Spravujte viacero adries odosielateľov. Každú adresu je možné nastaviť ako "
+"predvolenú pre zásielky."
 
 #: includes/methods/class-gls-shipping-method.php:178
 msgid "Mode"
@@ -661,6 +670,8 @@ msgid ""
 "Multiple accounts mode was not saved because no valid GLS accounts were "
 "found. Please add at least one account to use multiple accounts mode."
 msgstr ""
+"Režim viacerých účtov sa nepodarilo uložiť, pretože sa nenašli žiadne platné "
+"účty GLS. Ak chcete použiť režim viacerých účtov, pridajte aspoň jeden účet."
 
 #: includes/methods/class-gls-shipping-method.php:121
 msgid "Multiple GLS Accounts"
@@ -697,10 +708,14 @@ msgid ""
 "No active GLS account was selected. The first valid account has been "
 "automatically set as active."
 msgstr ""
+"Nebol vybraný žiadny aktívny účet GLS. Prvý platný účet bol automaticky "
+"nastavený ako aktívny."
 
 #: includes/methods/class-gls-shipping-method.php:399
 msgid "No custom sender address (use default from store settings)"
-msgstr "Žiadna vlastná adresa odosielateľa (použije sa predvolená z nastavení obchodu)"
+msgstr ""
+"Žiadna vlastná adresa odosielateľa (použije sa predvolená z nastavení "
+"obchodu)"
 
 #: includes/admin/class-gls-shipping-pickup.php:450
 msgid "No pickup requests found."
@@ -765,6 +780,9 @@ msgid ""
 "{{customer_comment}}, {{customer_name}}, {{customer_email}}, "
 "{{customer_phone}}, {{order_total}}, {{shipping_method}}."
 msgstr ""
+"Informácie o balíku vytlačené na štítku. Použite zástupné symboly: "
+"{{order_id}}, {{customer_comment}}, {{customer_name}}, {{customer_email}}, "
+"{{customer_phone}}, {{order_total}}, {{shipping_method}}."
 
 #: includes/methods/class-gls-shipping-method-parcel-locker-zones.php:21
 #: includes/methods/class-gls-shipping-method-parcel-locker.php:19
@@ -921,7 +939,7 @@ msgstr "Pieskovisko (Sandbox)"
 #: includes/admin/class-gls-shipping-pickup.php:160
 msgid ""
 "Schedule a pickup request with GLS to collect packages from your location."
-msgstr ""
+msgstr "Naplánujte si vyzdvihnutie balíkov s GLS z vašej lokality."
 
 #: includes/admin/class-gls-shipping-pickup.php:137
 #: includes/admin/class-gls-shipping-pickup.php:227
@@ -995,6 +1013,8 @@ msgid ""
 "Show the GLS logo icon next to all GLS shipping methods in cart and checkout "
 "to highlight your GLS delivery options."
 msgstr ""
+"Zobrazte ikonu loga GLS vedľa všetkých spôsobov dopravy GLS v košíku a "
+"pokladni, aby ste zvýraznili možnosti doručenia GLS."
 
 #: includes/methods/class-gls-shipping-method.php:120
 msgid "Single GLS Account"
@@ -1057,6 +1077,9 @@ msgid ""
 "Some products in your cart (%s) cannot be shipped to parcel shops or parcel "
 "lockers. Only standard delivery options are available."
 msgstr ""
+"Niektoré produkty vo vašom košíku (%s) nie je možné odoslať do balíkových "
+"predajní alebo balíkových schránok. K dispozícii sú iba štandardné možnosti "
+"doručenia."
 
 #: includes/methods/class-gls-shipping-method-parcel-locker.php:98
 #: includes/methods/class-gls-shipping-method-parcel-shop.php:98
