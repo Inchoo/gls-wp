@@ -19,6 +19,8 @@ msgstr ""
 msgid "%d items"
 msgstr "%d položek"
 
+
+
 #. translators: %s: number of generated labels
 #: includes/admin/class-gls-shipping-bulk.php:239
 msgid "%s GLS label was successfully generated."
