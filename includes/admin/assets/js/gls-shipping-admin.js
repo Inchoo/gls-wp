@@ -225,6 +225,13 @@
 			
 			if ($('#gls-account-modal').length === 0) {
 				$('body').append(modal);
+			} else {
+				// Update existing modal with current account data
+				$('#modal-client-id').val(account.client_id);
+				$('#modal-username').val(account.username);
+				$('#modal-password').val(account.password);
+				$('#modal-country').val(account.country);
+				$('#modal-mode').val(account.mode);
 			}
 			
 			$('#gls-account-modal').show();

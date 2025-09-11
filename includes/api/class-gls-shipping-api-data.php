@@ -507,9 +507,13 @@ class GLS_Shipping_API_Data
             $saved_services = $order->get_meta('_gls_services', true);
             $saved_cod_reference = $order->get_meta('_gls_cod_reference', true);
             $saved_print_position = $order->get_meta('_gls_print_position', true);
+            $saved_label_count = $order->get_meta('_gls_label_count', true);
 
             // Use saved services if available
             $services = !empty($saved_services) ? $saved_services : null;
+            
+            // Use saved label count or default to 1
+            $label_count = !empty($saved_label_count) ? intval($saved_label_count) : 1;
 
             // Track print positions for multi-order processing
             if (!empty($saved_print_position)) {
@@ -524,7 +528,7 @@ class GLS_Shipping_API_Data
             $parcel = [
                 'ClientNumber' => (int)$this->get_option("client_id"),
                 'ClientReference' => $clientReference,
-                'Count' => 1
+                'Count' => $label_count
             ];
             $parcel['PickupAddress'] = $this->get_pickup_address($order);
             $parcel['DeliveryAddress'] = $this->get_delivery_address($order);

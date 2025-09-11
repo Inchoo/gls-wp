@@ -661,13 +661,21 @@ max_weight|cost',
 					intval($_POST[$this->get_field_key('gls_accounts_grid') . '_active']) : -1;
 				
 				$has_active_account = false;
-				$first_valid_index = -1;
+				$first_valid_key = null;
 
 				foreach ($value as $index => $account) {
 					// Only validate accounts with required credentials
 					if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
-						$validated[$index] = array(
-							'name' => sanitize_text_field($account['client_id']), // Use client_id as name
+						// Use client_id + username combination as unique key
+						$unique_key = sanitize_text_field($account['client_id']) . '_' . sanitize_text_field($account['username']);
+						
+						// Skip if this combination already exists
+						if (isset($validated[$unique_key])) {
+							continue;
+						}
+						
+						$validated[$unique_key] = array(
+							'name' => sanitize_text_field($account['client_id']),
 							'client_id' => sanitize_text_field($account['client_id']),
 							'username' => sanitize_text_field($account['username']),
 							'password' => sanitize_text_field($account['password']),
@@ -682,22 +690,15 @@ max_weight|cost',
 						}
 						
 						// Remember first valid account
-						if ($first_valid_index == -1) {
-							$first_valid_index = $index;
+						if ($first_valid_key === null) {
+							$first_valid_key = $unique_key;
 						}
 					}
 				}
 				
 				// If no active account is selected but we have valid accounts, make the first one active
-				if (!$has_active_account && !empty($validated) && $first_valid_index != -1) {
-					$validated[$first_valid_index]['active'] = true;
-					
-					// Add admin notice to inform user
-					add_action('admin_notices', function() {
-						echo '<div class="notice notice-warning is-dismissible">';
-						echo '<p>' . __('No active GLS account was selected. The first valid account has been automatically set as active.', 'gls-shipping-for-woocommerce') . '</p>';
-						echo '</div>';
-					});
+				if (!$has_active_account && !empty($validated) && $first_valid_key !== null) {
+					$validated[$first_valid_key]['active'] = true;
 				}
 				
 				return $validated;

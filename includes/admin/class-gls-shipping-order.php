@@ -381,6 +381,32 @@ class GLS_Shipping_Order
         $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
         $shipping_country = $order->get_shipping_country();
         
+        // Get saved order-specific services
+        $saved_order_services = $order->get_meta('_gls_services', true);
+        $saved_order_services = is_array($saved_order_services) ? $saved_order_services : array();
+        
+        // Helper function to get checked status - prioritize order-specific settings
+        $get_checked_status = function($service_key, $global_key = null) use ($saved_order_services, $gls_shipping_method_settings) {
+            // Check if order has specific service setting
+            if (isset($saved_order_services[$service_key])) {
+                return $saved_order_services[$service_key] === 'on' || $saved_order_services[$service_key] === 'yes';
+            }
+            // Fall back to global setting
+            $global_key = $global_key ?: $service_key;
+            return ($gls_shipping_method_settings[$global_key] ?? 'no') === 'yes';
+        };
+        
+        // Helper function to get field value - prioritize order-specific settings
+        $get_field_value = function($service_key, $global_key = null) use ($saved_order_services, $gls_shipping_method_settings) {
+            // Check if order has specific service setting
+            if (isset($saved_order_services[$service_key])) {
+                return $saved_order_services[$service_key];
+            }
+            // Fall back to global setting
+            $global_key = $global_key ?: $service_key;
+            return $gls_shipping_method_settings[$global_key] ?? '';
+        };
+        
         ob_start();
         ?>
         
@@ -391,7 +417,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_service_24h" name="gls_service_24h" 
-                           <?php checked($gls_shipping_method_settings['service_24h'] ?? 'no', 'yes'); ?>>
+                           <?php checked($get_checked_status('gls_service_24h', 'service_24h')); ?>>
                     <?php esc_html_e('24H Service', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -401,10 +427,11 @@ class GLS_Shipping_Order
             <div>
                 <label><?php esc_html_e('Express Service:', 'gls-shipping-for-woocommerce'); ?></label>
                 <select id="gls_express_delivery_service" name="gls_express_delivery_service" style="width: 100%; margin-top: 2px;">
-                    <option value="" <?php selected($gls_shipping_method_settings['express_delivery_service'] ?? '', ''); ?>><?php esc_html_e('Disabled', 'gls-shipping-for-woocommerce'); ?></option>
-                    <option value="T09" <?php selected($gls_shipping_method_settings['express_delivery_service'] ?? '', 'T09'); ?>>T09 (09:00)</option>
-                    <option value="T10" <?php selected($gls_shipping_method_settings['express_delivery_service'] ?? '', 'T10'); ?>>T10 (10:00)</option>
-                    <option value="T12" <?php selected($gls_shipping_method_settings['express_delivery_service'] ?? '', 'T12'); ?>>T12 (12:00)</option>
+                    <?php $express_value = $get_field_value('express_delivery_service'); ?>
+                    <option value="" <?php selected($express_value, ''); ?>><?php esc_html_e('Disabled', 'gls-shipping-for-woocommerce'); ?></option>
+                    <option value="T09" <?php selected($express_value, 'T09'); ?>>T09 (09:00)</option>
+                    <option value="T10" <?php selected($express_value, 'T10'); ?>>T10 (10:00)</option>
+                    <option value="T12" <?php selected($express_value, 'T12'); ?>>T12 (12:00)</option>
                 </select>
             </div>
             
@@ -412,7 +439,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_contact_service" name="gls_contact_service"
-                           <?php checked($gls_shipping_method_settings['contact_service'] ?? 'no', 'yes'); ?>>
+                           <?php checked($get_checked_status('gls_contact_service', 'contact_service')); ?>>
                     <?php esc_html_e('Contact Service (CS1)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -421,7 +448,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_flexible_delivery_service" name="gls_flexible_delivery_service"
-                           <?php checked($gls_shipping_method_settings['flexible_delivery_service'] ?? 'no', 'yes'); ?>>
+                           <?php checked($get_checked_status('gls_flexible_delivery_service', 'flexible_delivery_service')); ?>>
                     <?php esc_html_e('Flexible Delivery (FDS)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -430,7 +457,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_flexible_delivery_sms_service" name="gls_flexible_delivery_sms_service"
-                           <?php checked($gls_shipping_method_settings['flexible_delivery_sms_service'] ?? 'no', 'yes'); ?>>
+                           <?php checked($get_checked_status('gls_flexible_delivery_sms_service', 'flexible_delivery_sms_service')); ?>>
                     <?php esc_html_e('Flexible Delivery SMS (FSS)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -439,7 +466,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_sms_service" name="gls_sms_service"
-                           <?php checked($gls_shipping_method_settings['sms_service'] ?? 'no', 'yes'); ?>>
+                           <?php checked($get_checked_status('gls_sms_service', 'sms_service')); ?>>
                     <?php esc_html_e('SMS Service (SM1)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -448,7 +475,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_sms_pre_advice_service" name="gls_sms_pre_advice_service"
-                           <?php checked($gls_shipping_method_settings['sms_pre_advice_service'] ?? 'no', 'yes'); ?>>
+                           <?php checked($get_checked_status('gls_sms_pre_advice_service', 'sms_pre_advice_service')); ?>>
                     <?php esc_html_e('SMS Pre-advice (SM2)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -457,7 +484,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_addressee_only_service" name="gls_addressee_only_service"
-                           <?php checked($gls_shipping_method_settings['addressee_only_service'] ?? 'no', 'yes'); ?>>
+                           <?php checked($get_checked_status('gls_addressee_only_service', 'addressee_only_service')); ?>>
                     <?php esc_html_e('Addressee Only (AOS)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -466,7 +493,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_insurance_service" name="gls_insurance_service"
-                           <?php checked($gls_shipping_method_settings['insurance_service'] ?? 'no', 'yes'); ?>>
+                           <?php checked($get_checked_status('gls_insurance_service', 'insurance_service')); ?>>
                     <?php esc_html_e('Insurance (INS)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -474,10 +501,10 @@ class GLS_Shipping_Order
         </div>
         
         <!-- SMS Service Text -->
-        <div id="gls_sms_text_container" style="margin-top: 10px; display: <?php echo ($gls_shipping_method_settings['sms_service'] ?? 'no') === 'yes' ? 'block' : 'none'; ?>;">
+        <div id="gls_sms_text_container" style="margin-top: 10px; display: <?php echo $get_checked_status('gls_sms_service', 'sms_service') ? 'block' : 'none'; ?>;">
             <label><?php esc_html_e('SMS Text:', 'gls-shipping-for-woocommerce'); ?></label>
             <input type="text" id="gls_sms_service_text" name="gls_sms_service_text" 
-                   value="<?php echo esc_attr($gls_shipping_method_settings['sms_service_text'] ?? ''); ?>" 
+                   value="<?php echo esc_attr($get_field_value('sms_service_text')); ?>" 
                    style="width: 100%; margin-top: 2px;" 
                    placeholder="Max 130 characters">
             <small style="color: #666;"><?php esc_html_e('Variables: #ParcelNr#, #COD#, #PickupDate#, #From_Name#, #ClientRef#', 'gls-shipping-for-woocommerce'); ?></small>
