@@ -238,6 +238,15 @@ private function convert_date_to_dotnet_format($date_string)
     private function log_pickup_response($response, $request_data)
     {
         $sanitized_request_data = $this->sanitize_request_data_for_logging($request_data);
+        
+        // Sanitize large binary data from logs
+        if (isset($response['Labels']) && $response['Labels']) {
+            $response['Labels'] = 'SANITIZED';
+        }
+        if (isset($response['POD']) && $response['POD']) {
+            $response['POD'] = 'SANITIZED';
+        }
+        
         $log_entry = array(
             'timestamp' => current_time('mysql'),
             'action' => 'pickup_request',

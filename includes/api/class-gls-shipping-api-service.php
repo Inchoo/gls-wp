@@ -258,7 +258,15 @@ class GLS_Shipping_API_Service
 	private function log_response($body, $response, $params)
 	{
 		$sanitized_params = $this->sanitize_params_for_logging($params);
-		unset($body['Labels']);
+		
+		// Sanitize large binary data from logs
+		if (isset($body['Labels']) && $body['Labels']) {
+			$body['Labels'] = 'SANITIZED';
+		}
+		if (isset($body['POD']) && $body['POD']) {
+			$body['POD'] = 'SANITIZED';
+		}
+		
 		error_log('** API request to: ' . $this->api_url . ' SUCCESS ** 
 				Request Params: {' . wp_json_encode($sanitized_params) . '} 
 				Response Body: ' . wp_json_encode($body) . ' 
