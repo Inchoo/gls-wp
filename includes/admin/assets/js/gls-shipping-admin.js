@@ -54,10 +54,14 @@
 			
 			// Handle active account radio button changes
 			$(document).on('change', '.account-active-radio', function() {
-				const selectedIndex = $(this).val();
-				// Update hidden fields to reflect active status
+				// Uncheck all other radios
+				$('.account-active-radio').not(this).prop('checked', false);
+				
+				// Update hidden fields
 				$('.account-active-hidden').val('0');
-				$(`.gls-account-row[data-index="${selectedIndex}"] .account-active-hidden`).val('1');
+				
+				// Set the selected account as active
+				$(this).closest('tr').find('.account-active-hidden').val('1');
 			});
 		}
 		
@@ -79,7 +83,7 @@
 			return `
 				<tr class="gls-account-row" data-index="${index}">
 					<td>
-						<input type="radio" name="woocommerce_gls_shipping_method_gls_accounts_grid_active" value="${index}" class="account-active-radio" />
+						<input type="radio" name="gls_account_active_selection" value="${index}" class="account-active-radio" />
 					</td>
 					<td>
 						<span class="account-clientid-display">New Account</span>

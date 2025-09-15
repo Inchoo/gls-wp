@@ -583,7 +583,7 @@ max_weight|cost',
 				?>
 				<tr class="gls-account-row" data-index="<?php echo $index; ?>">
 					<td>
-						<input type="radio" name="<?php echo $this->get_field_key('gls_accounts_grid'); ?>_active" value="<?php echo $index; ?>" <?php checked($account['active'], true); ?> class="account-active-radio" />
+						<input type="radio" name="gls_account_active_selection" value="<?php echo $index; ?>" <?php checked($account['active'], true); ?> class="account-active-radio" />
 					</td>
 					<td>
 						<span class="account-clientid-display"><?php echo esc_html($account['client_id'] ?: __('New Account', 'gls-shipping-for-woocommerce')); ?></span>
@@ -652,56 +652,66 @@ max_weight|cost',
 			 */
 			public function validate_gls_accounts_grid_field($key, $value)
 			{
-				if (empty($value) || !is_array($value)) {
+				if (!is_array($value)) {
 					return array();
 				}
 
-				$validated = array();
-				$active_account = isset($_POST[$this->get_field_key('gls_accounts_grid') . '_active']) ? 
-					intval($_POST[$this->get_field_key('gls_accounts_grid') . '_active']) : -1;
-				
-				$has_active_account = false;
-				$first_valid_key = null;
+				$validated_accounts = array();
+				$has_active = false;
 
 				foreach ($value as $index => $account) {
-					// Only validate accounts with required credentials
-					if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
-						// Use client_id + username combination as unique key
-						$unique_key = sanitize_text_field($account['client_id']) . '_' . sanitize_text_field($account['username']);
-						
-						// Skip if this combination already exists
-						if (isset($validated[$unique_key])) {
-							continue;
+					if (is_array($account)) {
+						// Validate required fields
+						$required_fields = array('client_id', 'username', 'password');
+						$is_valid = true;
+
+						foreach ($required_fields as $field) {
+							if (empty($account[$field])) {
+								$is_valid = false;
+								break;
+							}
 						}
-						
-						$validated[$unique_key] = array(
-							'name' => sanitize_text_field($account['client_id']),
-							'client_id' => sanitize_text_field($account['client_id']),
-							'username' => sanitize_text_field($account['username']),
-							'password' => sanitize_text_field($account['password']),
-							'country' => sanitize_text_field($account['country']),
-							'mode' => sanitize_text_field($account['mode']),
-							'active' => ($index == $active_account)
-						);
-						
-						// Track if we have an active account
-						if ($index == $active_account) {
-							$has_active_account = true;
-						}
-						
-						// Remember first valid account
-						if ($first_valid_key === null) {
-							$first_valid_key = $unique_key;
+
+						if ($is_valid) {
+							// Use client_id + username combination as unique key
+							$unique_key = sanitize_text_field($account['client_id']) . '_' . sanitize_text_field($account['username']);
+							
+							// Skip if this combination already exists
+							if (isset($validated_accounts[$unique_key])) {
+								continue;
+							}
+							
+							$validated_account = array(
+								'name' => sanitize_text_field($account['client_id']),
+								'client_id' => sanitize_text_field($account['client_id']),
+								'username' => sanitize_text_field($account['username']),
+								'password' => sanitize_text_field($account['password']),
+								'country' => sanitize_text_field($account['country'] ?? 'HR'),
+								'mode' => sanitize_text_field($account['mode'] ?? 'production'),
+								'active' => !empty($account['active']) && $account['active'] === '1'
+							);
+
+							// Ensure only one active account
+							if ($validated_account['active']) {
+								if ($has_active) {
+									$validated_account['active'] = false;
+								} else {
+									$has_active = true;
+								}
+							}
+
+							$validated_accounts[$unique_key] = $validated_account;
 						}
 					}
 				}
-				
+
 				// If no active account is selected but we have valid accounts, make the first one active
-				if (!$has_active_account && !empty($validated) && $first_valid_key !== null) {
-					$validated[$first_valid_key]['active'] = true;
+				if (!$has_active && !empty($validated_accounts)) {
+					$first_key = array_key_first($validated_accounts);
+					$validated_accounts[$first_key]['active'] = true;
 				}
-				
-				return $validated;
+
+				return $validated_accounts;
 			}
 
 			/**
