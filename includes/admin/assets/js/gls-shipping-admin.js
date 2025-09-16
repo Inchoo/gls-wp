@@ -1,17 +1,95 @@
 (function () {
 	jQuery(document).ready(function ($) {
-		// GLS Multiple Accounts Management
+		// ============================================================================
+		// INITIALIZATION
+		// ============================================================================
+
+		// Initialize GLS Accounts Management
 		handleAccountModeToggle();
 		handleAccountsGrid();
-		
-		// GLS Sender Addresses Management
+
+		// Initialize GLS Sender Addresses Management
 		handleSenderAddressesGrid();
-		
+
+		// ============================================================================
+		// HELPER FUNCTIONS
+		// ============================================================================
+
+		// Common modal helper functions
+		function addModalStyles(styleId, modalId, contentClass) {
+			if ($(`#${styleId}`).length === 0) {
+				$('head').append(`
+					<style id="${styleId}">
+						#${modalId} {
+							position: fixed;
+							top: 0;
+							left: 0;
+							width: 100%;
+							height: 100%;
+							background-color: rgba(0,0,0,0.5);
+							z-index: 100000;
+						}
+						.${contentClass} {
+							position: relative;
+							background-color: #fff;
+							margin: 5% auto;
+							padding: 20px;
+							width: 90%;
+							max-width: 600px;
+							max-height: 80vh;
+							overflow-y: auto;
+							border-radius: 4px;
+							box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+						}
+					</style>
+				`);
+			}
+		}
+
+		function getCountryOptions(selectedCountry = 'HR') {
+			const countries = {
+				AT: 'Austria',
+				BE: 'Belgium',
+				BG: 'Bulgaria',
+				CZ: 'Czech Republic',
+				DE: 'Germany',
+				DK: 'Denmark',
+				ES: 'Spain',
+				FI: 'Finland',
+				FR: 'France',
+				GR: 'Greece',
+				HR: 'Croatia',
+				HU: 'Hungary',
+				IT: 'Italy',
+				LU: 'Luxembourg',
+				NL: 'Netherlands',
+				PL: 'Poland',
+				PT: 'Portugal',
+				RO: 'Romania',
+				RS: 'Serbia',
+				SI: 'Slovenia',
+				SK: 'Slovakia'
+			};
+
+			let options = '';
+			for (const [code, name] of Object.entries(countries)) {
+				const selected = code === selectedCountry ? 'selected' : '';
+				options += `<option value="${code}" ${selected}>${name}</option>`;
+			}
+			return options;
+		}
+
+		// ============================================================================
+		// GLS ACCOUNTS MANAGEMENT
+		// ============================================================================
+
 		function handleAccountModeToggle() {
 			const $accountMode = $('#woocommerce_gls_shipping_method_account_mode');
 			const $accountsRow = $('#gls_accounts_row');
-			const $singleFields = $('#woocommerce_gls_shipping_method_client_id, #woocommerce_gls_shipping_method_username, #woocommerce_gls_shipping_method_password, #woocommerce_gls_shipping_method_country, #woocommerce_gls_shipping_method_mode').closest('tr');
-			
+			const $singleFields = $(
+				'#woocommerce_gls_shipping_method_client_id, #woocommerce_gls_shipping_method_username, #woocommerce_gls_shipping_method_password, #woocommerce_gls_shipping_method_country, #woocommerce_gls_shipping_method_mode'
+			).closest('tr');
+
 			function toggleFields() {
 				const mode = $accountMode.val();
 				if (mode === 'multiple') {
@@ -22,64 +100,52 @@
 					$singleFields.show();
 				}
 			}
-			
+
 			$accountMode.on('change', toggleFields);
 			toggleFields(); // Initial state
 		}
-		
+
 		function handleAccountsGrid() {
 			let accountIndex = $('.gls-account-row').length;
-			
+
 			// Add new account
-			$(document).on('click', '#add-gls-account', function() {
+			$(document).on('click', '#add-gls-account', function () {
 				const newRow = createAccountRow(accountIndex);
 				$('#gls-accounts-tbody').append(newRow);
 				accountIndex++;
 			});
-			
+
 			// Delete account
-			$(document).on('click', '.delete-account', function() {
+			$(document).on('click', '.delete-account', function () {
 				if (confirm('Are you sure you want to delete this account?')) {
 					$(this).closest('tr').remove();
 					reindexAccounts();
 				}
 			});
-			
+
 			// Edit account (modal functionality)
-			$(document).on('click', '.edit-account', function() {
+			$(document).on('click', '.edit-account', function () {
 				const $row = $(this).closest('tr');
 				const index = $row.data('index');
 				openAccountEditModal($row, index);
 			});
-			
+
 			// Handle active account radio button changes
-			$(document).on('change', '.account-active-radio', function() {
+			$(document).on('change', '.account-active-radio', function () {
 				// Uncheck all other radios
 				$('.account-active-radio').not(this).prop('checked', false);
-				
+
 				// Update hidden fields
 				$('.account-active-hidden').val('0');
-				
+
 				// Set the selected account as active
 				$(this).closest('tr').find('.account-active-hidden').val('1');
 			});
 		}
-		
+
 		function createAccountRow(index) {
-			const countries = {
-				'AT': 'Austria', 'BE': 'Belgium', 'BG': 'Bulgaria', 'CZ': 'Czech Republic',
-				'DE': 'Germany', 'DK': 'Denmark', 'ES': 'Spain', 'FI': 'Finland',
-				'FR': 'France', 'GR': 'Greece', 'HR': 'Croatia', 'HU': 'Hungary',
-				'IT': 'Italy', 'LU': 'Luxembourg', 'NL': 'Netherlands', 'PL': 'Poland',
-				'PT': 'Portugal', 'RO': 'Romania', 'RS': 'Serbia', 'SI': 'Slovenia', 'SK': 'Slovakia'
-			};
-			
-			let countryOptions = '';
-			for (const [code, name] of Object.entries(countries)) {
-				const selected = code === 'HR' ? 'selected' : '';
-				countryOptions += `<option value="${code}" ${selected}>${name}</option>`;
-			}
-			
+			const countryOptions = getCountryOptions('HR');
+
 			return `
 				<tr class="gls-account-row" data-index="${index}">
 					<td>
@@ -104,20 +170,22 @@
 				</tr>
 			`;
 		}
-		
+
 		function reindexAccounts() {
-			$('.gls-account-row').each(function(newIndex) {
+			$('.gls-account-row').each(function (newIndex) {
 				$(this).attr('data-index', newIndex);
-				$(this).find('input, select').each(function() {
-					const name = $(this).attr('name');
-					if (name) {
-						const newName = name.replace(/\[\d+\]/, '[' + newIndex + ']');
-						$(this).attr('name', newName);
-					}
-				});
+				$(this)
+					.find('input, select')
+					.each(function () {
+						const name = $(this).attr('name');
+						if (name) {
+							const newName = name.replace(/\[\d+\]/, '[' + newIndex + ']');
+							$(this).attr('name', newName);
+						}
+					});
 			});
 		}
-		
+
 		function openAccountEditModal($row, index) {
 			const account = {
 				name: $row.find('.account-name').val() || '',
@@ -127,66 +195,13 @@
 				country: $row.find('.account-country').val() || 'HR',
 				mode: $row.find('.account-mode').val() || 'production'
 			};
-			
-			// Add modal styles if not already added
-			if ($('#gls-modal-styles').length === 0) {
-				$('head').append(`
-					<style id="gls-modal-styles">
-						#gls-account-modal {
-							position: fixed;
-							top: 0;
-							left: 0;
-							width: 100%;
-							height: 100%;
-							background-color: rgba(0,0,0,0.5);
-							z-index: 100000;
-						}
-						.gls-modal-content {
-							position: relative;
-							background-color: #fff;
-							margin: 5% auto;
-							padding: 20px;
-							width: 90%;
-							max-width: 600px;
-							max-height: 80vh;
-							overflow-y: auto;
-							border-radius: 4px;
-							box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-						}
-						.gls-accounts-table input[type="text"] {
-							width: 100%;
-							max-width: 150px;
-						}
-						.gls-accounts-table select {
-							width: 100%;
-							max-width: 120px;
-						}
-					</style>
-				`);
-			}
-			
-			const countries = {
-				'AT': 'Austria', 'BE': 'Belgium', 'BG': 'Bulgaria', 'CZ': 'Czech Republic',
-				'DE': 'Germany', 'DK': 'Denmark', 'ES': 'Spain', 'FI': 'Finland',
-				'FR': 'France', 'GR': 'Greece', 'HR': 'Croatia', 'HU': 'Hungary',
-				'IT': 'Italy', 'LU': 'Luxembourg', 'NL': 'Netherlands', 'PL': 'Poland',
-				'PT': 'Portugal', 'RO': 'Romania', 'RS': 'Serbia', 'SI': 'Slovenia', 'SK': 'Slovakia'
-			};
-			
-			let countryOptions = '';
-			for (const [code, name] of Object.entries(countries)) {
-				const selected = code === account.country ? 'selected' : '';
-				countryOptions += `<option value="${code}" ${selected}>${name}</option>`;
-			}
-			
 
-			
+			addModalStyles('gls-account-modal-styles', 'gls-account-modal', 'gls-account-modal-content');
+
 			const modal = `
 				<div id="gls-account-modal" style="display: none;">
-					<div class="gls-modal-content">
+					<div class="gls-account-modal-content">
 						<h3>Edit GLS Account</h3>
-						
-						<h4>Account Details</h4>
 						<table class="form-table">
 							<tr>
 								<th><label>Client ID *</label></th>
@@ -202,11 +217,7 @@
 							</tr>
 							<tr>
 								<th><label>Country</label></th>
-								<td>
-									<select id="modal-country" style="width: 100%;">
-										${countryOptions}
-									</select>
-								</td>
+								<td><select id="modal-country" style="width: 100%;">${getCountryOptions(account.country)}</select></td>
 							</tr>
 							<tr>
 								<th><label>Mode</label></th>
@@ -218,157 +229,150 @@
 								</td>
 							</tr>
 						</table>
-						
 						<p class="submit">
 							<button type="button" class="button-primary" id="save-account">Save Changes</button>
-							<button type="button" class="button" id="cancel-edit">Cancel</button>
+							<button type="button" class="button" id="cancel-account-edit">Cancel</button>
 						</p>
 					</div>
 				</div>
 			`;
-			
-			if ($('#gls-account-modal').length === 0) {
-				$('body').append(modal);
-			} else {
-				// Update existing modal with current account data
-				$('#modal-client-id').val(account.client_id);
-				$('#modal-username').val(account.username);
-				$('#modal-password').val(account.password);
-				$('#modal-country').val(account.country);
-				$('#modal-mode').val(account.mode);
-			}
-			
+
+			// Remove existing modal if it exists
+			$('#gls-account-modal').remove();
+
+			$('body').append(modal);
 			$('#gls-account-modal').show();
-			
-			$('#save-account').off('click').on('click', function() {
-				// Validate required fields
-				const clientId = $('#modal-client-id').val().trim();
-				const username = $('#modal-username').val().trim();
-				const password = $('#modal-password').val().trim();
-				
-				if (!clientId || !username || !password) {
-					alert('Please fill in all required fields (marked with *)');
-					return;
-				}
-				
-				// Update hidden fields
-				$row.find('.account-name').val(clientId); // Use client_id as name
-				$row.find('.account-client-id').val(clientId);
-				$row.find('.account-username').val(username);
-				$row.find('.account-password').val(password);
-				$row.find('.account-country').val($('#modal-country').val());
-				$row.find('.account-mode').val($('#modal-mode').val());
-				
-				// Update display values
-				$row.find('.account-clientid-display').text(clientId);
-				
-				$('#gls-account-modal').hide();
-			});
-			
-			$('#cancel-edit').off('click').on('click', function() {
-				$('#gls-account-modal').hide();
-			});
+
+			$('#save-account')
+				.off('click')
+				.on('click', function () {
+					const clientId = $('#modal-client-id').val().trim();
+					const username = $('#modal-username').val().trim();
+					const password = $('#modal-password').val().trim();
+
+					if (!clientId || !username || !password) {
+						alert('Please fill in all required fields (marked with *)');
+						return;
+					}
+
+					$row.find('.account-name').val(clientId);
+					$row.find('.account-client-id').val(clientId);
+					$row.find('.account-username').val(username);
+					$row.find('.account-password').val(password);
+					$row.find('.account-country').val($('#modal-country').val());
+					$row.find('.account-mode').val($('#modal-mode').val());
+					$row.find('.account-clientid-display').text(clientId);
+
+					$('#gls-account-modal').hide();
+				});
+
+			$('#cancel-account-edit')
+				.off('click')
+				.on('click', function () {
+					$('#gls-account-modal').hide();
+				});
 		}
-		
+
+		// ============================================================================
+		// GLS LABEL GENERATION & TRACKING
+		// ============================================================================
+
 		// Generating label in order details page
-		$(".gls-print-label").on("click", function () {
-			const orderId = $(this).attr("order-id");
+		$('.gls-print-label').on('click', function () {
+			const orderId = $(this).attr('order-id');
 			const $button = $(this);
-			const count = $("#gls_label_count").val() || 1;
-			
+			const count = $('#gls_label_count').val() || 1;
+
 			// Get print position - check both possible IDs for regenerate vs new label
-			let printPosition = $("#gls_print_position").val();
+			let printPosition = $('#gls_print_position').val();
 			if (!printPosition) {
-				printPosition = $("#gls_print_position_new").val();
+				printPosition = $('#gls_print_position_new').val();
 			}
-			
+
 			// Get COD reference - check both possible IDs for regenerate vs new label
-			let codReference = $("#gls_cod_reference").val();
+			let codReference = $('#gls_cod_reference').val();
 			if (!codReference) {
-				codReference = $("#gls_cod_reference_new").val();
+				codReference = $('#gls_cod_reference_new').val();
 			}
 
 			// Collect service options
 			const services = collectServiceOptions();
-			
-			$button.prop("disabled", true);
+
+			$button.prop('disabled', true);
 			generateGLSLabel(orderId, $button, count, printPosition, codReference, services);
 		});
 
 		// Get parcel status in order details page
-		$(".gls-get-status").on("click", function () {
-			const orderId = $(this).attr("order-id");
-			const parcelNumber = $(this).attr("parcel-number");
+		$('.gls-get-status').on('click', function () {
+			const orderId = $(this).attr('order-id');
+			const parcelNumber = $(this).attr('parcel-number');
 			const $button = $(this);
-			$button.prop("disabled", true);
+			$button.prop('disabled', true);
 			getParcelStatus(orderId, parcelNumber, $button);
 		});
 
 		// Toggle service options visibility
-		$("#gls-services-toggle, #gls-services-toggle-new").on("click", function (e) {
+		$('#gls-services-toggle, #gls-services-toggle-new').on('click', function (e) {
 			e.preventDefault();
-			const isNew = $(this).attr("id").includes("new");
-			const optionsId = isNew ? "#gls-services-options-new" : "#gls-services-options";
-			const arrowId = isNew ? "#gls-services-arrow-new" : "#gls-services-arrow";
-			
+			const isNew = $(this).attr('id').includes('new');
+			const optionsId = isNew ? '#gls-services-options-new' : '#gls-services-options';
+			const arrowId = isNew ? '#gls-services-arrow-new' : '#gls-services-arrow';
+
 			$(optionsId).slideToggle(200);
-			$(arrowId).text($(optionsId).is(":visible") ? "▲" : "▼");
+			$(arrowId).text($(optionsId).is(':visible') ? '▲' : '▼');
 		});
 
 		// Show/hide SMS text field based on SMS service checkbox
-		$(document).on("change", "#gls_sms_service", function () {
-			if ($(this).is(":checked")) {
-				$("#gls_sms_text_container").slideDown(200);
+		$(document).on('change', '#gls_sms_service', function () {
+			if ($(this).is(':checked')) {
+				$('#gls_sms_text_container').slideDown(200);
 			} else {
-				$("#gls_sms_text_container").slideUp(200);
+				$('#gls_sms_text_container').slideUp(200);
 			}
 		});
 
 		// Generate label in order listing page
-		$("a.gls-generate-label").on("click", function (e) {
+		$('a.gls-generate-label').on('click', function (e) {
 			e.preventDefault();
-			const orderId = $(this)
-				.closest("tr")
-				.find(".check-column input")
-				.val();
+			const orderId = $(this).closest('tr').find('.check-column input').val();
 			const $button = $(this);
-			$button.addClass("disabled");
+			$button.addClass('disabled');
 			generateGLSLabel(orderId, $button, 1, null, null, null); // Use defaults from config
 		});
 
 		function collectServiceOptions() {
 			// Only collect if service options are visible
-			if (!$("#gls-services-options").is(":visible") && !$("#gls-services-options-new").is(":visible")) {
+			if (!$('#gls-services-options').is(':visible') && !$('#gls-services-options-new').is(':visible')) {
 				return null;
 			}
 
 			return {
-				service_24h: $("#gls_service_24h").is(":checked") ? "yes" : "no",
-				express_delivery_service: $("#gls_express_delivery_service").val() || "",
-				contact_service: $("#gls_contact_service").is(":checked") ? "yes" : "no",
-				flexible_delivery_service: $("#gls_flexible_delivery_service").is(":checked") ? "yes" : "no",
-				flexible_delivery_sms_service: $("#gls_flexible_delivery_sms_service").is(":checked") ? "yes" : "no",
-				sms_service: $("#gls_sms_service").is(":checked") ? "yes" : "no",
-				sms_service_text: $("#gls_sms_service_text").val() || "",
-				sms_pre_advice_service: $("#gls_sms_pre_advice_service").is(":checked") ? "yes" : "no",
-				addressee_only_service: $("#gls_addressee_only_service").is(":checked") ? "yes" : "no",
-				insurance_service: $("#gls_insurance_service").is(":checked") ? "yes" : "no"
+				service_24h: $('#gls_service_24h').is(':checked') ? 'yes' : 'no',
+				express_delivery_service: $('#gls_express_delivery_service').val() || '',
+				contact_service: $('#gls_contact_service').is(':checked') ? 'yes' : 'no',
+				flexible_delivery_service: $('#gls_flexible_delivery_service').is(':checked') ? 'yes' : 'no',
+				flexible_delivery_sms_service: $('#gls_flexible_delivery_sms_service').is(':checked') ? 'yes' : 'no',
+				sms_service: $('#gls_sms_service').is(':checked') ? 'yes' : 'no',
+				sms_service_text: $('#gls_sms_service_text').val() || '',
+				sms_pre_advice_service: $('#gls_sms_pre_advice_service').is(':checked') ? 'yes' : 'no',
+				addressee_only_service: $('#gls_addressee_only_service').is(':checked') ? 'yes' : 'no',
+				insurance_service: $('#gls_insurance_service').is(':checked') ? 'yes' : 'no'
 			};
 		}
 
 		function generateGLSLabel(orderId, $button, count, printPosition, codReference, services) {
 			const data = {
-				action: "gls_generate_label",
+				action: 'gls_generate_label',
 				orderId: orderId,
 				postNonce: gls_croatia.ajaxNonce,
-				count: count,
+				count: count
 			};
-			
+
 			// Add print position if provided
 			if (printPosition) {
 				data.printPosition = printPosition;
 			}
-			
+
 			// Add COD reference if provided
 			if (codReference) {
 				data.codReference = codReference;
@@ -378,80 +382,74 @@
 			if (services) {
 				data.services = JSON.stringify(services);
 			}
-			
+
 			$.ajax({
 				url: gls_croatia.adminAjaxUrl,
-				type: "POST",
+				type: 'POST',
 				data: data,
 				success: function (response) {
 					if (response.success) {
 						location.reload();
 					} else {
-						alert(
-							"Error generating GLS Label: " + response.data.error
-						);
+						alert('Error generating GLS Label: ' + response.data.error);
 					}
 				},
 				error: function () {
-					alert("An error occurred while generating the GLS Label.");
+					alert('An error occurred while generating the GLS Label.');
 				},
 				complete: function () {
 					// Re-enable the button
-					if ($button.hasClass("gls-print-label")) {
-						$button.prop("disabled", false);
+					if ($button.hasClass('gls-print-label')) {
+						$button.prop('disabled', false);
 					} else {
-						$button.removeClass("disabled");
+						$button.removeClass('disabled');
 					}
-				},
+				}
 			});
 		}
 
 		function getParcelStatus(orderId, parcelNumber, $button) {
 			// Clear previous status
-			$("#gls-tracking-status").html('<p>Loading tracking information...</p>');
+			$('#gls-tracking-status').html('<p>Loading tracking information...</p>');
 
 			$.ajax({
 				url: gls_croatia.adminAjaxUrl,
-				type: "POST",
+				type: 'POST',
 				data: {
-					action: "gls_get_parcel_status",
+					action: 'gls_get_parcel_status',
 					orderId: orderId,
 					parcelNumber: parcelNumber,
-					postNonce: gls_croatia.ajaxNonce,
+					postNonce: gls_croatia.ajaxNonce
 				},
 				success: function (response) {
 					if (response.success) {
 						displayTrackingStatus(response.data.tracking_data);
 					} else {
-						$("#gls-tracking-status").html(
-							'<div class="notice notice-error"><p>Error getting tracking status: ' + response.data.error + '</p></div>'
-						);
+						$('#gls-tracking-status').html('<div class="notice notice-error"><p>Error getting tracking status: ' + response.data.error + '</p></div>');
 					}
 				},
 				error: function () {
-					$("#gls-tracking-status").html(
-						'<div class="notice notice-error"><p>An error occurred while getting tracking status.</p></div>'
-					);
+					$('#gls-tracking-status').html('<div class="notice notice-error"><p>An error occurred while getting tracking status.</p></div>');
 				},
 				complete: function () {
-					$button.prop("disabled", false);
-				},
+					$button.prop('disabled', false);
+				}
 			});
 		}
 
 		function displayTrackingStatus(trackingData) {
 			let html = '<div class="notice notice-info"><h4>Tracking Information</h4>';
-			
+
 			// Basic info
 			html += '<p><strong>Parcel Number:</strong> ' + trackingData.ParcelNumber + '</p>';
 			html += '<p><strong>Client Reference:</strong> ' + trackingData.ClientReference + '</p>';
-			
+
 			// Status list
 			if (trackingData.ParcelStatusList && trackingData.ParcelStatusList.length > 0) {
 				html += '<h5>Status History:</h5>';
 				html += '<div style="margin-top: 10px;">';
-				
-				trackingData.ParcelStatusList.forEach(function(status, index) {
+
+				trackingData.ParcelStatusList.forEach(function (status, index) {
 					// Parse the .NET date format
 					const dateMatch = status.StatusDate.match(/Date\((\d+)([+-]\d{4})?\)/);
 					let formattedDate = status.StatusDate;
@@ -460,7 +458,7 @@
 						const date = new Date(timestamp);
 						formattedDate = date.toLocaleString();
 					}
-					
+
 					html += '<div style="border: 1px solid #ddd; margin-bottom: 10px; padding: 15px; border-radius: 4px; background-color: #f9f9f9;">';
 					html += '<div style="margin-bottom: 8px;"><strong>Date:</strong> ' + formattedDate + '</div>';
 					html += '<div style="margin-bottom: 8px;"><strong>Status:</strong> ' + status.StatusDescription + ' (' + status.StatusCode + ')</div>';
@@ -470,56 +468,60 @@
 					}
 					html += '</div>';
 				});
-				
+
 				html += '</div>';
 			}
-			
+
 			html += '</div>';
-			$("#gls-tracking-status").html(html);
+			$('#gls-tracking-status').html(html);
 		}
-		
+
+		// ============================================================================
+		// GLS SENDER ADDRESSES MANAGEMENT
+		// ============================================================================
+
 		function handleSenderAddressesGrid() {
 			let addressIndex = $('.sender-address-row[data-index!="none"]').length;
-			
+
 			// Add new address
-			$(document).on('click', '#add-sender-address', function() {
+			$(document).on('click', '#add-sender-address', function () {
 				const newRow = createAddressRow(addressIndex);
 				$('#sender-addresses-tbody').append(newRow);
 				addressIndex++;
 			});
-			
+
 			// Delete address
-			$(document).on('click', '.delete-address', function() {
+			$(document).on('click', '.delete-address', function () {
 				if (confirm('Are you sure you want to delete this address?')) {
 					$(this).closest('tr').remove();
 					reindexAddresses();
 				}
 			});
-			
+
 			// Edit address (modal functionality)
-			$(document).on('click', '.edit-address', function() {
+			$(document).on('click', '.edit-address', function () {
 				const $row = $(this).closest('tr');
 				const index = $row.data('index');
 				openAddressEditModal($row, index);
 			});
-			
+
 			// Handle default selection
-			$(document).on('change', '.address-default-radio', function() {
+			$(document).on('change', '.address-default-radio', function () {
 				const selectedValue = $(this).val();
-				
+
 				// Uncheck all other radios
 				$('.address-default-radio').not(this).prop('checked', false);
-				
+
 				// Update hidden fields
 				$('.address-is-default').val('0');
-				
+
 				// Only set to default if it's not the "none" option
 				if (selectedValue !== 'none') {
 					$(this).closest('tr').find('.address-is-default').val('1');
 				}
 			});
 		}
-		
+
 		function createAddressRow(index) {
 			return `
 				<tr class="sender-address-row" data-index="${index}">
@@ -548,25 +550,27 @@
 				</tr>
 			`;
 		}
-		
+
 		function reindexAddresses() {
-			$('.sender-address-row[data-index!="none"]').each(function(newIndex) {
+			$('.sender-address-row[data-index!="none"]').each(function (newIndex) {
 				$(this).attr('data-index', newIndex);
-				$(this).find('input, select').each(function() {
-					const name = $(this).attr('name');
-					if (name) {
-						const newName = name.replace(/\[\d+\]/, '[' + newIndex + ']');
-						$(this).attr('name', newName);
-					}
-				});
+				$(this)
+					.find('input, select')
+					.each(function () {
+						const name = $(this).attr('name');
+						if (name) {
+							const newName = name.replace(/\[\d+\]/, '[' + newIndex + ']');
+							$(this).attr('name', newName);
+						}
+					});
 			});
 		}
-		
+
 		function openAddressEditModal($row, index) {
 			// Add modal styles if not already added
-			if ($('#gls-modal-styles').length === 0) {
+			if ($('#gls-address-modal-styles').length === 0) {
 				$('head').append(`
-					<style id="gls-modal-styles">
+					<style id="gls-address-modal-styles">
 						#sender-address-modal {
 							position: fixed;
 							top: 0;
@@ -576,7 +580,7 @@
 							background-color: rgba(0,0,0,0.5);
 							z-index: 100000;
 						}
-						.gls-modal-content {
+						.gls-address-modal-content {
 							position: relative;
 							background-color: #fff;
 							margin: 5% auto;
@@ -599,7 +603,7 @@
 					</style>
 				`);
 			}
-			
+
 			const address = {
 				name: $row.find('.address-name').val() || '',
 				contact_name: $row.find('.address-contact-name').val() || '',
@@ -612,24 +616,12 @@
 				email: $row.find('.address-email').val() || '',
 				is_default: $row.find('.address-is-default').val() === '1'
 			};
-			
-			const countries = {
-				'AT': 'Austria', 'BE': 'Belgium', 'BG': 'Bulgaria', 'CZ': 'Czech Republic',
-				'DE': 'Germany', 'DK': 'Denmark', 'ES': 'Spain', 'FI': 'Finland',
-				'FR': 'France', 'GR': 'Greece', 'HR': 'Croatia', 'HU': 'Hungary',
-				'IT': 'Italy', 'LU': 'Luxembourg', 'NL': 'Netherlands', 'PL': 'Poland',
-				'PT': 'Portugal', 'RO': 'Romania', 'RS': 'Serbia', 'SI': 'Slovenia', 'SK': 'Slovakia'
-			};
-			
-			let countryOptions = '';
-			for (const [code, name] of Object.entries(countries)) {
-				const selected = code === address.country ? 'selected' : '';
-				countryOptions += `<option value="${code}" ${selected}>${name}</option>`;
-			}
-			
+
+			const countryOptions = getCountryOptions(address.country);
+
 			const modal = `
 				<div id="sender-address-modal" style="display: none;">
-					<div class="gls-modal-content">
+					<div class="gls-address-modal-content">
 						<h3>Edit Sender Address</h3>
 						
 						<table class="form-table">
@@ -681,67 +673,84 @@
 						
 						<p class="submit">
 							<button type="button" class="button-primary" id="save-address">Save Changes</button>
-							<button type="button" class="button" id="cancel-edit">Cancel</button>
+							<button type="button" class="button" id="cancel-address-edit">Cancel</button>
 						</p>
 					</div>
 				</div>
 			`;
-			
+
+			// Remove existing modal if it exists
+			$('#sender-address-modal').remove();
+
 			$('body').append(modal);
 			$('#sender-address-modal').show();
-			
-			$('#save-address').off('click').on('click', function() {
-				// Validate required fields
-				const name = $('#modal-address-name').val().trim();
-				const street = $('#modal-address-street').val().trim();
-				const houseNumber = $('#modal-address-house-number').val().trim();
-				const city = $('#modal-address-city').val().trim();
-				const postcode = $('#modal-address-postcode').val().trim();
-				
-				if (!name || !street || !houseNumber || !city || !postcode) {
-					alert('Please fill in all required fields (marked with *)');
-					return;
-				}
-				
-				// Update hidden fields
-				$row.find('.address-name').val(name);
-				$row.find('.address-contact-name').val($('#modal-address-contact-name').val());
-				$row.find('.address-street').val(street);
-				$row.find('.address-house-number').val(houseNumber);
-				$row.find('.address-city').val(city);
-				$row.find('.address-postcode').val(postcode);
-				$row.find('.address-country').val($('#modal-address-country').val());
-				$row.find('.address-phone').val($('#modal-address-phone').val());
-				$row.find('.address-email').val($('#modal-address-email').val());
-				
-				// Handle default setting
-				const isDefault = $('#modal-address-is-default').is(':checked');
-				if (isDefault) {
-					$('.address-default-radio').prop('checked', false);
-					$('.address-is-default').val('0');
-					$row.find('.address-default-radio').prop('checked', true);
-					$row.find('.address-is-default').val('1');
-				} else {
-					$row.find('.address-is-default').val('0');
-				}
-				
-				// Update display values
-				$row.find('.address-name-display').text(name);
-				
-				$('#sender-address-modal').hide();
-			});
-			
-			$('#cancel-edit').off('click').on('click', function() {
-				$('#sender-address-modal').hide();
-			});
+
+			$('#save-address')
+				.off('click')
+				.on('click', function () {
+					// Validate required fields
+					const name = $('#modal-address-name').val().trim();
+					const street = $('#modal-address-street').val().trim();
+					const houseNumber = $('#modal-address-house-number').val().trim();
+					const city = $('#modal-address-city').val().trim();
+					const postcode = $('#modal-address-postcode').val().trim();
+
+					if (!name || !street || !houseNumber || !city || !postcode) {
+						alert('Please fill in all required fields (marked with *)');
+						return;
+					}
+
+					// Update hidden fields
+					$row.find('.address-name').val(name);
+					$row.find('.address-contact-name').val($('#modal-address-contact-name').val());
+					$row.find('.address-street').val(street);
+					$row.find('.address-house-number').val(houseNumber);
+					$row.find('.address-city').val(city);
+					$row.find('.address-postcode').val(postcode);
+					$row.find('.address-country').val($('#modal-address-country').val());
+					$row.find('.address-phone').val($('#modal-address-phone').val());
+					$row.find('.address-email').val($('#modal-address-email').val());
+
+					// Handle default setting
+					const isDefault = $('#modal-address-is-default').is(':checked');
+					if (isDefault) {
+						$('.address-default-radio').prop('checked', false);
+						$('.address-is-default').val('0');
+						$row.find('.address-default-radio').prop('checked', true);
+						$row.find('.address-is-default').val('1');
+					} else {
+						$row.find('.address-is-default').val('0');
+					}
+
+					// Update display values
+					$row.find('.address-name-display').text(name);
+
+					$('#sender-address-modal').hide();
+				});
+
+			$('#cancel-address-edit')
+				.off('click')
+				.on('click', function () {
+					$('#sender-address-modal').hide();
+				});
 		}
-		
-		// Close modal when clicking outside or on close button
-		$(document).on('click', '#sender-address-modal', function(e) {
+
+		// Close modals when clicking outside or on close button
+		$(document).on('click', '#gls-account-modal', function (e) {
 			if (e.target === this) {
 				$(this).hide();
 			}
 		});
+
+		$(document).on('click', '#sender-address-modal', function (e) {
+			if (e.target === this) {
+				$(this).hide();
+			}
+		});
+
+		// ============================================================================
+		// GLS PICKUP LOCATION MANAGEMENT
+		// ============================================================================
 
 		// Handle GLS pickup location changes in admin
 		handleGLSPickupLocationChange();
@@ -751,20 +760,20 @@
 			var glsDialogsCreated = false;
 
 			// Handle "Change pickup location" button clicks
-			$(document).on('click', '.gls-change-pickup-location', function() {
+			$(document).on('click', '.gls-change-pickup-location', function () {
 				var $button = $(this);
 				var orderId = $button.data('order-id');
-				
+
 				// Disable button during loading
 				$button.prop('disabled', true).text('Loading...');
-				
+
 				// Load GLS script and create dialogs if not already done
-				loadGLSMapResources(function() {
+				loadGLSMapResources(function () {
 					// Re-enable button
 					$button.prop('disabled', false).text('Change Pickup Location');
-					
+
 					// Show unified map modal that allows selection of any pickup type
-					showAdminMapModal("gls-map-unified", orderId);
+					showAdminMapModal('gls-map-unified', orderId);
 				});
 			});
 
@@ -780,13 +789,13 @@
 					var script = document.createElement('script');
 					script.type = 'module';
 					script.src = 'https://map.gls-croatia.com/widget/gls-dpm.js';
-					script.onload = function() {
+					script.onload = function () {
 						glsScriptLoaded = true;
 						createMapDialogs();
 						setupMapEventListeners();
 						callback();
 					};
-					script.onerror = function() {
+					script.onerror = function () {
 						alert('Failed to load GLS map. Please try again.');
 						// Re-enable any disabled buttons
 						$('.gls-change-pickup-location').prop('disabled', false).text('Change Pickup Location');
@@ -834,14 +843,14 @@
 
 			function setupMapEventListeners() {
 				// Initialize map elements
-				var mapElements = document.getElementsByClassName("inchoo-gls-map");
-				
+				var mapElements = document.getElementsByClassName('inchoo-gls-map');
+
 				if (mapElements.length > 0) {
 					for (var i = 0; i < mapElements.length; i++) {
 						// Remove any existing listeners to avoid duplicates
-						mapElements[i].removeEventListener("change", handleMapChange);
+						mapElements[i].removeEventListener('change', handleMapChange);
 						// Add new listener
-						mapElements[i].addEventListener("change", handleMapChange);
+						mapElements[i].addEventListener('change', handleMapChange);
 					}
 				}
 			}
@@ -850,28 +859,28 @@
 				var pickupInfo = e.detail;
 				var mapElement = e.target;
 				var orderId = mapElement.getAttribute('data-order-id');
-				
+
 				// Update the pickup location via AJAX
 				updatePickupLocation(orderId, pickupInfo);
 			}
 
 			function showAdminMapModal(mapClass, orderId) {
-				var mapElement = document.querySelector("." + mapClass);
+				var mapElement = document.querySelector('.' + mapClass);
 				if (mapElement) {
 					// Get country from the order billing/shipping address if available
 					var selectedCountry = 'hr'; // Default to Croatia
-					
+
 					// Try to get country from billing fields
-					var billingCountryElement = document.getElementById("_billing_country");
+					var billingCountryElement = document.getElementById('_billing_country');
 					if (billingCountryElement && billingCountryElement.value) {
 						selectedCountry = billingCountryElement.value.toLowerCase();
 					}
-					
-					mapElement.setAttribute("country", selectedCountry);
-					
+
+					mapElement.setAttribute('country', selectedCountry);
+
 					// Store order ID for later use in handleMapChange
-					mapElement.setAttribute("data-order-id", orderId);
-					
+					mapElement.setAttribute('data-order-id', orderId);
+
 					mapElement.showModal();
 				}
 			}
@@ -879,9 +888,9 @@
 			function updatePickupLocation(orderId, pickupInfo) {
 				$.ajax({
 					url: gls_croatia.adminAjaxUrl,
-					type: "POST",
+					type: 'POST',
 					data: {
-						action: "gls_update_pickup_location",
+						action: 'gls_update_pickup_location',
 						orderId: orderId,
 						pickupInfo: JSON.stringify(pickupInfo),
 						postNonce: gls_croatia.ajaxNonce
@@ -891,11 +900,11 @@
 							// Update the pickup display with new information
 							updatePickupDisplay(pickupInfo);
 						} else {
-							alert("Error updating pickup location: " + response.data.error);
+							alert('Error updating pickup location: ' + response.data.error);
 						}
 					},
 					error: function () {
-						alert("An error occurred while updating the pickup location.");
+						alert('An error occurred while updating the pickup location.');
 					}
 				});
 			}
@@ -908,7 +917,7 @@
 					html += '<strong>' + gls_croatia.name + ':</strong> ' + pickupInfo.name + '<br>';
 					html += '<strong>' + gls_croatia.address + ':</strong> ' + pickupInfo.contact.address + ', ' + pickupInfo.contact.city + ', ' + pickupInfo.contact.postalCode + '<br>';
 					html += '<strong>' + gls_croatia.country + ':</strong> ' + pickupInfo.contact.countryCode + '<br>';
-					
+
 					// Determine pickup type from the selected location
 					var pickupType = 'shop'; // Default to shop
 					if (pickupInfo.type && pickupInfo.type.toLowerCase().includes('locker')) {
@@ -917,15 +926,20 @@
 						// Alternative way to detect locker
 						pickupType = 'locker';
 					}
-					
+
 					// Update/create the change button with the correct pickup type
 					var $button = $display.find('.gls-change-pickup-location');
 					var orderId = $button.length ? $button.data('order-id') : '';
-					
+
 					if (orderId) {
-						html += '<br/><button type="button" class="button button-secondary gls-change-pickup-location" data-order-id="' + orderId + '" data-pickup-type="' + pickupType + '">Change Pickup Location</button>';
+						html +=
+							'<br/><button type="button" class="button button-secondary gls-change-pickup-location" data-order-id="' +
+							orderId +
+							'" data-pickup-type="' +
+							pickupType +
+							'">Change Pickup Location</button>';
 					}
-					
+
 					$display.html(html);
 				}
 			}
