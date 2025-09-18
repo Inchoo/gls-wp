@@ -301,7 +301,7 @@ class GLS_Shipping_Order
             // Prepare data for API request
             $prepare_data = new GLS_Shipping_API_Data($order_id);
             $data = $prepare_data->generate_post_fields($final_count, $final_print_position, $final_cod_reference, $final_services);
-            
+
             // Send to GLS API
             $api = new GLS_Shipping_API_Service();
             $result = $api->send_order($data);
@@ -471,7 +471,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_service_24h" name="gls_service_24h" 
-                           <?php checked($get_checked_status('gls_service_24h', 'service_24h')); ?>>
+                           <?php checked($get_checked_status('service_24h')); ?>>
                     <?php esc_html_e('24H Service', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -493,7 +493,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_contact_service" name="gls_contact_service"
-                           <?php checked($get_checked_status('gls_contact_service', 'contact_service')); ?>>
+                           <?php checked($get_checked_status('contact_service')); ?>>
                     <?php esc_html_e('Contact Service (CS1)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -502,7 +502,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_flexible_delivery_service" name="gls_flexible_delivery_service"
-                           <?php checked($get_checked_status('gls_flexible_delivery_service', 'flexible_delivery_service')); ?>>
+                           <?php checked($get_checked_status('flexible_delivery_service')); ?>>
                     <?php esc_html_e('Flexible Delivery (FDS)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -511,7 +511,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_flexible_delivery_sms_service" name="gls_flexible_delivery_sms_service"
-                           <?php checked($get_checked_status('gls_flexible_delivery_sms_service', 'flexible_delivery_sms_service')); ?>>
+                           <?php checked($get_checked_status('flexible_delivery_sms_service')); ?>>
                     <?php esc_html_e('Flexible Delivery SMS (FSS)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -520,7 +520,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_sms_service" name="gls_sms_service"
-                           <?php checked($get_checked_status('gls_sms_service', 'sms_service')); ?>>
+                           <?php checked($get_checked_status('sms_service')); ?>>
                     <?php esc_html_e('SMS Service (SM1)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -529,7 +529,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_sms_pre_advice_service" name="gls_sms_pre_advice_service"
-                           <?php checked($get_checked_status('gls_sms_pre_advice_service', 'sms_pre_advice_service')); ?>>
+                           <?php checked($get_checked_status('sms_pre_advice_service')); ?>>
                     <?php esc_html_e('SMS Pre-advice (SM2)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -538,7 +538,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_addressee_only_service" name="gls_addressee_only_service"
-                           <?php checked($get_checked_status('gls_addressee_only_service', 'addressee_only_service')); ?>>
+                           <?php checked($get_checked_status('addressee_only_service')); ?>>
                     <?php esc_html_e('Addressee Only (AOS)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -547,7 +547,7 @@ class GLS_Shipping_Order
             <div>
                 <label>
                     <input type="checkbox" id="gls_insurance_service" name="gls_insurance_service"
-                           <?php checked($get_checked_status('gls_insurance_service', 'insurance_service')); ?>>
+                           <?php checked($get_checked_status('insurance_service')); ?>>
                     <?php esc_html_e('Insurance (INS)', 'gls-shipping-for-woocommerce'); ?>
                 </label>
             </div>
@@ -555,7 +555,7 @@ class GLS_Shipping_Order
         </div>
         
         <!-- SMS Service Text -->
-        <div id="gls_sms_text_container" style="margin-top: 10px; display: <?php echo $get_checked_status('gls_sms_service', 'sms_service') ? 'block' : 'none'; ?>;">
+        <div id="gls_sms_text_container" style="margin-top: 10px; display: <?php echo $get_checked_status('sms_service') ? 'block' : 'none'; ?>;">
             <label><?php esc_html_e('SMS Text:', 'gls-shipping-for-woocommerce'); ?></label>
             <input type="text" id="gls_sms_service_text" name="gls_sms_service_text" 
                    value="<?php echo esc_attr($get_field_value('sms_service_text')); ?>" 
@@ -677,26 +677,25 @@ class GLS_Shipping_Order
             $order->update_meta_data('_gls_cod_reference', $cod_reference);
         }
 
-        // Save services if any are set
+        // Save services in API format (without gls_ prefix, with yes/no values)
         $services = array();
-        $service_fields = array(
-            'gls_service_24h',
-            'gls_contact_service',
-            'gls_flexible_delivery_service',
-            'gls_flexible_delivery_sms_service',
-            'gls_sms_service',
-            'gls_sms_pre_advice_service',
-            'gls_addressee_only_service',
-            'gls_insurance_service'
+        $service_field_mappings = array(
+            'gls_service_24h' => 'service_24h',
+            'gls_contact_service' => 'contact_service',
+            'gls_flexible_delivery_service' => 'flexible_delivery_service',
+            'gls_flexible_delivery_sms_service' => 'flexible_delivery_sms_service',
+            'gls_sms_service' => 'sms_service',
+            'gls_sms_pre_advice_service' => 'sms_pre_advice_service',
+            'gls_addressee_only_service' => 'addressee_only_service',
+            'gls_insurance_service' => 'insurance_service'
         );
 
-        foreach ($service_fields as $field) {
-            if (isset($_POST[$field])) {
-                $services[$field] = sanitize_text_field($_POST[$field]);
-            }
+        // Process checkbox services
+        foreach ($service_field_mappings as $form_field => $api_field) {
+            $services[$api_field] = isset($_POST[$form_field]) ? 'yes' : 'no';
         }
 
-        // Special handling for text fields
+        // Special handling for select and text fields
         if (isset($_POST['gls_express_delivery_service'])) {
             $services['express_delivery_service'] = sanitize_text_field($_POST['gls_express_delivery_service']);
         }
