@@ -87,40 +87,12 @@ class GLS_Shipping_Bulk
             $processed = 0;
             $failed_orders = array();
             foreach ($order_ids as $order_id) {
-                try {
-                    // Get saved order settings
-                    $order = wc_get_order($order_id);
-                    if (!$order) {
-                        throw new Exception("Order not found: $order_id");
-                    }
-                    
-                    // Retrieve saved order meta
-                    $saved_print_position = $order->get_meta('_gls_print_position', true);
-                    $saved_cod_reference = $order->get_meta('_gls_cod_reference', true);
-                    $saved_services = $order->get_meta('_gls_services', true);
-                    $saved_label_count = $order->get_meta('_gls_label_count', true);
-                    
-                    // Use saved values or defaults
-                    $print_position = !empty($saved_print_position) ? intval($saved_print_position) : null;
-                    $cod_reference = !empty($saved_cod_reference) ? $saved_cod_reference : null;
-                    $services = !empty($saved_services) ? $saved_services : null;
-                    
-                    // Prepare data for API request - use saved count or default to 1
-                    $count = !empty($saved_label_count) ? intval($saved_label_count) : 1;
-                    $prepare_data = new GLS_Shipping_API_Data($order_id);
-                    $data = $prepare_data->generate_post_fields($count, $print_position, $cod_reference, $services);
-
-                    // Send order to GLS API
-                    $api = new GLS_Shipping_API_Service();
-                    $body = $api->send_order($data);
-
-                    // Save label and tracking information
-                    $this->order_handler->save_label_and_tracking_info($body['body'], $order_id);
-
+                // Use centralized label generation method
+                $result = $this->order_handler->generate_single_order_label($order_id);
+                
+                if ($result['success']) {
                     $processed++;
-                } catch (Exception $e) {
-                    // Log any errors and add to failed orders
-                    error_log("Failed to generate GLS label for order $order_id: " . $e->getMessage());
+                } else {
                     $failed_orders[] = $order_id;
                 }
             }
@@ -231,7 +203,8 @@ class GLS_Shipping_Bulk
     
         $label_print = implode(array_map('chr', $body['Labels']));
         $upload_dir = wp_upload_dir();
-        $file_name = 'shipping_label_bulk_' . time() . '.pdf';
+        $timestamp = current_time('YmdHis');
+        $file_name = 'shipping_label_bulk_' . $timestamp . '.pdf';
         $file_url = $upload_dir['url'] . '/' . $file_name;
         $file_path = $upload_dir['path'] . '/' . $file_name;
         

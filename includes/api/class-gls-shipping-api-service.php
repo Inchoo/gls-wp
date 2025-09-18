@@ -178,14 +178,25 @@ class GLS_Shipping_API_Service
 
 		$body = json_decode(wp_remote_retrieve_body($response), true);
 
-		// Check for errors in the tracking response
-		if (!empty($body['GetParcelStatusErrors'])) {
-			$error_message = 'Tracking error: ' . implode(', ', $body['GetParcelStatusErrors']);
-			throw new Exception($error_message);
-		}
-
+		// Always log the response if logging is enabled (both success and error cases)
 		if ($this->get_option("logging") === 'yes') {
 			$this->log_response($body, $response, $post_fields);
+		}
+
+		// Check for errors in the tracking response
+		if (!empty($body['GetParcelStatusErrors'])) {
+			$errors = array();
+			foreach ($body['GetParcelStatusErrors'] as $error) {
+				if (is_array($error) || is_object($error)) {
+					$errors[] = json_encode($error);
+				} else {
+					$errors[] = (string)$error;
+				}
+			}
+			$error_message = 'Tracking error: ' . implode(', ', $errors);
+			// Also log the error with more context
+			$this->log_error($error_message . ' (Parcel Number: ' . $parcel_number . ')', $post_fields);
+			throw new Exception($error_message);
 		}
 
 		return $body;

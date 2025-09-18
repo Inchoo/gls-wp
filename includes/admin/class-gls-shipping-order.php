@@ -255,6 +255,68 @@ class GLS_Shipping_Order
 <?php
     }
 
+    /**
+     * Centralized method to generate label for a single order
+     * Used by both single order generation and bulk operations
+     * 
+     * @param int $order_id Order ID
+     * @param int|null $count Number of packages (if null, uses saved or default)
+     * @param int|null $print_position Print position (if null, uses saved or default)
+     * @param string|null $cod_reference COD reference (if null, uses saved or default)
+     * @param array|null $services Services array (if null, uses saved or default)
+     * @return array Result with success status and data/error
+     */
+    public function generate_single_order_label($order_id, $count = null, $print_position = null, $cod_reference = null, $services = null)
+    {
+        try {
+            $order = wc_get_order($order_id);
+            if (!$order) {
+                throw new Exception("Order not found: $order_id");
+            }
+            
+            // Get final count - use provided value, saved value, or default to 1
+            if ($count !== null) {
+                $final_count = $count;
+            } else {
+                $saved_count = $order->get_meta('_gls_label_count', true);
+                $final_count = !empty($saved_count) ? intval($saved_count) : 1;
+            }
+            
+            // For other settings, use provided values or saved values (no complex fallback needed)
+            $final_print_position = $print_position ? $print_position : intval($order->get_meta('_gls_print_position', true));
+            if (!$final_print_position) {
+                $final_print_position = null;
+            }
+            
+            $final_cod_reference = $cod_reference ? $cod_reference : $order->get_meta('_gls_cod_reference', true);
+            if (empty($final_cod_reference)) {
+                $final_cod_reference = null;
+            }
+            
+            $final_services = $services ? $services : $order->get_meta('_gls_services', true);
+            if (empty($final_services)) {
+                $final_services = null;
+            }
+            
+            // Prepare data for API request
+            $prepare_data = new GLS_Shipping_API_Data($order_id);
+            $data = $prepare_data->generate_post_fields($final_count, $final_print_position, $final_cod_reference, $final_services);
+            
+            // Send to GLS API
+            $api = new GLS_Shipping_API_Service();
+            $result = $api->send_order($data);
+            
+            // Save label and tracking information
+            $this->save_label_and_tracking_info($result['body'], $order_id);
+            
+            return array('success' => true, 'data' => $result);
+            
+        } catch (Exception $e) {
+            error_log("Failed to generate GLS label for order $order_id: " . $e->getMessage());
+            return array('success' => false, 'error' => $e->getMessage());
+        }
+    }
+    
     public function generate_label_and_tracking_number()
     {
         if (!wp_verify_nonce(sanitize_text_field($_POST['postNonce']), 'import-nonce')) {
@@ -262,55 +324,18 @@ class GLS_Shipping_Order
         }
 
         $order_id = sanitize_text_field($_POST['orderId']);
-
-        $count = intval($_POST['count']) ?: 1;
+        $count = isset($_POST['count']) ? intval($_POST['count']) : null;
         $print_position = isset($_POST['printPosition']) ? intval($_POST['printPosition']) : null;
         $cod_reference = isset($_POST['codReference']) ? sanitize_text_field($_POST['codReference']) : null;
         $services = isset($_POST['services']) ? json_decode(stripslashes($_POST['services']), true) : null;
         
-        // Get order instance for fallback values
-        $order = wc_get_order($order_id);
-        if (!$order) {
-            wp_send_json_error(array('success' => false, 'error' => 'Order not found'));
-            return;
-        }
+        // Use centralized method
+        $result = $this->generate_single_order_label($order_id, $count, $print_position, $cod_reference, $services);
         
-        // If no count provided or count is 1 (default), check for saved count
-        if ($count === 1 && !isset($_POST['count'])) {
-            $saved_count = $order->get_meta('_gls_label_count', true);
-            if (!empty($saved_count)) {
-                $count = intval($saved_count);
-            }
-        }
-        
-        // If no print position provided via POST, get it from saved order meta
-        if ($print_position === null) {
-            $saved_print_position = $order->get_meta('_gls_print_position', true);
-            if (!empty($saved_print_position)) {
-                $print_position = intval($saved_print_position);
-            }
-        }
-        
-        // If no COD reference provided via POST, get it from saved order meta
-        if (empty($cod_reference)) {
-            $saved_cod_reference = $order->get_meta('_gls_cod_reference', true);
-            $cod_reference = !empty($saved_cod_reference) ? $saved_cod_reference : null;
-        }
-        
-        try {
-            // Generate label with provided parameters
-            $prepare_data = new GLS_Shipping_API_Data($order_id);
-            $data = $prepare_data->generate_post_fields($count, $print_position, $cod_reference, $services);
-    
-            $api = new GLS_Shipping_API_Service();
-            $result = $api->send_order($data);
-            $this->save_label_and_tracking_info($result['body'], $order_id);
-    
+        if ($result['success']) {
             wp_send_json_success(array('success' => true));
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            wp_send_json_error(array('success' => false, 'error' => $e->getMessage()));
-            return;
+        } else {
+            wp_send_json_error(array('success' => false, 'error' => $result['error']));
         }
     }
 
@@ -349,6 +374,7 @@ class GLS_Shipping_Order
     }
     
 
+    
     public function save_tracking_info($printLabelsInfoList, $order_id, $order)
     {
         $tracking_codes = array();
