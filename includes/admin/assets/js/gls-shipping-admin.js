@@ -337,7 +337,7 @@
 			const orderId = $(this).closest('tr').find('.check-column input').val();
 			const $button = $(this);
 			$button.addClass('disabled');
-			generateGLSLabel(orderId, $button, 1, null, null, null); // Use saved order settings
+			generateGLSLabel(orderId, $button, null, null, null, null); // Use saved order settings for all parameters
 		});
 
 		function collectServiceOptions() {
@@ -361,9 +361,13 @@
 			const data = {
 				action: 'gls_generate_label',
 				orderId: orderId,
-				postNonce: gls_croatia.ajaxNonce,
-				count: count
+				postNonce: gls_croatia.ajaxNonce
 			};
+
+			// Add count if provided
+			if (count !== null && count !== undefined) {
+				data.count = count;
+			}
 
 			// Add print position if provided
 			if (printPosition) {
