@@ -92,7 +92,6 @@ class GLS_Shipping_Sender_Address_Helper
         
         // Always add store address as option (for pickup interface)
         $store_address = self::get_store_fallback_address();
-        $store_address['name'] = __('WooCommerce Store Address', 'gls-shipping-for-woocommerce');
         $addresses[] = $store_address;
         
         return $addresses;

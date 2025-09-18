@@ -155,29 +155,43 @@ class GLS_Shipping_Bulk
             if ($pdf_url) {
                 // Save tracking numbers to order meta
                 if (!empty($body['PrintLabelsInfoList'])) {
+                    // Group tracking codes by order ID to handle multiple parcels per order
+                    $orders_data = array();
+                    
                     foreach ($body['PrintLabelsInfoList'] as $labelInfo) {
                         if (isset($labelInfo['ClientReference'])) {
                             $order_id = str_replace('Order:', '', $labelInfo['ClientReference']);
-                            $order = wc_get_order($order_id);
-                            if ($order) {
-                                $tracking_codes = array();
-                                $parcel_ids = array();
-
-                                if (isset($labelInfo['ParcelNumber'])) {
-                                    $tracking_codes[] = $labelInfo['ParcelNumber'];
-                                }
-                                if (isset($labelInfo['ParcelId'])) {
-                                    $parcel_ids[] = $labelInfo['ParcelId'];
-                                }
-
-                                if (!empty($tracking_codes)) {
-                                    $order->update_meta_data('_gls_tracking_codes', $tracking_codes);
-                                }
-                                if (!empty($parcel_ids)) {
-                                    $order->update_meta_data('_gls_parcel_ids', $parcel_ids);
-                                }
-                                $order->save();
+                            
+                            if (!isset($orders_data[$order_id])) {
+                                $orders_data[$order_id] = array(
+                                    'tracking_codes' => array(),
+                                    'parcel_ids' => array()
+                                );
                             }
+                            
+                            if (isset($labelInfo['ParcelNumber'])) {
+                                $orders_data[$order_id]['tracking_codes'][] = $labelInfo['ParcelNumber'];
+                            }
+                            if (isset($labelInfo['ParcelId'])) {
+                                $orders_data[$order_id]['parcel_ids'][] = $labelInfo['ParcelId'];
+                            }
+                        }
+                    }
+                    
+                    // Now save all tracking codes for each order
+                    foreach ($orders_data as $order_id => $data) {
+                        $order = wc_get_order($order_id);
+                        if ($order) {
+                            if (!empty($data['tracking_codes'])) {
+                                $order->update_meta_data('_gls_tracking_codes', $data['tracking_codes']);
+                            }
+                            if (!empty($data['parcel_ids'])) {
+                                $order->update_meta_data('_gls_parcel_ids', $data['parcel_ids']);
+                            }
+                            
+                            // Save bulk PDF URL to individual orders so tracking button appears
+                            $order->update_meta_data('_gls_print_label', $pdf_url);
+                            $order->save();
                         }
                     }
                 }

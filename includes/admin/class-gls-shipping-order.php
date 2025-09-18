@@ -124,16 +124,16 @@ class GLS_Shipping_Order
 
         $gls_print_label = $order->get_meta('_gls_print_label', true);
         
-        // Get tracking number for status button
+        // Get tracking numbers for status buttons
         $tracking_codes = $order->get_meta('_gls_tracking_codes', true);
-        $gls_tracking_number = '';
+        $gls_tracking_numbers = array();
         if (!empty($tracking_codes) && is_array($tracking_codes)) {
-            $gls_tracking_number = $tracking_codes[0]; // Use first tracking code
+            $gls_tracking_numbers = $tracking_codes;
         } else {
             // Legacy support - check for single tracking code
             $legacy_tracking_code = $order->get_meta('_gls_tracking_code', true);
             if (!empty($legacy_tracking_code)) {
-                $gls_tracking_number = $legacy_tracking_code;
+                $gls_tracking_numbers = array($legacy_tracking_code);
             }
         }
 
@@ -187,10 +187,18 @@ class GLS_Shipping_Order
                         <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
                             <?php esc_html_e("Regenerate Shipping Label", "gls-shipping-for-woocommerce"); ?>
                         </button>
-                        <?php if (!empty($gls_tracking_number)) { ?>
-                        <button type="button" class="button gls-get-status" order-id="<?php echo esc_attr($order->get_id()); ?>" parcel-number="<?php echo esc_attr($gls_tracking_number); ?>" style="margin-top: 10px;">
-                            <?php esc_html_e("Get Parcel Status", "gls-shipping-for-woocommerce"); ?>
-                        </button>
+                        <?php if (!empty($gls_tracking_numbers)) { ?>
+                            <?php foreach ($gls_tracking_numbers as $index => $tracking_number) { ?>
+                            <button type="button" class="button gls-get-status" order-id="<?php echo esc_attr($order->get_id()); ?>" parcel-number="<?php echo esc_attr($tracking_number); ?>" style="margin-top: 10px;">
+                                <?php 
+                                if (count($gls_tracking_numbers) > 1) {
+                                    echo sprintf(esc_html__("Get Parcel Status #%d (%s)", "gls-shipping-for-woocommerce"), $index + 1, esc_html($tracking_number));
+                                } else {
+                                    echo sprintf(esc_html__("Get Parcel Status (%s)", "gls-shipping-for-woocommerce"), esc_html($tracking_number));
+                                }
+                                ?>
+                            </button>
+                            <?php } ?>
                         <?php } ?>
                     </div>
                 <?php } else { ?>
@@ -260,13 +268,33 @@ class GLS_Shipping_Order
         $cod_reference = isset($_POST['codReference']) ? sanitize_text_field($_POST['codReference']) : null;
         $services = isset($_POST['services']) ? json_decode(stripslashes($_POST['services']), true) : null;
         
+        // Get order instance for fallback values
+        $order = wc_get_order($order_id);
+        if (!$order) {
+            wp_send_json_error(array('success' => false, 'error' => 'Order not found'));
+            return;
+        }
+        
+        // If no count provided or count is 1 (default), check for saved count
+        if ($count === 1 && !isset($_POST['count'])) {
+            $saved_count = $order->get_meta('_gls_label_count', true);
+            if (!empty($saved_count)) {
+                $count = intval($saved_count);
+            }
+        }
+        
+        // If no print position provided via POST, get it from saved order meta
+        if ($print_position === null) {
+            $saved_print_position = $order->get_meta('_gls_print_position', true);
+            if (!empty($saved_print_position)) {
+                $print_position = intval($saved_print_position);
+            }
+        }
+        
         // If no COD reference provided via POST, get it from saved order meta
         if (empty($cod_reference)) {
-            $order = wc_get_order($order_id);
-            if ($order) {
-                $saved_cod_reference = $order->get_meta('_gls_cod_reference', true);
-                $cod_reference = !empty($saved_cod_reference) ? $saved_cod_reference : null;
-            }
+            $saved_cod_reference = $order->get_meta('_gls_cod_reference', true);
+            $cod_reference = !empty($saved_cod_reference) ? $saved_cod_reference : null;
         }
         
         try {

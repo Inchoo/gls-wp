@@ -167,6 +167,14 @@ class GLS_Shipping_API_Data
     {
         $express_service_is_valid = false;
         $service_list = [];
+        
+        // If no custom services provided, try to get saved order services first
+        if ($custom_services === null) {
+            $saved_order_services = $order->get_meta('_gls_services', true);
+            if (!empty($saved_order_services) && is_array($saved_order_services)) {
+                $custom_services = $saved_order_services;
+            }
+        }
 
         // Parcel Shop Delivery Service
         if ($is_parcel_delivery_service) {

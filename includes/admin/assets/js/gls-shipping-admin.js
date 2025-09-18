@@ -337,15 +337,12 @@
 			const orderId = $(this).closest('tr').find('.check-column input').val();
 			const $button = $(this);
 			$button.addClass('disabled');
-			generateGLSLabel(orderId, $button, 1, null, null, null); // Use defaults from config
+			generateGLSLabel(orderId, $button, 1, null, null, null); // Use saved order settings
 		});
 
 		function collectServiceOptions() {
-			// Only collect if service options are visible
-			if (!$('#gls-services-options').is(':visible') && !$('#gls-services-options-new').is(':visible')) {
-				return null;
-			}
-
+			// Always collect current service options from the form
+			// This ensures saved services are properly sent even when panel is closed
 			return {
 				service_24h: $('#gls_service_24h').is(':checked') ? 'yes' : 'no',
 				express_delivery_service: $('#gls_express_delivery_service').val() || '',
