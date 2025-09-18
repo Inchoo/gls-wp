@@ -97,27 +97,6 @@ class GLS_Shipping_Sender_Address_Helper
         return $addresses;
     }
 
-    /**
-     * Get WooCommerce store address formatted for API
-     * 
-     * @return array Store address formatted for GLS API pickup
-     */
-    public static function get_store_address_for_api()
-    {
-        $store_address = get_option('woocommerce_store_address');
-        $store_address_2 = get_option('woocommerce_store_address_2');
-        
-        return array(
-            'Name' => get_bloginfo('name'),
-            'Street' => trim($store_address . ' ' . $store_address_2),
-            'City' => get_option('woocommerce_store_city'),
-            'ZipCode' => get_option('woocommerce_store_postcode'),
-            'CountryIsoCode' => self::get_store_country(),
-            'ContactName' => get_bloginfo('name'),
-            'ContactPhone' => '',
-            'ContactEmail' => get_option('admin_email')
-        );
-    }
 
     /**
      * Save sender addresses to database

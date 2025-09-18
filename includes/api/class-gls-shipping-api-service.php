@@ -28,49 +28,7 @@ class GLS_Shipping_API_Service
 
 	public function get_option($key)
 	{
-		// Check if we're using multiple accounts mode
-		$account_mode = isset($this->service_settings['account_mode']) ? $this->service_settings['account_mode'] : 'single';
-		
-		if ($account_mode === 'multiple') {
-			$active_account = $this->get_active_account();
-			if ($active_account && isset($active_account[$key])) {
-				return $active_account[$key];
-			}
-		}
-		
-		return isset($this->service_settings[$key]) ? $this->service_settings[$key] : null;
-	}
-	
-	/**
-	 * Get the active account from multiple accounts
-	 */
-	private function get_active_account()
-	{
-		$accounts = isset($this->service_settings['gls_accounts_grid']) ? $this->service_settings['gls_accounts_grid'] : array();
-		
-		if (empty($accounts)) {
-			return false;
-		}
-		
-		// Find the active account
-		foreach ($accounts as $account) {
-			if (!empty($account['active']) && $account['active']) {
-				// Verify the account has required credentials
-				if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
-					return $account;
-				}
-			}
-		}
-		
-		// Fallback: return first account with valid credentials
-		foreach ($accounts as $account) {
-			if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
-				return $account;
-			}
-		}
-		
-		// No valid accounts found
-		return false;
+		return GLS_Shipping_Account_Helper::get_account_setting($key);
 	}
 
 

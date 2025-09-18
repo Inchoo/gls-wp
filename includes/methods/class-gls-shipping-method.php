@@ -652,66 +652,7 @@ max_weight|cost',
 			 */
 			public function validate_gls_accounts_grid_field($key, $value)
 			{
-				if (!is_array($value)) {
-					return array();
-				}
-
-				$validated_accounts = array();
-				$has_active = false;
-
-				foreach ($value as $index => $account) {
-					if (is_array($account)) {
-						// Validate required fields
-						$required_fields = array('client_id', 'username', 'password');
-						$is_valid = true;
-
-						foreach ($required_fields as $field) {
-							if (empty($account[$field])) {
-								$is_valid = false;
-								break;
-							}
-						}
-
-						if ($is_valid) {
-							// Use client_id + username combination as unique key
-							$unique_key = sanitize_text_field($account['client_id']) . '_' . sanitize_text_field($account['username']);
-							
-							// Skip if this combination already exists
-							if (isset($validated_accounts[$unique_key])) {
-								continue;
-							}
-							
-							$validated_account = array(
-								'name' => sanitize_text_field($account['client_id']),
-								'client_id' => sanitize_text_field($account['client_id']),
-								'username' => sanitize_text_field($account['username']),
-								'password' => sanitize_text_field($account['password']),
-								'country' => sanitize_text_field($account['country'] ?? 'HR'),
-								'mode' => sanitize_text_field($account['mode'] ?? 'production'),
-								'active' => !empty($account['active']) && $account['active'] === '1'
-							);
-
-							// Ensure only one active account
-							if ($validated_account['active']) {
-								if ($has_active) {
-									$validated_account['active'] = false;
-								} else {
-									$has_active = true;
-								}
-							}
-
-							$validated_accounts[$unique_key] = $validated_account;
-						}
-					}
-				}
-
-				// If no active account is selected but we have valid accounts, make the first one active
-				if (!$has_active && !empty($validated_accounts)) {
-					$first_key = array_key_first($validated_accounts);
-					$validated_accounts[$first_key]['active'] = true;
-				}
-
-				return $validated_accounts;
+				return GLS_Shipping_Account_Helper::validate_accounts_grid($value);
 			}
 
 			/**
@@ -769,76 +710,6 @@ max_weight|cost',
 
 				return $validated_addresses;
 			}
-
-			/**
-			 * Get the active GLS account
-			 */
-			public function get_active_gls_account()
-			{
-				$account_mode = $this->get_option('account_mode', 'single');
-				
-				if ($account_mode === 'single') {
-					// Return single account data
-					return array(
-						'client_id' => $this->get_option('client_id', ''),
-						'username' => $this->get_option('username', ''),
-						'password' => $this->get_option('password', ''),
-						'country' => $this->get_option('country', 'HR'),
-						'mode' => $this->get_option('mode', 'production')
-					);
-				}
-				
-				// Multiple accounts mode - find the active account
-				$accounts = $this->get_option('gls_accounts_grid', array());
-				
-				if (empty($accounts)) {
-					return false;
-				}
-				
-				// Find the active account
-				foreach ($accounts as $account) {
-					if (!empty($account['active']) && $account['active']) {
-						// Verify the account has required credentials
-						if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
-							return $account;
-						}
-					}
-				}
-				
-				// Fallback: return first account with valid credentials
-				foreach ($accounts as $account) {
-					if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
-						return $account;
-					}
-				}
-				
-				// No valid accounts found
-				return false;
-			}
-			
-			/**
-			 * Get all available GLS accounts
-			 */
-			public function get_all_gls_accounts()
-			{
-				$account_mode = $this->get_option('account_mode', 'single');
-				
-				if ($account_mode === 'single') {
-					return array(
-						array(
-							'name' => __('Default Account', 'gls-shipping-for-woocommerce'),
-							'client_id' => $this->get_option('client_id', ''),
-							'username' => $this->get_option('username', ''),
-							'password' => $this->get_option('password', ''),
-							'country' => $this->get_option('country', 'HR'),
-							'mode' => $this->get_option('mode', 'production')
-						)
-					);
-				}
-				
-				return $this->get_option('gls_accounts_grid', array());
-			}
-
 
 
 			/**

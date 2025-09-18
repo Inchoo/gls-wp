@@ -110,49 +110,7 @@ class GLS_Shipping_API_Data
      */
     public function get_option($key)
     {
-        // Check if we're using multiple accounts mode
-        $account_mode = isset($this->shipping_method_settings['account_mode']) ? $this->shipping_method_settings['account_mode'] : 'single';
-        
-        if ($account_mode === 'multiple') {
-            $active_account = $this->get_active_account();
-            if ($active_account && isset($active_account[$key])) {
-                return $active_account[$key];
-            }
-        }
-        
-        return isset($this->shipping_method_settings[$key]) ? $this->shipping_method_settings[$key] : null;
-    }
-    
-    /**
-     * Get the active account from multiple accounts
-     */
-    private function get_active_account()
-    {
-        $accounts = isset($this->shipping_method_settings['gls_accounts_grid']) ? $this->shipping_method_settings['gls_accounts_grid'] : array();
-        
-        if (empty($accounts)) {
-            return false;
-        }
-        
-        // Find the active account
-        foreach ($accounts as $account) {
-            if (!empty($account['active']) && $account['active']) {
-                // Verify the account has required credentials
-                if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
-                    return $account;
-                }
-            }
-        }
-        
-        // Fallback: return first account with valid credentials
-        foreach ($accounts as $account) {
-            if (!empty($account['client_id']) && !empty($account['username']) && !empty($account['password'])) {
-                return $account;
-            }
-        }
-        
-        // No valid accounts found
-        return false;
+        return GLS_Shipping_Account_Helper::get_account_setting($key);
     }
 
     /**
@@ -433,40 +391,18 @@ class GLS_Shipping_API_Data
      */
     public function get_pickup_address($order)
     {
-        // Get default sender address from dedicated helper
+        // Get default sender address (includes automatic store fallback)
         $sender_address = GLS_Shipping_Sender_Address_Helper::get_default_sender_address();
         
-        // If no sender address configured, use store address directly
-        if (empty($sender_address['name']) && empty($sender_address['street'])) {
-            $pickup_address = GLS_Shipping_Sender_Address_Helper::get_store_address_for_api();
-            // Add phone from settings if available
-            if (!empty($this->get_option('phone_number'))) {
-                $pickup_address['ContactPhone'] = $this->get_option('phone_number');
-            }
-        } else {
-            // Format for API using helper
-            $pickup_address = GLS_Shipping_Sender_Address_Helper::format_for_api_pickup(
-                $sender_address, 
-                $this->get_option('phone_number')
-            );
-        }
+        // Format for API using helper (includes field-level fallbacks)
+        $pickup_address = GLS_Shipping_Sender_Address_Helper::format_for_api_pickup(
+            $sender_address, 
+            $this->get_option('phone_number')
+        );
 
         return apply_filters('gls_shipping_for_woocommerce_api_get_pickup_address', $pickup_address, $order);
     }
     
-    /**
-     * Get store country code
-     */
-    private function get_store_country()
-    {
-        $store_raw_country = get_option('woocommerce_default_country');
-        // Split the country and state
-        $split_country = explode(":", $store_raw_country);
-        return isset($split_country[0]) ? $split_country[0] : '';
-    }
-
-
-
     /**
      * Gets the delivery address for a specific order.
      *
