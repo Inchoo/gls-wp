@@ -46,6 +46,25 @@
 			}
 		}
 
+		function getAccountCountryOptions(selectedCountry = 'HR') {
+			const countries = {
+				CZ: 'Czech Republic',
+				HR: 'Croatia',
+				HU: 'Hungary',
+				RO: 'Romania',
+				SI: 'Slovenia',
+				SK: 'Slovakia',
+				RS: 'Serbia'
+			};
+
+			let options = '';
+			for (const [code, name] of Object.entries(countries)) {
+				const selected = code === selectedCountry ? 'selected' : '';
+				options += `<option value="${code}" ${selected}>${name}</option>`;
+			}
+			return options;
+		}
+
 		function getCountryOptions(selectedCountry = 'HR') {
 			const countries = {
 				AT: 'Austria',
@@ -144,7 +163,7 @@
 		}
 
 		function createAccountRow(index) {
-			const countryOptions = getCountryOptions('HR');
+			const countryOptions = getAccountCountryOptions('HR');
 
 			return `
 				<tr class="gls-account-row" data-index="${index}">
@@ -217,7 +236,7 @@
 							</tr>
 							<tr>
 								<th><label>Country</label></th>
-								<td><select id="modal-country" style="width: 100%;">${getCountryOptions(account.country)}</select></td>
+								<td><select id="modal-country" style="width: 100%;">${getAccountCountryOptions(account.country)}</select></td>
 							</tr>
 							<tr>
 								<th><label>Mode</label></th>

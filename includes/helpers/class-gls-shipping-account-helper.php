@@ -121,6 +121,16 @@ class GLS_Shipping_Account_Helper
     }
     
     /**
+     * Get allowed account countries
+     * 
+     * @return array Allowed country codes
+     */
+    public static function get_allowed_account_countries()
+    {
+        return array('CZ', 'HR', 'HU', 'RO', 'SI', 'SK', 'RS');
+    }
+
+    /**
      * Validate accounts grid data
      * 
      * @param array $value Raw accounts data from form
@@ -132,6 +142,7 @@ class GLS_Shipping_Account_Helper
             return array();
         }
 
+        $allowed_countries = self::get_allowed_account_countries();
         $validated_accounts = array();
         $has_active = false;
 
@@ -157,12 +168,18 @@ class GLS_Shipping_Account_Helper
                         continue;
                     }
                     
+                    // Validate country
+                    $country = sanitize_text_field($account['country'] ?? 'HR');
+                    if (!in_array($country, $allowed_countries)) {
+                        $country = 'HR'; // Default to HR if invalid country
+                    }
+                    
                     $validated_account = array(
                         'name' => sanitize_text_field($account['client_id']),
                         'client_id' => sanitize_text_field($account['client_id']),
                         'username' => sanitize_text_field($account['username']),
                         'password' => sanitize_text_field($account['password']),
-                        'country' => sanitize_text_field($account['country'] ?? 'HR'),
+                        'country' => $country,
                         'mode' => sanitize_text_field($account['mode'] ?? 'production'),
                         'active' => !empty($account['active']) && $account['active'] === '1'
                     );
