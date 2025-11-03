@@ -349,6 +349,9 @@ class GLS_Shipping_Order
         if (!empty($body['PrintLabelsInfoList'])) {
             $this->save_tracking_info($body['PrintLabelsInfoList'], $order_id, $order);
         }
+
+        // Fire hook after successful label generation
+        do_action('gls_label_generated', $order_id, $order, $body);
     }
 
     public function save_print_labels($labels, $order_id, $order)
