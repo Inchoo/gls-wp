@@ -151,6 +151,7 @@ class GLS_Shipping_Bulk
                     }
                     
                     // Now save all tracking codes for each order
+                    $successful_orders = array();
                     foreach ($orders_data as $order_id => $data) {
                         $order = wc_get_order($order_id);
                         if ($order) {
@@ -164,8 +165,13 @@ class GLS_Shipping_Bulk
                             // Save bulk PDF URL to individual orders so tracking button appears
                             $order->update_meta_data('_gls_print_label', $pdf_url);
                             $order->save();
+                            
+                            $successful_orders[] = $order_id;
                         }
                     }
+                    
+                    // Fire hook after successful bulk label generation
+                    do_action('gls_bulk_labels_generated', $order_ids, $successful_orders, $failed_orders);
                 }
 
                 // Add query args to URL for displaying notices and providing PDF link
