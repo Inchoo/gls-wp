@@ -121,6 +121,20 @@ class GLS_Shipping_Bulk
 
             $body = $result['body'];
             $failed_orders = $result['failed_orders'];
+            
+            // Check if all orders failed - don't attempt PDF creation if no successful labels
+            if (count($failed_orders) >= count($order_ids)) {
+                $redirect = add_query_arg(
+                    array(
+                        'bulk_action' => 'print_gls_labels',
+                        'gls_labels_printed' => 0,
+                        'gls_labels_failed' => count($failed_orders),
+                        'failed_orders' => implode(',', array_column($failed_orders, 'order_id')),
+                    ),
+                    $redirect
+                );
+                return $redirect;
+            }
     
             $pdf_url = $this->bulk_create_print_labels($body);
     
@@ -206,6 +220,12 @@ class GLS_Shipping_Bulk
     
         WP_Filesystem();
         global $wp_filesystem;
+    
+        // Check if Labels exist and is an array
+        if (empty($body['Labels']) || !is_array($body['Labels'])) {
+            error_log('GLS Bulk Print: No labels found in API response. This may happen if all orders failed validation.');
+            return false;
+        }
     
         $label_print = implode(array_map('chr', $body['Labels']));
         $upload_dir = wp_upload_dir();
