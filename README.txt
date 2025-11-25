@@ -3,7 +3,7 @@ Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 4.4
 Tested up to: 6.7
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ To install and configure this plugin:
 == Screenshots ==
 
 == Changelog ==
+
+= 1.3.2 =
+* Fix: Fixed PHP error issue.
 
 = 1.3.1 =
 * Fix: Fixed Free Shipping with Tax Inclusive prices.
