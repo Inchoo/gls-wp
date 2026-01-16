@@ -3,7 +3,7 @@
 /**
  * Plugin Name: GLS Shipping for WooCommerce
  * Description: Offical GLS Shipping for WooCommerce plugin
- * Version: 1.3.3
+ * Version: 1.4.0
  * Author: Inchoo
  * License: GPLv2
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -24,7 +24,7 @@ final class GLS_Shipping_For_Woo
 {
     private static $instance;
 
-    private $version = '1.3.3';
+    private $version = '1.4.0';
 
     private function __construct()
     {
@@ -52,6 +52,7 @@ final class GLS_Shipping_For_Woo
             require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-bulk.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-pickup-history.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-pickup.php');
+            require_once(GLS_SHIPPING_ABSPATH . 'includes/admin/class-gls-shipping-label-migration.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/api/class-gls-shipping-api-data.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/api/class-gls-shipping-api-service.php');
             require_once(GLS_SHIPPING_ABSPATH . 'includes/api/class-gls-shipping-pickup-api-service.php');
@@ -75,6 +76,11 @@ final class GLS_Shipping_For_Woo
         $this->define('GLS_SHIPPING_URL', plugin_dir_url(__FILE__));
         $this->define('GLS_SHIPPING_ABSPATH', dirname(__FILE__) . '/');
         $this->define('GLS_SHIPPING_VERSION', $this->get_version());
+
+        // Labels directory - secure folder for PDF labels
+        $wp_upload_dir = wp_upload_dir();
+        $this->define('GLS_LABELS_DIR', $wp_upload_dir['basedir'] . '/gls-shipping-labels');
+        $this->define('GLS_LABELS_URL', $wp_upload_dir['baseurl'] . '/gls-shipping-labels');
 
         $this->define('GLS_SHIPPING_METHOD_ID', 'gls_shipping_method');
         $this->define('GLS_SHIPPING_METHOD_ZONES_ID', 'gls_shipping_method_zones');
@@ -122,6 +128,101 @@ final class GLS_Shipping_For_Woo
     {
         add_filter('woocommerce_shipping_methods', array($this, 'add_gls_shipping_methods'));
         add_action('init', array($this, 'load_textdomain'));
+        
+        // Setup labels directory on init
+        add_action('init', array($this, 'setup_labels_directory'));
+        
+        // Add download endpoint for secure PDF serving
+        add_action('admin_init', array($this, 'handle_label_download'));
+    }
+
+    /**
+     * Setup secure labels directory with .htaccess protection
+     * 
+     * @since 1.4.0
+     */
+    public function setup_labels_directory()
+    {
+        if (!file_exists(GLS_LABELS_DIR)) {
+            wp_mkdir_p(GLS_LABELS_DIR);
+        }
+
+        // Create .htaccess to deny all direct access
+        $htaccess_file = GLS_LABELS_DIR . '/.htaccess';
+        if (!file_exists($htaccess_file)) {
+            $htaccess_content = "Order deny,allow\nDeny from all";
+            @file_put_contents($htaccess_file, $htaccess_content);
+        }
+
+        // Create index.php to prevent directory listing
+        $index_file = GLS_LABELS_DIR . '/index.php';
+        if (!file_exists($index_file)) {
+            @file_put_contents($index_file, '<?php // Silence is golden');
+        }
+    }
+
+    /**
+     * Handle secure PDF label download
+     * Serves PDF files through PHP with authentication
+     * 
+     * @since 1.4.0
+     */
+    public function handle_label_download()
+    {
+        if (!isset($_GET['gls_download_label']) || !isset($_GET['nonce'])) {
+            return;
+        }
+
+        // Verify nonce
+        if (!wp_verify_nonce(sanitize_text_field($_GET['nonce']), 'gls_download_label')) {
+            wp_die(__('Invalid security token.', 'gls-shipping-for-woocommerce'));
+        }
+
+        // Check user permissions
+        if (!current_user_can('edit_shop_orders')) {
+            wp_die(__('You do not have permission to download shipping labels.', 'gls-shipping-for-woocommerce'));
+        }
+
+        $file_id = sanitize_file_name($_GET['gls_download_label']);
+        $file_path = GLS_LABELS_DIR . '/' . $file_id;
+
+        // Security check - ensure file is within labels directory
+        $real_path = realpath($file_path);
+        $real_labels_dir = realpath(GLS_LABELS_DIR);
+        
+        if ($real_path === false || strpos($real_path, $real_labels_dir) !== 0) {
+            wp_die(__('Invalid file path.', 'gls-shipping-for-woocommerce'));
+        }
+
+        if (!file_exists($file_path)) {
+            wp_die(__('PDF label not found.', 'gls-shipping-for-woocommerce'));
+        }
+
+        // Serve the file
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: inline; filename="' . basename($file_path) . '"');
+        header('Content-Transfer-Encoding: binary');
+        header('Content-Length: ' . filesize($file_path));
+        header('Cache-Control: private, max-age=0, must-revalidate');
+        header('Pragma: public');
+
+        readfile($file_path);
+        exit;
+    }
+
+    /**
+     * Generate secure download URL for a label file
+     * 
+     * @param string $filename The filename of the label
+     * @return string The secure download URL
+     * @since 1.4.0
+     */
+    public static function get_label_download_url($filename)
+    {
+        return add_query_arg(array(
+            'gls_download_label' => $filename,
+            'nonce' => wp_create_nonce('gls_download_label'),
+        ), admin_url('admin.php'));
     }
 
 
@@ -174,5 +275,8 @@ add_action(
         }
     }
 );
+
+// Register activation hook for label migration
+register_activation_hook(__FILE__, array('GLS_Shipping_Label_Migration', 'on_plugin_activation'));
 
 GLS_Shipping_For_Woo::get_instance();

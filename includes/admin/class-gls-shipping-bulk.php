@@ -51,7 +51,9 @@ class GLS_Shipping_Bulk
     // Add GLS-specific order actions
     public function add_gls_order_actions($actions, $order) {
         $order_id = $order->get_id();
-        $gls_print_label = $order->get_meta('_gls_print_label', true);
+        
+        // Use secure URL getter to handle both old and new format labels
+        $gls_print_label = GLS_Shipping_Label_Migration::get_secure_label_url($order_id);
     
         if ($gls_print_label) {
             // Action to download existing GLS label
@@ -228,11 +230,14 @@ class GLS_Shipping_Bulk
         }
     
         $label_print = implode(array_map('chr', $body['Labels']));
-        $upload_dir = wp_upload_dir();
+        
+        // Use secure labels directory
         $timestamp = current_time('YmdHis');
         $file_name = 'shipping_label_bulk_' . $timestamp . '.pdf';
-        $file_url = $upload_dir['url'] . '/' . $file_name;
-        $file_path = $upload_dir['path'] . '/' . $file_name;
+        $file_path = GLS_LABELS_DIR . '/' . $file_name;
+        
+        // Get secure download URL
+        $file_url = GLS_Shipping_For_Woo::get_label_download_url($file_name);
         
         if ($wp_filesystem->put_contents($file_path, $label_print)) {
             return $file_url;

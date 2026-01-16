@@ -3,7 +3,7 @@ Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 4.4
 Tested up to: 6.9
-Stable tag: 1.3.3
+Stable tag: 1.4.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ To install and configure this plugin:
 == Screenshots ==
 
 == Changelog ==
+
+= 1.4.0 =
+* Secure PDF Label Storage: Labels are now stored in a protected directory with authentication-based download.
 
 = 1.3.3 =
 * Tested up to WordPress 6.9.
