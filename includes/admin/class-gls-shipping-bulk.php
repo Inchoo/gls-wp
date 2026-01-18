@@ -53,7 +53,7 @@ class GLS_Shipping_Bulk
         $order_id = $order->get_id();
         
         // Use secure URL getter to handle both old and new format labels
-        $gls_print_label = GLS_Shipping_Label_Migration::get_secure_label_url($order_id);
+        $gls_print_label = GLS_Shipping_For_Woo::get_secure_label_url($order_id);
     
         if ($gls_print_label) {
             // Action to download existing GLS label
@@ -230,6 +230,9 @@ class GLS_Shipping_Bulk
         }
     
         $label_print = implode(array_map('chr', $body['Labels']));
+        
+        // Ensure labels directory exists
+        GLS_Shipping_For_Woo::get_instance()->setup_labels_directory();
         
         // Use secure labels directory
         $timestamp = current_time('YmdHis');

@@ -43,21 +43,37 @@ class GLS_Shipping_Label_Migration
 
         // Check for migration on plugins loaded (for updates without deactivation)
         add_action('plugins_loaded', array($this, 'check_migration_on_update'), 20);
+        
+        // Check for pending migration from activation hook (runs after Action Scheduler is ready)
+        add_action('init', array($this, 'check_pending_migration'), 99);
     }
-
+    
     /**
-     * Plugin activation callback
+     * Check for pending migration flag set during plugin activation
+     * Also ensures migration action is scheduled if migration is in progress
      */
-    public static function on_plugin_activation()
+    public function check_pending_migration()
     {
-        // Setup labels directory
-        if (class_exists('GLS_Shipping_For_Woo')) {
-            $instance = GLS_Shipping_For_Woo::get_instance();
-            $instance->setup_labels_directory();
+        // Only run in admin to avoid unnecessary checks on frontend
+        if (!is_admin()) {
+            return;
         }
         
-        // Schedule migration of existing labels
-        self::schedule_migration();
+        if (get_option('gls_migration_pending')) {
+            delete_option('gls_migration_pending');
+            self::schedule_migration();
+            return;
+        }
+        
+        // Fallback: ensure action is scheduled if migration is in progress but action is missing
+        $status = get_option(self::MIGRATION_STATUS_OPTION);
+        if ($status && empty($status['completed']) && function_exists('as_next_scheduled_action')) {
+            // Check if any action is scheduled or running (as_next_scheduled_action is more reliable)
+            if (false === as_next_scheduled_action(self::MIGRATION_HOOK)) {
+                // Migration in progress but no action scheduled - reschedule
+                as_schedule_single_action(time() + 10, self::MIGRATION_HOOK);
+            }
+        }
     }
 
     /**
@@ -76,8 +92,8 @@ class GLS_Shipping_Label_Migration
                 $instance->setup_labels_directory();
             }
             
-            // Schedule migration if needed
-            self::schedule_migration();
+            // Flag that we need to schedule migration (will be picked up on init)
+            update_option('gls_migration_pending', true);
         }
     }
 
@@ -98,9 +114,9 @@ class GLS_Shipping_Label_Migration
             );
             update_option(self::MIGRATION_STATUS_OPTION, $status);
 
-            // Schedule recurring action if not already scheduled
-            if (function_exists('as_has_scheduled_action') && false === as_has_scheduled_action(self::MIGRATION_HOOK)) {
-                as_schedule_recurring_action(time(), 60, self::MIGRATION_HOOK);
+            // Schedule single action if not already scheduled
+            if (function_exists('as_next_scheduled_action') && false === as_next_scheduled_action(self::MIGRATION_HOOK)) {
+                as_schedule_single_action(time() + 10, self::MIGRATION_HOOK);
             }
         }
     }
@@ -199,13 +215,22 @@ class GLS_Shipping_Label_Migration
         $status['last_run'] = current_time('mysql');
         update_option(self::MIGRATION_STATUS_OPTION, $status);
 
+        $remaining = self::count_orders_needing_migration();
+        
         // Log progress
         error_log(sprintf(
             'GLS Label Migration: Processed batch. Migrated: %d, Failed: %d, Remaining: ~%d',
             $migrated,
             $failed,
-            self::count_orders_needing_migration()
+            $remaining
         ));
+        
+        // Schedule next batch if there are more orders to migrate
+        if ($remaining > 0 && function_exists('as_schedule_single_action')) {
+            as_schedule_single_action(time() + 60, self::MIGRATION_HOOK);
+        } elseif ($remaining === 0) {
+            $this->complete_migration();
+        }
     }
 
     /**
@@ -330,7 +355,7 @@ class GLS_Shipping_Label_Migration
         $status['completed_at'] = current_time('mysql');
         update_option(self::MIGRATION_STATUS_OPTION, $status);
 
-        // Unschedule the recurring action
+        // Unschedule any pending actions
         if (function_exists('as_unschedule_all_actions')) {
             as_unschedule_all_actions(self::MIGRATION_HOOK);
         }
@@ -447,36 +472,6 @@ class GLS_Shipping_Label_Migration
         exit;
     }
 
-    /**
-     * Get secure URL for a label (handles both old and new format)
-     *
-     * @param int $order_id
-     * @return string|false
-     */
-    public static function get_secure_label_url($order_id)
-    {
-        $order = wc_get_order($order_id);
-        if (!$order) {
-            return false;
-        }
-
-        $label_url = $order->get_meta('_gls_print_label', true);
-        if (empty($label_url)) {
-            return false;
-        }
-
-        // If already using new format, return as-is
-        if (strpos($label_url, 'gls_download_label') !== false) {
-            return $label_url;
-        }
-
-        // Old format - return fallback URL
-        return add_query_arg(array(
-            'gls_old_label' => 1,
-            'order_id' => $order_id,
-            'nonce' => wp_create_nonce('gls_old_label_access'),
-        ), admin_url('admin.php'));
-    }
 }
 
 // Initialize

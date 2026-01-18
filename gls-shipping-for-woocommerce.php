@@ -129,9 +129,6 @@ final class GLS_Shipping_For_Woo
         add_filter('woocommerce_shipping_methods', array($this, 'add_gls_shipping_methods'));
         add_action('init', array($this, 'load_textdomain'));
         
-        // Setup labels directory on init
-        add_action('init', array($this, 'setup_labels_directory'));
-        
         // Add download endpoint for secure PDF serving
         add_action('admin_init', array($this, 'handle_label_download'));
     }
@@ -225,6 +222,37 @@ final class GLS_Shipping_For_Woo
         ), admin_url('admin.php'));
     }
 
+    /**
+     * Get secure URL for a label (handles both old and new format)
+     *
+     * @param int $order_id
+     * @return string|false
+     * @since 1.4.0
+     */
+    public static function get_secure_label_url($order_id)
+    {
+        $order = wc_get_order($order_id);
+        if (!$order) {
+            return false;
+        }
+
+        $label_url = $order->get_meta('_gls_print_label', true);
+        if (empty($label_url)) {
+            return false;
+        }
+
+        // If already using new format, return as-is
+        if (strpos($label_url, 'gls_download_label') !== false) {
+            return $label_url;
+        }
+
+        // Old format - return fallback URL for migration period
+        return add_query_arg(array(
+            'gls_old_label' => 1,
+            'order_id' => $order_id,
+            'nonce' => wp_create_nonce('gls_old_label_access'),
+        ), admin_url('admin.php'));
+    }
 
     public function load_textdomain()
     {
@@ -264,6 +292,17 @@ final class GLS_Shipping_For_Woo
         }
         return self::$instance;
     }
+    
+    /**
+     * Plugin activation callback - setup labels directory
+     * 
+     * @since 1.4.0
+     */
+    public static function on_plugin_activation()
+    {
+        $instance = self::get_instance();
+        $instance->setup_labels_directory();
+    }
 }
 
 // Declare HPOS Compatibility
@@ -276,7 +315,7 @@ add_action(
     }
 );
 
-// Register activation hook for label migration
-register_activation_hook(__FILE__, array('GLS_Shipping_Label_Migration', 'on_plugin_activation'));
+// Register activation hook to setup labels directory
+register_activation_hook(__FILE__, array('GLS_Shipping_For_Woo', 'on_plugin_activation'));
 
 GLS_Shipping_For_Woo::get_instance();

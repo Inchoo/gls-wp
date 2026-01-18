@@ -123,7 +123,7 @@ class GLS_Shipping_Order
             : $order_or_post_id;
 
         // Use secure URL getter to handle both old and new format labels
-        $gls_print_label = GLS_Shipping_Label_Migration::get_secure_label_url($order->get_id());
+        $gls_print_label = GLS_Shipping_For_Woo::get_secure_label_url($order->get_id());
         
         // Get tracking numbers for status buttons
         $tracking_codes = $order->get_meta('_gls_tracking_codes', true);
@@ -363,6 +363,9 @@ class GLS_Shipping_Order
         global $wp_filesystem;
     
         $label_print = implode(array_map('chr', $labels));
+        
+        // Ensure labels directory exists
+        GLS_Shipping_For_Woo::get_instance()->setup_labels_directory();
         
         // Use secure labels directory
         $timestamp = current_time('YmdHis');
