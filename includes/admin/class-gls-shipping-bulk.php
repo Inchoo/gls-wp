@@ -138,9 +138,9 @@ class GLS_Shipping_Bulk
                 return $redirect;
             }
     
-            $pdf_url = $this->bulk_create_print_labels($body);
+            $pdf_filename = $this->bulk_create_print_labels($body);
     
-            if ($pdf_url) {
+            if ($pdf_filename) {
                 // Save tracking numbers to order meta
                 if (!empty($body['PrintLabelsInfoList'])) {
                     // Group tracking codes by order ID to handle multiple parcels per order
@@ -178,8 +178,8 @@ class GLS_Shipping_Bulk
                                 $order->update_meta_data('_gls_parcel_ids', $data['parcel_ids']);
                             }
                             
-                            // Save bulk PDF URL to individual orders so tracking button appears
-                            $order->update_meta_data('_gls_print_label', $pdf_url);
+                            // Save just the filename, URL with nonce is generated on display
+                            $order->update_meta_data('_gls_print_label', $pdf_filename);
                             $order->save();
                             
                             $successful_orders[] = $order_id;
@@ -191,6 +191,7 @@ class GLS_Shipping_Bulk
                 }
 
                 // Add query args to URL for displaying notices and providing PDF link
+                $pdf_url = GLS_Shipping_For_Woo::get_label_download_url($pdf_filename);
                 $redirect = add_query_arg(
                     array(
                         'bulk_action' => 'print_gls_labels',
@@ -239,11 +240,9 @@ class GLS_Shipping_Bulk
         $file_name = 'shipping_label_bulk_' . $timestamp . '.pdf';
         $file_path = GLS_LABELS_DIR . '/' . $file_name;
         
-        // Get secure download URL
-        $file_url = GLS_Shipping_For_Woo::get_label_download_url($file_name);
-        
         if ($wp_filesystem->put_contents($file_path, $label_print)) {
-            return $file_url;
+            // Return just the filename, URL is generated where needed
+            return $file_name;
         }
         return false;
     }

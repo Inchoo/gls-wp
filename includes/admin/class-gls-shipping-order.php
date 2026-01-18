@@ -372,11 +372,9 @@ class GLS_Shipping_Order
         $file_name = 'shipping_label_' . $order_id . '_' . $timestamp . '.pdf';
         $file_path = GLS_LABELS_DIR . '/' . $file_name;
         
-        // Get secure download URL
-        $file_url = GLS_Shipping_For_Woo::get_label_download_url($file_name);
-
         if ($wp_filesystem->put_contents($file_path, $label_print)) {
-            $order->update_meta_data('_gls_print_label', $file_url);
+            // Store just the filename, URL with nonce is generated on display
+            $order->update_meta_data('_gls_print_label', $file_name);
             $order->save();
         }
     }

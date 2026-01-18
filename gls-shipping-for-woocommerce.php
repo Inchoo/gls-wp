@@ -166,13 +166,13 @@ final class GLS_Shipping_For_Woo
      */
     public function handle_label_download()
     {
-        if (!isset($_GET['gls_download_label']) || !isset($_GET['nonce'])) {
+        if (!isset($_GET['gls_download_label'])) {
             return;
         }
 
         // Verify nonce
-        if (!wp_verify_nonce(sanitize_text_field($_GET['nonce']), 'gls_download_label')) {
-            wp_die(__('Invalid security token.', 'gls-shipping-for-woocommerce'));
+        if (!isset($_GET['nonce']) || !wp_verify_nonce(sanitize_text_field($_GET['nonce']), 'gls_download_label')) {
+            wp_die(esc_html__('Invalid security token. Please refresh the page and try again.', 'gls-shipping-for-woocommerce'));
         }
 
         // Check user permissions
@@ -224,6 +224,7 @@ final class GLS_Shipping_For_Woo
 
     /**
      * Get secure URL for a label (handles both old and new format)
+     * Always generates fresh nonce for security
      *
      * @param int $order_id
      * @return string|false
@@ -236,22 +237,22 @@ final class GLS_Shipping_For_Woo
             return false;
         }
 
-        $label_url = $order->get_meta('_gls_print_label', true);
-        if (empty($label_url)) {
+        $label_data = $order->get_meta('_gls_print_label', true);
+        if (empty($label_data)) {
             return false;
         }
 
-        // If already using new format, return as-is
-        if (strpos($label_url, 'gls_download_label') !== false) {
-            return $label_url;
+        // Old format (pre-1.4.0) - direct URL to uploads folder
+        if (strpos($label_data, '/wp-content/uploads/') !== false) {
+            return add_query_arg(array(
+                'gls_old_label' => 1,
+                'order_id' => $order_id,
+                'nonce' => wp_create_nonce('gls_old_label_access'),
+            ), admin_url('admin.php'));
         }
 
-        // Old format - return fallback URL for migration period
-        return add_query_arg(array(
-            'gls_old_label' => 1,
-            'order_id' => $order_id,
-            'nonce' => wp_create_nonce('gls_old_label_access'),
-        ), admin_url('admin.php'));
+        // New format - stored filename, generate fresh URL with nonce
+        return self::get_label_download_url($label_data);
     }
 
     public function load_textdomain()

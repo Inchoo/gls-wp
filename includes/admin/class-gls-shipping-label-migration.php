@@ -13,9 +13,9 @@ if (!defined('ABSPATH')) {
 class GLS_Shipping_Label_Migration
 {
     /**
-     * Batch size for migration
+     * Batch size for migration (small for compatibility with varied hosting)
      */
-    const BATCH_SIZE = 20;
+    const BATCH_SIZE = 5;
 
     /**
      * Action Scheduler hook name
@@ -23,9 +23,10 @@ class GLS_Shipping_Label_Migration
     const MIGRATION_HOOK = 'gls_migrate_labels_batch';
 
     /**
-     * Option key for tracking migration status
+     * Option key for migration status
+     * Values: not set, 'not_needed', 'in_progress', 'completed'
      */
-    const MIGRATION_STATUS_OPTION = 'gls_label_migration_status';
+    const MIGRATION_OPTION = 'gls_label_migration_status';
 
     /**
      * Constructor
@@ -35,202 +36,103 @@ class GLS_Shipping_Label_Migration
         // Register Action Scheduler hook
         add_action(self::MIGRATION_HOOK, array($this, 'process_migration_batch'));
 
-        // Add admin notice for migration status
-        add_action('admin_notices', array($this, 'display_migration_notice'));
+        // Check migration status on admin init
+        add_action('admin_init', array($this, 'maybe_start_migration'));
 
         // Handle fallback for old URLs during migration
         add_action('admin_init', array($this, 'handle_old_label_fallback'), 5);
 
-        // Check for migration on plugins loaded (for updates without deactivation)
-        add_action('plugins_loaded', array($this, 'check_migration_on_update'), 20);
-        
-        // Check for pending migration from activation hook (runs after Action Scheduler is ready)
-        add_action('init', array($this, 'check_pending_migration'), 99);
+        // Admin notice during migration
+        add_action('admin_notices', array($this, 'display_migration_notice'));
     }
-    
+
     /**
-     * Check for pending migration flag set during plugin activation
-     * Also ensures migration action is scheduled if migration is in progress
+     * Check if migration needs to run (called once per admin page load)
      */
-    public function check_pending_migration()
+    public function maybe_start_migration()
     {
-        // Only run in admin to avoid unnecessary checks on frontend
-        if (!is_admin()) {
+        $status = get_option(self::MIGRATION_OPTION);
+
+        // Already done - never check again
+        if ($status === 'completed' || $status === 'not_needed') {
             return;
         }
-        
-        if (get_option('gls_migration_pending')) {
-            delete_option('gls_migration_pending');
-            self::schedule_migration();
+
+        // Migration in progress - ensure action is scheduled
+        if ($status === 'in_progress') {
+            $this->ensure_action_scheduled();
             return;
         }
+
+        // First time check - see if there are any old labels
+        $has_old_labels = $this->has_orders_needing_migration();
+
+        if (!$has_old_labels) {
+            // Nothing to migrate - mark as not needed, never check again
+            update_option(self::MIGRATION_OPTION, 'not_needed');
+            return;
+        }
+
+        // Has old labels - start migration
+        update_option(self::MIGRATION_OPTION, 'in_progress');
         
-        // Fallback: ensure action is scheduled if migration is in progress but action is missing
-        $status = get_option(self::MIGRATION_STATUS_OPTION);
-        if ($status && empty($status['completed']) && function_exists('as_next_scheduled_action')) {
-            // Check if any action is scheduled or running (as_next_scheduled_action is more reliable)
+        // Setup labels directory
+        if (class_exists('GLS_Shipping_For_Woo')) {
+            GLS_Shipping_For_Woo::get_instance()->setup_labels_directory();
+        }
+
+        $this->ensure_action_scheduled();
+    }
+
+    /**
+     * Ensure migration action is scheduled
+     */
+    private function ensure_action_scheduled()
+    {
+        if (function_exists('as_next_scheduled_action')) {
             if (false === as_next_scheduled_action(self::MIGRATION_HOOK)) {
-                // Migration in progress but no action scheduled - reschedule
                 as_schedule_single_action(time() + 10, self::MIGRATION_HOOK);
             }
         }
     }
 
     /**
-     * Check for migration on plugin update (without deactivation)
-     */
-    public function check_migration_on_update()
-    {
-        // Only run once per version
-        $current_version = get_option('gls_shipping_version');
-        if ($current_version !== GLS_SHIPPING_VERSION) {
-            update_option('gls_shipping_version', GLS_SHIPPING_VERSION);
-            
-            // Setup labels directory
-            if (class_exists('GLS_Shipping_For_Woo')) {
-                $instance = GLS_Shipping_For_Woo::get_instance();
-                $instance->setup_labels_directory();
-            }
-            
-            // Flag that we need to schedule migration (will be picked up on init)
-            update_option('gls_migration_pending', true);
-        }
-    }
-
-    /**
-     * Schedule migration on plugin activation/update
-     */
-    public static function schedule_migration()
-    {
-        // Check if migration is needed
-        if (self::is_migration_needed()) {
-            // Initialize migration status
-            $status = array(
-                'started_at' => current_time('mysql'),
-                'total_orders' => self::count_orders_needing_migration(),
-                'migrated' => 0,
-                'failed' => 0,
-                'completed' => false
-            );
-            update_option(self::MIGRATION_STATUS_OPTION, $status);
-
-            // Schedule single action if not already scheduled
-            if (function_exists('as_next_scheduled_action') && false === as_next_scheduled_action(self::MIGRATION_HOOK)) {
-                as_schedule_single_action(time() + 10, self::MIGRATION_HOOK);
-            }
-        }
-    }
-
-    /**
-     * Check if migration is needed
+     * Check if there are any orders with old-style label URLs
      *
      * @return bool
      */
-    public static function is_migration_needed()
-    {
-        $status = get_option(self::MIGRATION_STATUS_OPTION);
-        
-        // If migration is already completed, no need
-        if ($status && isset($status['completed']) && $status['completed']) {
-            return false;
-        }
-
-        // Check if there are orders with old-style URLs
-        return self::count_orders_needing_migration() > 0;
-    }
-
-    /**
-     * Count orders that need migration
-     *
-     * @return int
-     */
-    public static function count_orders_needing_migration()
+    private function has_orders_needing_migration()
     {
         global $wpdb;
 
         // Check both HPOS and legacy meta tables
-        if (class_exists('Automattic\WooCommerce\Utilities\OrderUtil') && 
+        if (class_exists('Automattic\WooCommerce\Utilities\OrderUtil') &&
             Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled()) {
             // HPOS enabled
             $table = $wpdb->prefix . 'wc_orders_meta';
-            $count = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$table} 
+            $exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT 1 FROM {$table} 
                 WHERE meta_key = '_gls_print_label' 
                 AND meta_value LIKE %s 
-                AND meta_value NOT LIKE %s",
+                AND meta_value NOT LIKE %s
+                LIMIT 1",
                 '%/wp-content/uploads/%',
                 '%gls_download_label%'
             ));
         } else {
             // Legacy post meta
-            $count = $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$wpdb->postmeta} 
+            $exists = $wpdb->get_var($wpdb->prepare(
+                "SELECT 1 FROM {$wpdb->postmeta} 
                 WHERE meta_key = '_gls_print_label' 
                 AND meta_value LIKE %s 
-                AND meta_value NOT LIKE %s",
+                AND meta_value NOT LIKE %s
+                LIMIT 1",
                 '%/wp-content/uploads/%',
                 '%gls_download_label%'
             ));
         }
 
-        return (int) $count;
-    }
-
-    /**
-     * Process migration batch via Action Scheduler
-     */
-    public function process_migration_batch()
-    {
-        // Ensure labels directory exists
-        if (class_exists('GLS_Shipping_For_Woo')) {
-            GLS_Shipping_For_Woo::get_instance()->setup_labels_directory();
-        }
-
-        // Get orders needing migration
-        $orders = $this->get_orders_needing_migration(self::BATCH_SIZE);
-
-        if (empty($orders)) {
-            // Migration complete
-            $this->complete_migration();
-            return;
-        }
-
-        $status = get_option(self::MIGRATION_STATUS_OPTION, array());
-        $migrated = isset($status['migrated']) ? $status['migrated'] : 0;
-        $failed = isset($status['failed']) ? $status['failed'] : 0;
-
-        foreach ($orders as $order_id) {
-            $result = $this->migrate_single_label($order_id);
-            
-            if ($result) {
-                $migrated++;
-            } else {
-                $failed++;
-            }
-        }
-
-        // Update status
-        $status['migrated'] = $migrated;
-        $status['failed'] = $failed;
-        $status['last_run'] = current_time('mysql');
-        update_option(self::MIGRATION_STATUS_OPTION, $status);
-
-        $remaining = self::count_orders_needing_migration();
-        
-        // Log progress
-        error_log(sprintf(
-            'GLS Label Migration: Processed batch. Migrated: %d, Failed: %d, Remaining: ~%d',
-            $migrated,
-            $failed,
-            $remaining
-        ));
-        
-        // Schedule next batch if there are more orders to migrate
-        if ($remaining > 0 && function_exists('as_schedule_single_action')) {
-            as_schedule_single_action(time() + 60, self::MIGRATION_HOOK);
-        } elseif ($remaining === 0) {
-            $this->complete_migration();
-        }
+        return (bool) $exists;
     }
 
     /**
@@ -244,7 +146,7 @@ class GLS_Shipping_Label_Migration
         global $wpdb;
 
         // Check both HPOS and legacy meta tables
-        if (class_exists('Automattic\WooCommerce\Utilities\OrderUtil') && 
+        if (class_exists('Automattic\WooCommerce\Utilities\OrderUtil') &&
             Automattic\WooCommerce\Utilities\OrderUtil::custom_orders_table_usage_is_enabled()) {
             // HPOS enabled
             $table = $wpdb->prefix . 'wc_orders_meta';
@@ -276,12 +178,48 @@ class GLS_Shipping_Label_Migration
     }
 
     /**
+     * Process migration batch via Action Scheduler
+     */
+    public function process_migration_batch()
+    {
+        // Ensure labels directory exists
+        if (class_exists('GLS_Shipping_For_Woo')) {
+            GLS_Shipping_For_Woo::get_instance()->setup_labels_directory();
+        }
+
+        // Get orders needing migration
+        $orders = $this->get_orders_needing_migration(self::BATCH_SIZE);
+
+        if (empty($orders)) {
+            // Migration complete
+            update_option(self::MIGRATION_OPTION, 'completed');
+            return;
+        }
+
+        // Process batch
+        foreach ($orders as $order_id) {
+            $this->migrate_single_label($order_id);
+        }
+
+        // Check if more to process
+        if ($this->has_orders_needing_migration()) {
+            // Schedule next batch
+            if (function_exists('as_schedule_single_action')) {
+                as_schedule_single_action(time() + 30, self::MIGRATION_HOOK);
+            }
+        } else {
+            // Done
+            update_option(self::MIGRATION_OPTION, 'completed');
+        }
+    }
+
+    /**
      * Migrate a single label to secure folder
      *
      * @param int $order_id
      * @return bool Success
      */
-    public function migrate_single_label($order_id)
+    private function migrate_single_label($order_id)
     {
         $order = wc_get_order($order_id);
         if (!$order) {
@@ -293,8 +231,8 @@ class GLS_Shipping_Label_Migration
             return false;
         }
 
-        // Skip if already migrated (has gls_download_label in URL)
-        if (strpos($old_url, 'gls_download_label') !== false) {
+        // Skip if already migrated (new format is just filename, not URL)
+        if (strpos($old_url, '/wp-content/uploads/') === false) {
             return true;
         }
 
@@ -304,17 +242,13 @@ class GLS_Shipping_Label_Migration
 
         // Check if old file exists
         if (!file_exists($old_path)) {
-            // File doesn't exist - just update meta to indicate migration attempted
-            // This handles cases where file was already deleted
-            error_log(sprintf('GLS Migration: File not found for order %d: %s', $order_id, $old_path));
-            
-            // Clear the meta since file doesn't exist
+            // File doesn't exist - clear the meta
             $order->delete_meta_data('_gls_print_label');
             $order->save();
             return true;
         }
 
-        // Generate new filename (keep original name for reference)
+        // Generate new filename
         $original_filename = basename($old_path);
         $new_path = GLS_LABELS_DIR . '/' . $original_filename;
 
@@ -327,16 +261,11 @@ class GLS_Shipping_Label_Migration
 
         // Copy file to new location
         if (!copy($old_path, $new_path)) {
-            error_log(sprintf('GLS Migration: Failed to copy file for order %d', $order_id));
             return false;
         }
 
-        // Generate new secure URL
-        $new_url = GLS_Shipping_For_Woo::get_label_download_url($original_filename);
-
-        // Update order meta
-        $order->update_meta_data('_gls_print_label', $new_url);
-        $order->update_meta_data('_gls_print_label_old', $old_url); // Keep reference to old URL
+        // Update order meta with just the filename
+        $order->update_meta_data('_gls_print_label', $original_filename);
         $order->save();
 
         // Delete old file
@@ -346,82 +275,29 @@ class GLS_Shipping_Label_Migration
     }
 
     /**
-     * Mark migration as complete
-     */
-    private function complete_migration()
-    {
-        $status = get_option(self::MIGRATION_STATUS_OPTION, array());
-        $status['completed'] = true;
-        $status['completed_at'] = current_time('mysql');
-        update_option(self::MIGRATION_STATUS_OPTION, $status);
-
-        // Unschedule any pending actions
-        if (function_exists('as_unschedule_all_actions')) {
-            as_unschedule_all_actions(self::MIGRATION_HOOK);
-        }
-
-        error_log(sprintf(
-            'GLS Label Migration: Completed. Total migrated: %d, Failed: %d',
-            isset($status['migrated']) ? $status['migrated'] : 0,
-            isset($status['failed']) ? $status['failed'] : 0
-        ));
-    }
-
-    /**
-     * Display admin notice about migration status
+     * Display admin notice during migration
      */
     public function display_migration_notice()
     {
+        $status = get_option(self::MIGRATION_OPTION);
+
+        if ($status !== 'in_progress') {
+            return;
+        }
+
         // Only show on WooCommerce pages
         $screen = get_current_screen();
-        if (!$screen || strpos($screen->id, 'woocommerce') === false && $screen->id !== 'shop_order' && $screen->id !== 'edit-shop_order') {
+        if (!$screen || (strpos($screen->id, 'woocommerce') === false && $screen->id !== 'shop_order' && $screen->id !== 'edit-shop_order')) {
             return;
         }
 
-        $status = get_option(self::MIGRATION_STATUS_OPTION);
-        if (!$status) {
-            return;
-        }
-
-        // Don't show if completed more than 7 days ago
-        if (isset($status['completed']) && $status['completed']) {
-            if (isset($status['completed_at'])) {
-                $completed_time = strtotime($status['completed_at']);
-                if (time() - $completed_time > 7 * DAY_IN_SECONDS) {
-                    return;
-                }
-            }
-
-            // Show completion notice
-            $message = sprintf(
-                __('GLS Label Migration completed. %d labels migrated, %d failed.', 'gls-shipping-for-woocommerce'),
-                isset($status['migrated']) ? $status['migrated'] : 0,
-                isset($status['failed']) ? $status['failed'] : 0
-            );
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html($message) . '</p></div>';
-            return;
-        }
-
-        // Show progress notice
-        $total = isset($status['total_orders']) ? $status['total_orders'] : 0;
-        $migrated = isset($status['migrated']) ? $status['migrated'] : 0;
-        $remaining = self::count_orders_needing_migration();
-
-        if ($total > 0) {
-            $progress = round(($migrated / $total) * 100);
-            $message = sprintf(
-                __('GLS Label Migration in progress: %d%% complete (%d/%d labels). This runs automatically in the background.', 'gls-shipping-for-woocommerce'),
-                $progress,
-                $migrated,
-                $total
-            );
-            echo '<div class="notice notice-info"><p>' . esc_html($message) . '</p></div>';
-        }
+        echo '<div class="notice notice-info"><p>';
+        esc_html_e('GLS Shipping: Migrating labels to secure storage. This runs automatically in the background.', 'gls-shipping-for-woocommerce');
+        echo '</p></div>';
     }
 
     /**
      * Handle fallback for old-style URLs during migration
-     * This allows admins to still access labels that haven't been migrated yet
      */
     public function handle_old_label_fallback()
     {
@@ -431,25 +307,25 @@ class GLS_Shipping_Label_Migration
 
         // Verify nonce
         if (!wp_verify_nonce(sanitize_text_field($_GET['nonce']), 'gls_old_label_access')) {
-            wp_die(__('Invalid security token.', 'gls-shipping-for-woocommerce'));
+            wp_die(esc_html__('Invalid security token.', 'gls-shipping-for-woocommerce'));
         }
 
         // Check user permissions
         if (!current_user_can('edit_shop_orders')) {
-            wp_die(__('You do not have permission to download shipping labels.', 'gls-shipping-for-woocommerce'));
+            wp_die(esc_html__('You do not have permission to download shipping labels.', 'gls-shipping-for-woocommerce'));
         }
 
         $order_id = intval($_GET['order_id']);
         $order = wc_get_order($order_id);
-        
+
         if (!$order) {
-            wp_die(__('Order not found.', 'gls-shipping-for-woocommerce'));
+            wp_die(esc_html__('Order not found.', 'gls-shipping-for-woocommerce'));
         }
 
         $label_url = $order->get_meta('_gls_print_label', true);
-        
+
         if (empty($label_url)) {
-            wp_die(__('Label not found.', 'gls-shipping-for-woocommerce'));
+            wp_die(esc_html__('Label not found.', 'gls-shipping-for-woocommerce'));
         }
 
         // Convert URL to path
@@ -457,7 +333,7 @@ class GLS_Shipping_Label_Migration
         $file_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $label_url);
 
         if (!file_exists($file_path)) {
-            wp_die(__('PDF label file not found.', 'gls-shipping-for-woocommerce'));
+            wp_die(esc_html__('PDF label file not found.', 'gls-shipping-for-woocommerce'));
         }
 
         // Serve the file
@@ -471,9 +347,7 @@ class GLS_Shipping_Label_Migration
         readfile($file_path);
         exit;
     }
-
 }
 
 // Initialize
 new GLS_Shipping_Label_Migration();
-
