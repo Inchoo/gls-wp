@@ -240,23 +240,24 @@ class GLS_Shipping_Label_Migration
         $upload_dir = wp_upload_dir();
         $old_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $old_url);
 
-        // Check if old file exists
-        if (!file_exists($old_path)) {
-            // File doesn't exist - clear the meta
-            $order->delete_meta_data('_gls_print_label');
+        // Generate new filename from old path
+        $original_filename = basename($old_path);
+        $new_path = GLS_LABELS_DIR . '/' . $original_filename;
+
+        // Check if already migrated (file exists in new location)
+        if (file_exists($new_path)) {
+            // File already migrated by another order (bulk labels), just update meta
+            $order->update_meta_data('_gls_print_label', $original_filename);
             $order->save();
             return true;
         }
 
-        // Generate new filename
-        $original_filename = basename($old_path);
-        $new_path = GLS_LABELS_DIR . '/' . $original_filename;
-
-        // Handle filename collision
-        if (file_exists($new_path)) {
-            $pathinfo = pathinfo($original_filename);
-            $original_filename = $pathinfo['filename'] . '_' . $order_id . '.' . $pathinfo['extension'];
-            $new_path = GLS_LABELS_DIR . '/' . $original_filename;
+        // Check if old file exists
+        if (!file_exists($old_path)) {
+            // File doesn't exist anywhere - clear the meta
+            $order->delete_meta_data('_gls_print_label');
+            $order->save();
+            return true;
         }
 
         // Copy file to new location
