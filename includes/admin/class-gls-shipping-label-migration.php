@@ -305,6 +305,9 @@ class GLS_Shipping_Label_Migration
      * 
      * This runs once during migration to delete any GLS label files left in old
      * year/month folders. Valid files have already been migrated to gls-shipping-labels.
+     * 
+     * Uses glob() for efficiency - directly finds matching files instead of scanning
+     * all files in the uploads folder (important for large sites with many images).
      */
     private function cleanup_orphaned_labels()
     {
@@ -313,70 +316,29 @@ class GLS_Shipping_Label_Migration
         
         $deleted_count = 0;
         
-        // Delete ALL GLS labels from old year folders - they're all orphans
-        // Valid files have been migrated to gls-shipping-labels folder
-        $old_directories = array(
-            $uploads_base . '/2024',
-            $uploads_base . '/2025',
-            $uploads_base . '/2026',
+        // Use glob to directly find GLS label files - much more efficient than scandir
+        // Pattern: uploads/202X/XX/shipping_label_*.pdf
+        $glob_patterns = array(
+            $uploads_base . '/2024/*/shipping_label_*.pdf',
+            $uploads_base . '/2025/*/shipping_label_*.pdf',
+            $uploads_base . '/2026/*/shipping_label_*.pdf',
         );
         
-        foreach ($old_directories as $directory) {
-            if (is_dir($directory)) {
-                $this->delete_all_gls_labels_in_directory($directory, $deleted_count);
+        foreach ($glob_patterns as $pattern) {
+            $files = glob($pattern);
+            if ($files === false) {
+                continue;
+            }
+            foreach ($files as $file) {
+                if (@unlink($file)) {
+                    $deleted_count++;
+                }
             }
         }
         
         if ($deleted_count > 0) {
             error_log("GLS Migration: Cleaned up {$deleted_count} orphaned label files from old uploads folders.");
         }
-    }
-    
-    /**
-     * Recursively delete ALL GLS label files in a directory
-     * 
-     * @param string $directory Directory to scan
-     * @param int &$deleted_count Counter for deleted files
-     */
-    private function delete_all_gls_labels_in_directory($directory, &$deleted_count)
-    {
-        if (!is_dir($directory) || !is_readable($directory)) {
-            return;
-        }
-        
-        $items = scandir($directory);
-        if ($items === false) {
-            return;
-        }
-        
-        foreach ($items as $item) {
-            if ($item === '.' || $item === '..') {
-                continue;
-            }
-            
-            $path = $directory . '/' . $item;
-            
-            if (is_dir($path)) {
-                // Recurse into month subdirectories
-                $this->delete_all_gls_labels_in_directory($path, $deleted_count);
-            } elseif (is_file($path) && $this->is_gls_label_file($item)) {
-                if (@unlink($path)) {
-                    $deleted_count++;
-                }
-            }
-        }
-    }
-    
-    /**
-     * Check if a filename matches the GLS shipping label pattern
-     * 
-     * @param string $filename
-     * @return bool
-     */
-    private function is_gls_label_file($filename)
-    {
-        // Match patterns: shipping_label_{order_id}_{timestamp}.pdf or shipping_label_bulk_{timestamp}.pdf
-        return preg_match('/^shipping_label_(bulk_)?\d+(_\d+)?\.pdf$/', $filename) === 1;
     }
 
     /**
