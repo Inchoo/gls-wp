@@ -27,6 +27,11 @@ class GLS_Shipping_Label_Migration
      * Values: not set, 'not_needed', 'in_progress', 'completed'
      */
     const MIGRATION_OPTION = 'gls_label_migration_status';
+    
+    /**
+     * Option key to track if orphan cleanup has been done
+     */
+    const CLEANUP_DONE_OPTION = 'gls_label_orphan_cleanup_done';
 
     /**
      * Constructor
@@ -53,8 +58,9 @@ class GLS_Shipping_Label_Migration
     {
         $status = get_option(self::MIGRATION_OPTION);
 
-        // Already done - never check again
+        // Already done - check if orphan cleanup was also done
         if ($status === 'completed' || $status === 'not_needed') {
+            $this->maybe_run_orphan_cleanup();
             return;
         }
 
@@ -191,7 +197,8 @@ class GLS_Shipping_Label_Migration
         $orders = $this->get_orders_needing_migration(self::BATCH_SIZE);
 
         if (empty($orders)) {
-            // Migration complete
+            // Migration complete - cleanup orphaned files before marking as done
+            $this->cleanup_orphaned_labels();
             update_option(self::MIGRATION_OPTION, 'completed');
             return;
         }
@@ -208,7 +215,8 @@ class GLS_Shipping_Label_Migration
                 as_schedule_single_action(time() + 30, self::MIGRATION_HOOK);
             }
         } else {
-            // Done
+            // Done - cleanup orphaned files before marking as complete
+            $this->cleanup_orphaned_labels();
             update_option(self::MIGRATION_OPTION, 'completed');
         }
     }
@@ -273,6 +281,102 @@ class GLS_Shipping_Label_Migration
         @unlink($old_path);
 
         return true;
+    }
+
+    /**
+     * Check if orphan cleanup needs to run (for migrations completed before cleanup was added)
+     */
+    private function maybe_run_orphan_cleanup()
+    {
+        // Only run once
+        if (get_option(self::CLEANUP_DONE_OPTION)) {
+            return;
+        }
+        
+        // Run cleanup
+        $this->cleanup_orphaned_labels();
+        
+        // Mark as done so it doesn't run again
+        update_option(self::CLEANUP_DONE_OPTION, true);
+    }
+    
+    /**
+     * Cleanup orphaned label files from old uploads directories
+     * 
+     * This runs once during migration to delete any GLS label files left in old
+     * year/month folders. Valid files have already been migrated to gls-shipping-labels.
+     */
+    private function cleanup_orphaned_labels()
+    {
+        $upload_dir = wp_upload_dir();
+        $uploads_base = $upload_dir['basedir'];
+        
+        $deleted_count = 0;
+        
+        // Delete ALL GLS labels from old year folders - they're all orphans
+        // Valid files have been migrated to gls-shipping-labels folder
+        $old_directories = array(
+            $uploads_base . '/2024',
+            $uploads_base . '/2025',
+            $uploads_base . '/2026',
+        );
+        
+        foreach ($old_directories as $directory) {
+            if (is_dir($directory)) {
+                $this->delete_all_gls_labels_in_directory($directory, $deleted_count);
+            }
+        }
+        
+        if ($deleted_count > 0) {
+            error_log("GLS Migration: Cleaned up {$deleted_count} orphaned label files from old uploads folders.");
+        }
+    }
+    
+    /**
+     * Recursively delete ALL GLS label files in a directory
+     * 
+     * @param string $directory Directory to scan
+     * @param int &$deleted_count Counter for deleted files
+     */
+    private function delete_all_gls_labels_in_directory($directory, &$deleted_count)
+    {
+        if (!is_dir($directory) || !is_readable($directory)) {
+            return;
+        }
+        
+        $items = scandir($directory);
+        if ($items === false) {
+            return;
+        }
+        
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            
+            $path = $directory . '/' . $item;
+            
+            if (is_dir($path)) {
+                // Recurse into month subdirectories
+                $this->delete_all_gls_labels_in_directory($path, $deleted_count);
+            } elseif (is_file($path) && $this->is_gls_label_file($item)) {
+                if (@unlink($path)) {
+                    $deleted_count++;
+                }
+            }
+        }
+    }
+    
+    /**
+     * Check if a filename matches the GLS shipping label pattern
+     * 
+     * @param string $filename
+     * @return bool
+     */
+    private function is_gls_label_file($filename)
+    {
+        // Match patterns: shipping_label_{order_id}_{timestamp}.pdf or shipping_label_bulk_{timestamp}.pdf
+        return preg_match('/^shipping_label_(bulk_)?\d+(_\d+)?\.pdf$/', $filename) === 1;
     }
 
     /**
