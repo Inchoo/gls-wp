@@ -83,6 +83,7 @@ To install and configure this plugin:
 
 = 1.4.0 =
 * Secure PDF Label Storage: Labels are now stored in a protected directory with authentication-based download.
+* Added Hungary Locker Saturation Filter for parcel locker map (filter-saturation attribute).
 
 = 1.3.3 =
 * Tested up to WordPress 6.9.
