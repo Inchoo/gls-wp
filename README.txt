@@ -3,7 +3,7 @@ Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 4.4
 Tested up to: 6.9
-Stable tag: 1.3.4
+Stable tag: 1.4.0
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -81,7 +81,8 @@ To install and configure this plugin:
 
 == Changelog ==
 
-= 1.3.4 =
+= 1.4.0 =
+* Secure PDF Label Storage: Labels are now stored in a protected directory with authentication-based download.
 * Added Hungary Locker Saturation Filter for parcel locker map (filter-saturation attribute).
 
 = 1.3.3 =

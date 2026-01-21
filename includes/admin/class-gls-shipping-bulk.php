@@ -51,7 +51,9 @@ class GLS_Shipping_Bulk
     // Add GLS-specific order actions
     public function add_gls_order_actions($actions, $order) {
         $order_id = $order->get_id();
-        $gls_print_label = $order->get_meta('_gls_print_label', true);
+        
+        // Use secure URL getter to handle both old and new format labels
+        $gls_print_label = GLS_Shipping_For_Woo::get_secure_label_url($order_id);
     
         if ($gls_print_label) {
             // Action to download existing GLS label
@@ -136,9 +138,9 @@ class GLS_Shipping_Bulk
                 return $redirect;
             }
     
-            $pdf_url = $this->bulk_create_print_labels($body);
+            $pdf_filename = $this->bulk_create_print_labels($body);
     
-            if ($pdf_url) {
+            if ($pdf_filename) {
                 // Save tracking numbers to order meta
                 if (!empty($body['PrintLabelsInfoList'])) {
                     // Group tracking codes by order ID to handle multiple parcels per order
@@ -176,8 +178,8 @@ class GLS_Shipping_Bulk
                                 $order->update_meta_data('_gls_parcel_ids', $data['parcel_ids']);
                             }
                             
-                            // Save bulk PDF URL to individual orders so tracking button appears
-                            $order->update_meta_data('_gls_print_label', $pdf_url);
+                            // Save just the filename, URL with nonce is generated on display
+                            $order->update_meta_data('_gls_print_label', $pdf_filename);
                             $order->save();
                             
                             $successful_orders[] = $order_id;
@@ -189,6 +191,7 @@ class GLS_Shipping_Bulk
                 }
 
                 // Add query args to URL for displaying notices and providing PDF link
+                $pdf_url = GLS_Shipping_For_Woo::get_label_download_url($pdf_filename);
                 $redirect = add_query_arg(
                     array(
                         'bulk_action' => 'print_gls_labels',
@@ -228,14 +231,18 @@ class GLS_Shipping_Bulk
         }
     
         $label_print = implode(array_map('chr', $body['Labels']));
-        $upload_dir = wp_upload_dir();
+        
+        // Ensure labels directory exists
+        GLS_Shipping_For_Woo::get_instance()->setup_labels_directory();
+        
+        // Use secure labels directory
         $timestamp = current_time('YmdHis');
         $file_name = 'shipping_label_bulk_' . $timestamp . '.pdf';
-        $file_url = $upload_dir['url'] . '/' . $file_name;
-        $file_path = $upload_dir['path'] . '/' . $file_name;
+        $file_path = GLS_LABELS_DIR . '/' . $file_name;
         
         if ($wp_filesystem->put_contents($file_path, $label_print)) {
-            return $file_url;
+            // Return just the filename, URL is generated where needed
+            return $file_name;
         }
         return false;
     }
