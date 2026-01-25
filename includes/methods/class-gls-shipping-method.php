@@ -598,7 +598,7 @@ max_weight|cost',
 						// Add admin notice to inform user
 						add_action('admin_notices', function() {
 							echo '<div class="notice notice-warning is-dismissible">';
-							echo '<p>' . __('Multiple accounts mode was not saved because no valid GLS accounts were found. Please add at least one account to use multiple accounts mode.', 'gls-shipping-for-woocommerce') . '</p>';
+							echo '<p>' . esc_html__('Multiple accounts mode was not saved because no valid GLS accounts were found. Please add at least one account to use multiple accounts mode.', 'gls-shipping-for-woocommerce') . '</p>';
 							echo '</div>';
 						});
 						

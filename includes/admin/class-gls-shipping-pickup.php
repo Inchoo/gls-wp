@@ -102,7 +102,7 @@ class GLS_Shipping_Pickup
         $message = '';
         $error = '';
         
-        if (isset($_POST['schedule_pickup']) && wp_verify_nonce($_POST['gls_pickup_nonce'], 'gls_pickup_action')) {
+        if (isset($_POST['schedule_pickup']) && isset($_POST['gls_pickup_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['gls_pickup_nonce'])), 'gls_pickup_action')) {
             $result = $this->process_pickup_form();
             if (is_wp_error($result)) {
                 $error = $result->get_error_message();
@@ -114,7 +114,7 @@ class GLS_Shipping_Pickup
         // Get all addresses (including store fallback as first option)
         $all_addresses = GLS_Shipping_Sender_Address_Helper::get_all_addresses_with_store_fallback();
         
-        $current_tab = isset($_GET['tab']) ? $_GET['tab'] : 'schedule';
+        $current_tab = isset($_GET['tab']) ? sanitize_key(wp_unslash($_GET['tab'])) : 'schedule';
         
         ?>
         <div class="wrap">
