@@ -182,7 +182,10 @@ class GLS_Shipping_Order
                         
                         <!-- Service Options (Hidden by default) -->
                         <div id="gls-services-options" style="display: none; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
-                            <?php echo wp_kses_post( $this->render_service_options($order) ); ?>
+                            <?php
+                            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted internal method outputting form fields
+                            echo $this->render_service_options($order);
+                            ?>
                         </div>
                         
                         <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
@@ -243,7 +246,10 @@ class GLS_Shipping_Order
                         
                         <!-- Service Options (Hidden by default) -->
                         <div id="gls-services-options-new" style="display: none; margin-bottom: 15px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background-color: #f9f9f9;">
-                            <?php echo wp_kses_post( $this->render_service_options($order) ); ?>
+                            <?php
+                            // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted internal method outputting form fields
+                            echo $this->render_service_options($order);
+                            ?>
                         </div>
                         
                         <button type="button" class="button gls-print-label" order-id="<?php echo esc_attr($order->get_id()); ?>">
