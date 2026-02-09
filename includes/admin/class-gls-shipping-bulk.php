@@ -214,7 +214,7 @@ class GLS_Shipping_Bulk
                     );
                 }
             } catch (Exception $e) {
-                // Log the error for debugging
+                // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional error logging for debugging
                 error_log('GLS Bulk Print Labels Error: ' . $e->getMessage());
                 
                 // Handle the exception gracefully - redirect with error message
@@ -241,6 +241,7 @@ class GLS_Shipping_Bulk
     
         // Check if Labels exist and is an array
         if (empty($body['Labels']) || !is_array($body['Labels'])) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional error logging for debugging
             error_log('GLS Bulk Print: No labels found in API response. This may happen if all orders failed validation.');
             return false;
         }
@@ -263,6 +264,7 @@ class GLS_Shipping_Bulk
     }
 
     // Display admin notice after bulk action
+    // phpcs:disable WordPress.Security.NonceVerification.Recommended -- Display-only notice after redirect, nonce verified in original action
     public function gls_bulk_action_admin_notice() {
         if (isset($_REQUEST['bulk_action'])) {
             // Sanitize the bulk action parameter
@@ -287,8 +289,8 @@ class GLS_Shipping_Bulk
 
                 // Prepare success message
                 $message = sprintf(
+                    /* translators: %s: number of generated labels */
                     _n(
-                        /* translators: %s: number of generated labels */
                         '%s GLS label was successfully generated.',
                         '%s GLS labels were successfully generated.',
                         $generated,
@@ -296,12 +298,12 @@ class GLS_Shipping_Bulk
                     ),
                     number_format_i18n($generated)
                 );
-                
+
                 // Add failure message if any labels failed to generate
                 if ($failed > 0) {
                     $message .= ' ' . sprintf(
+                        /* translators: %s: number of failed labels */
                         _n(
-                            /* translators: %s: number of failed labels */
                             '%s label failed to generate.',
                             '%s labels failed to generate.',
                             $failed,
@@ -327,7 +329,7 @@ class GLS_Shipping_Bulk
                 if (isset($_REQUEST['gls_labels_printed']) && isset($_REQUEST['gls_pdf_url'])) {
                     $printed = intval($_REQUEST['gls_labels_printed']);
                     $failed = isset($_REQUEST['gls_labels_failed']) ? intval($_REQUEST['gls_labels_failed']) : 0;
-                    $pdf_url = esc_url_raw(urldecode($_REQUEST['gls_pdf_url']));
+                    $pdf_url = esc_url_raw(urldecode(sanitize_text_field(wp_unslash($_REQUEST['gls_pdf_url']))));
                     
                     // Sanitize failed_orders - only allow integers (order IDs)
                     $failed_orders = array();
@@ -344,8 +346,8 @@ class GLS_Shipping_Bulk
                     
                     // Prepare success message
                     $message = sprintf(
+                        /* translators: %s: number of orders processed */
                         _n(
-                            /* translators: %s: number of orders processed */
                             'GLS label for %s order has been generated. ',
                             'GLS labels for %s orders have been generated. ',
                             $printed,
@@ -357,8 +359,8 @@ class GLS_Shipping_Bulk
                     // Add failure message if any labels failed to generate
                     if ($failed > 0) {
                         $message .= sprintf(
+                            /* translators: %s: number of failed labels */
                             _n(
-                                /* translators: %s: number of failed labels */
                                 '%s label failed to generate. ',
                                 '%s labels failed to generate. ',
                                 $failed,
@@ -368,12 +370,13 @@ class GLS_Shipping_Bulk
                         );
                         if (!empty($failed_orders)) {
                             $message .= sprintf(
+                                /* translators: %s: comma-separated list of order IDs that failed */
                                 __('Failed order IDs: %s', 'gls-shipping-for-woocommerce'),
                                 esc_html(implode(', ', $failed_orders))
                             );
                         }
                     }
-                    
+
                     $message .= sprintf(
                         /* translators: %s: URL to download the PDF file */
                         __('<br><a href="%s" target="_blank">Click here to download the PDF</a>', 'gls-shipping-for-woocommerce'),
@@ -390,7 +393,8 @@ class GLS_Shipping_Bulk
                     
                     // Display specific error message if available
                     if (isset($_REQUEST['gls_error_message']) && !empty($_REQUEST['gls_error_message'])) {
-                        $error_detail = sanitize_text_field(urldecode($_REQUEST['gls_error_message']));
+                        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized via sanitize_text_field after urldecode
+                        $error_detail = sanitize_text_field(urldecode(wp_unslash($_REQUEST['gls_error_message'])));
                         $message .= ' ' . sprintf(
                             /* translators: %s: error message from GLS API */
                             __('Error: %s', 'gls-shipping-for-woocommerce'),
@@ -406,6 +410,7 @@ class GLS_Shipping_Bulk
             }
         }
     }
+    // phpcs:enable WordPress.Security.NonceVerification.Recommended
 
     // Enqueue bulk styles
     public function admin_enqueue_styles()
@@ -506,9 +511,9 @@ class GLS_Shipping_Bulk
             }
         }
 
-        // Display the tracking numbers
+        // Display the tracking numbers (each element is already escaped with esc_html())
         if (!empty($tracking_numbers)) {
-            echo implode(' ', $tracking_numbers);
+            echo wp_kses_post( implode(' ', $tracking_numbers) );
         } else {
             echo '-';
         }

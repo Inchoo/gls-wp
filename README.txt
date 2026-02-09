@@ -1,7 +1,7 @@
 === GLS Shipping for WooCommerce ===
 Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
-Requires at least: 4.4
+Requires at least: 5.9
 Tested up to: 6.9
 Stable tag: 1.4.1
 License: GPLv2
