@@ -151,8 +151,8 @@ class GLS_Shipping_API_Service
 
 	public function get_parcel_status($parcel_number)
 	{
-		$tracking_api_url = $this->get_api_url('ParcelService', 'GetParcelStatuses');
-		
+		$this->api_url = $this->get_api_url('ParcelService', 'GetParcelStatuses');
+
 		$post_fields = array(
 			'Username' => $this->get_option("username"),
 			'Password' => $this->get_password(),
@@ -168,7 +168,7 @@ class GLS_Shipping_API_Service
 			'data_format' => 'body',
 		);
 
-		$response = wp_remote_post($tracking_api_url, $params);
+		$response = wp_remote_post($this->api_url, $params);
 
 		if (is_wp_error($response)) {
 			$error_message = esc_html($response->get_error_message());
