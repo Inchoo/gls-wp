@@ -326,9 +326,25 @@ add_action(
     function () {
         if (class_exists(\Automattic\WooCommerce\Utilities\FeaturesUtil::class)) {
             \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('custom_order_tables', __FILE__, true);
+            \Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility('cart_checkout_blocks', __FILE__, true);
         }
     }
 );
+
+// Register WooCommerce Checkout Blocks integration
+add_action('woocommerce_blocks_loaded', function () {
+    require_once GLS_SHIPPING_ABSPATH . 'includes/blocks/class-gls-blocks-integration.php';
+
+    // Register Store API endpoint and order hooks early — needed for REST API checkout requests.
+    GLS_Blocks_Integration::register_store_api();
+
+    add_action(
+        'woocommerce_blocks_checkout_block_registration',
+        function ($integration_registry) {
+            $integration_registry->register(new GLS_Blocks_Integration());
+        }
+    );
+});
 
 // Register activation hook to setup labels directory
 register_activation_hook(__FILE__, array('GLS_Shipping_For_Woo', 'on_plugin_activation'));
