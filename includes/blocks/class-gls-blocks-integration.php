@@ -213,7 +213,7 @@ class GLS_Blocks_Integration implements IntegrationInterface {
 		if ( empty( $gls_data['pickup_data'] ) ) {
 			throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
 				'gls_pickup_required',
-				__( 'Please select a parcel locker/shop by clicking on Select Parcel button.', 'gls-shipping-for-woocommerce' ),
+				esc_html__( 'Please select a parcel locker/shop by clicking on Select Parcel button.', 'gls-shipping-for-woocommerce' ),
 				400
 			);
 		}
