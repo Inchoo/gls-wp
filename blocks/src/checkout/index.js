@@ -105,7 +105,7 @@ const GlsPickupComponent = () => {
 			<button
 				type="button"
 				onClick={ openMap }
-				className="gls-blocks-pickup-button"
+				className="wp-element-button gls-blocks-pickup-button"
 			>
 				{ isLocker
 					? settings.i18n?.selectParcelLocker

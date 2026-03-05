@@ -193,6 +193,11 @@ class GLS_Blocks_Integration implements IntegrationInterface {
 	 * @throws \Automattic\WooCommerce\StoreApi\Exceptions\RouteException If validation fails.
 	 */
 	public static function validate_pickup_selection( $order, $request ) {
+		// Only validate on actual checkout submission (POST), not intermediate updates (PUT).
+		if ( $request->get_method() !== 'POST' ) {
+			return;
+		}
+
 		$shipping_methods = $order->get_shipping_methods();
 		$needs_pickup     = false;
 
