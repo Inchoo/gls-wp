@@ -23,6 +23,34 @@ class GLS_Shipping_Order
         // Save GLS settings when order is updated
         add_action('woocommerce_process_shop_order_meta', array($this, 'save_gls_order_settings'), 10, 2);
         add_action('save_post_shop_order', array($this, 'save_gls_order_settings'), 10, 2);
+
+        // Auto-complete order after successful label generation when enabled in settings
+        add_action('gls_label_generated', array($this, 'maybe_auto_complete_order'), 10, 2);
+    }
+
+    /**
+     * Mark order as completed after the GLS shipping label is generated,
+     * if the "Auto Complete Order" option is enabled in the plugin settings.
+     */
+    public function maybe_auto_complete_order($order_id, $order)
+    {
+        $settings = get_option('woocommerce_gls_shipping_method_settings');
+        if (empty($settings['auto_complete_order']) || $settings['auto_complete_order'] !== 'yes') {
+            return;
+        }
+
+        if (!$order instanceof WC_Order) {
+            $order = wc_get_order($order_id);
+        }
+
+        if (!$order || $order->get_status() === 'completed') {
+            return;
+        }
+
+        $order->update_status(
+            'completed',
+            __('Order automatically completed after GLS label generation.', 'gls-shipping-for-woocommerce')
+        );
     }
 
     public function add_gls_shipping_info_meta_box()
