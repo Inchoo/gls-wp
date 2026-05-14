@@ -239,6 +239,17 @@ max_weight|cost',
 						'desc_tip'    => true,
 						'default'     => 'no',
 					),
+					'free_shipping_product_condition' => array(
+						'title'       => __('Free Shipping Product Condition', 'gls-shipping-for-woocommerce'),
+						'type'        => 'select',
+						'description' => __('Controls when the per-product "GLS Free Shipping" flag triggers free GLS shipping. ANY: free shipping if at least one cart item is flagged. ALL: free shipping only if every cart item is flagged.', 'gls-shipping-for-woocommerce'),
+						'desc_tip'    => true,
+						'default'     => 'any',
+						'options'     => array(
+							'any' => __('ANY – at least one product in cart is flagged', 'gls-shipping-for-woocommerce'),
+							'all' => __('ALL – every product in cart must be flagged', 'gls-shipping-for-woocommerce'),
+						),
+					),
 					'sub_section' => array(
 						'title'       => __('GLS Services', 'gls-shipping-for-woocommerce'),
 						'type'        => 'title',
