@@ -1,12 +1,112 @@
 import { registerPlugin } from '@wordpress/plugins';
 import { ExperimentalOrderShippingPackages } from '@woocommerce/blocks-checkout';
 import { useState, useRef, useEffect, useCallback } from '@wordpress/element';
-import { useSelect, useDispatch } from '@wordpress/data';
+import { useSelect, useDispatch, select, subscribe } from '@wordpress/data';
 import { getSetting } from '@woocommerce/settings';
 
 import './index.css';
 
 const settings = getSetting( 'gls-shipping_data', {} );
+
+/**
+ * Returns true when the given shipping method id belongs to GLS.
+ *
+ * @param {string} methodId Shipping method id from a rate.
+ * @return {boolean} Whether it is a GLS method.
+ */
+const isGlsMethod = ( methodId ) =>
+	typeof methodId === 'string' &&
+	methodId.indexOf( 'gls_shipping_method' ) === 0;
+
+/**
+ * Collects the rate_id of every GLS shipping rate currently in the cart store.
+ *
+ * @return {Set<string>} Set of GLS rate ids.
+ */
+const getGlsRateIds = () => {
+	const ids = new Set();
+	const store = select( 'wc/store/cart' );
+	if ( ! store ) return ids;
+	const packages = store.getShippingRates() || [];
+	packages.forEach( ( pkg ) => {
+		( pkg.shipping_rates || [] ).forEach( ( rate ) => {
+			if ( isGlsMethod( rate.method_id ) ) {
+				ids.add( rate.rate_id );
+			}
+		} );
+	} );
+	return ids;
+};
+
+/**
+ * Prepends the GLS logo to every GLS shipping option label in the DOM.
+ *
+ * The block-based Cart/Checkout render shipping labels through the Store API,
+ * which strips HTML, so the classic `woocommerce_*_full_label` filters can not
+ * be used here. Instead we inject the logo directly into the rendered radio
+ * control, matching options by their rate_id (the radio input value).
+ */
+const injectGlsLogos = () => {
+	if ( ! settings.showLogo || ! settings.logoUrl ) return;
+
+	const glsRateIds = getGlsRateIds();
+	if ( ! glsRateIds.size ) return;
+
+	const inputs = document.querySelectorAll(
+		'.wc-block-components-radio-control__input'
+	);
+
+	inputs.forEach( ( input ) => {
+		if ( ! glsRateIds.has( input.value ) ) return;
+
+		const option = input.closest(
+			'.wc-block-components-radio-control__option'
+		);
+		if ( ! option ) return;
+
+		const labelEl =
+			option.querySelector(
+				'.wc-block-components-radio-control__label'
+			) ||
+			option.querySelector(
+				'.wc-block-components-radio-control__label-group'
+			);
+		if ( ! labelEl || labelEl.querySelector( '.gls-shipping-logo' ) ) {
+			return;
+		}
+
+		const img = document.createElement( 'img' );
+		img.src = settings.logoUrl;
+		img.alt = 'GLS';
+		img.className = 'gls-shipping-logo';
+		labelEl.insertBefore( img, labelEl.firstChild );
+	} );
+};
+
+/**
+ * Starts watching the cart/checkout DOM and store so the GLS logo is injected
+ * (and re-injected after WooCommerce re-renders the shipping options).
+ */
+const initGlsLogo = () => {
+	if ( ! settings.showLogo || ! settings.logoUrl ) return;
+
+	const run = () => injectGlsLogos();
+
+	if ( document.readyState === 'loading' ) {
+		document.addEventListener( 'DOMContentLoaded', run );
+	} else {
+		run();
+	}
+
+	// Re-inject when WooCommerce re-renders shipping options (selection,
+	// address change, totals refresh, etc.).
+	subscribe( run, 'wc/store/cart' );
+
+	const observer = new MutationObserver( run );
+	observer.observe( document.body, { childList: true, subtree: true } );
+};
+
+initGlsLogo();
 
 const GlsPickupComponent = () => {
 	const [ pickupData, setPickupData ] = useState( null );

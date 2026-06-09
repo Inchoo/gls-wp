@@ -86,6 +86,33 @@ class GLS_Blocks_Integration implements IntegrationInterface {
 	}
 
 	/**
+	 * Enqueue the block stylesheet on the cart/checkout frontend.
+	 *
+	 * WooCommerce auto-enqueues the script returned by get_script_handles(),
+	 * but not the integration's stylesheet, so we enqueue it here. Gated to
+	 * cart/checkout pages (the conditionals are true for block pages too).
+	 */
+	public static function enqueue_block_styles() {
+		if ( ! function_exists( 'is_cart' ) || ( ! is_cart() && ! is_checkout() ) ) {
+			return;
+		}
+
+		if ( ! wp_style_is( 'gls-shipping-blocks-checkout', 'registered' ) ) {
+			$asset_file = GLS_SHIPPING_ABSPATH . 'blocks/build/checkout.asset.php';
+			$asset      = file_exists( $asset_file ) ? require $asset_file : array( 'version' => GLS_SHIPPING_VERSION );
+
+			wp_register_style(
+				'gls-shipping-blocks-checkout',
+				GLS_SHIPPING_URL . 'blocks/build/checkout.css',
+				array(),
+				$asset['version']
+			);
+		}
+
+		wp_enqueue_style( 'gls-shipping-blocks-checkout' );
+	}
+
+	/**
 	 * Returns an array of script handles to enqueue in the frontend context.
 	 *
 	 * @return string[]

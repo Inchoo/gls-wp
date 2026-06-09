@@ -29,3 +29,17 @@
 	font-size: 14px;
 	line-height: 1.6;
 }
+
+.gls-shipping-logo {
+	display: inline !important;
+	max-height: 32px !important;
+	height: auto !important;
+	width: auto !important;
+	margin-right: 8px !important;
+	margin-left: 0 !important;
+	vertical-align: middle !important;
+	max-width: 54px !important;
+	border: none !important;
+	box-shadow: none !important;
+	background: none !important;
+}

@@ -338,12 +338,17 @@ add_action('woocommerce_blocks_loaded', function () {
     // Register Store API endpoint and order hooks early — needed for REST API checkout requests.
     GLS_Blocks_Integration::register_store_api();
 
-    add_action(
-        'woocommerce_blocks_checkout_block_registration',
-        function ($integration_registry) {
-            $integration_registry->register(new GLS_Blocks_Integration());
-        }
-    );
+    $gls_blocks_registration = function ($integration_registry) {
+        $integration_registry->register(new GLS_Blocks_Integration());
+    };
+
+    // Checkout block: pickup selection + logo. Cart block: logo only.
+    add_action('woocommerce_blocks_checkout_block_registration', $gls_blocks_registration);
+    add_action('woocommerce_blocks_cart_block_registration', $gls_blocks_registration);
+
+    // WooCommerce enqueues the integration's script but not its stylesheet,
+    // so enqueue the block CSS (GLS logo styles) on the cart/checkout frontend.
+    add_action('wp_enqueue_scripts', array('GLS_Blocks_Integration', 'enqueue_block_styles'));
 });
 
 // Register activation hook to setup labels directory
