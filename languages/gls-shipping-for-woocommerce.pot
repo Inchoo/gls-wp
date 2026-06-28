@@ -2,14 +2,14 @@
 # This file is distributed under the GPLv2.
 msgid ""
 msgstr ""
-"Project-Id-Version: GLS Shipping for WooCommerce 1.4.2\n"
+"Project-Id-Version: GLS Shipping for WooCommerce 1.5.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/gls-shipping-for-woocommerce\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-05-15T13:34:51+00:00\n"
+"POT-Creation-Date: 2026-06-28T20:27:43+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: gls-shipping-for-woocommerce\n"
@@ -446,8 +446,9 @@ msgid "Contact Phone"
 msgstr ""
 
 #: includes/admin/class-gls-shipping-pickup.php:365
-#: includes/public/class-gls-shipping-assets.php:61
-#: includes/public/class-gls-shipping-assets.php:139
+#: includes/blocks/class-gls-blocks-integration.php:150
+#: includes/public/class-gls-shipping-assets.php:71
+#: includes/public/class-gls-shipping-assets.php:149
 msgid "Address"
 msgstr ""
 
@@ -527,6 +528,42 @@ msgstr ""
 
 #: includes/api/class-gls-shipping-pickup-api-service.php:82
 msgid "GLS API credentials not configured."
+msgstr ""
+
+#: includes/blocks/class-gls-blocks-integration.php:146
+#: includes/public/class-gls-shipping-checkout.php:102
+msgid "Select Parcel Locker"
+msgstr ""
+
+#: includes/blocks/class-gls-blocks-integration.php:147
+#: includes/public/class-gls-shipping-checkout.php:104
+msgid "Select Parcel Shop"
+msgstr ""
+
+#: includes/blocks/class-gls-blocks-integration.php:148
+#: includes/public/class-gls-shipping-assets.php:69
+#: includes/public/class-gls-shipping-assets.php:147
+msgid "Pickup Location"
+msgstr ""
+
+#: includes/blocks/class-gls-blocks-integration.php:149
+#: includes/methods/class-gls-shipping-method.php:397
+#: includes/public/class-gls-shipping-assets.php:70
+#: includes/public/class-gls-shipping-assets.php:148
+msgid "Name"
+msgstr ""
+
+#: includes/blocks/class-gls-blocks-integration.php:151
+#: includes/methods/class-gls-shipping-method.php:153
+#: includes/public/class-gls-shipping-assets.php:72
+#: includes/public/class-gls-shipping-assets.php:150
+msgid "Country"
+msgstr ""
+
+#: includes/blocks/class-gls-blocks-integration.php:152
+#: includes/blocks/class-gls-blocks-integration.php:248
+#: includes/public/class-gls-shipping-checkout.php:68
+msgid "Please select a parcel locker/shop by clicking on Select Parcel button."
 msgstr ""
 
 #: includes/helpers/class-gls-shipping-account-helper.php:73
@@ -885,12 +922,6 @@ msgstr ""
 msgid "Enter your GLS Password."
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:153
-#: includes/public/class-gls-shipping-assets.php:62
-#: includes/public/class-gls-shipping-assets.php:140
-msgid "Country"
-msgstr ""
-
 #: includes/methods/class-gls-shipping-method.php:155
 msgid "Select the country for the GLS service."
 msgstr ""
@@ -1136,12 +1167,6 @@ msgstr ""
 msgid "Default"
 msgstr ""
 
-#: includes/methods/class-gls-shipping-method.php:397
-#: includes/public/class-gls-shipping-assets.php:60
-#: includes/public/class-gls-shipping-assets.php:138
-msgid "Name"
-msgstr ""
-
 #: includes/methods/class-gls-shipping-method.php:408
 msgid "No custom sender address (use default from store settings)"
 msgstr ""
@@ -1178,21 +1203,4 @@ msgstr ""
 
 #: includes/methods/class-gls-shipping-method.php:625
 msgid "Multiple accounts mode was not saved because no valid GLS accounts were found. Please add at least one account to use multiple accounts mode."
-msgstr ""
-
-#: includes/public/class-gls-shipping-assets.php:59
-#: includes/public/class-gls-shipping-assets.php:137
-msgid "Pickup Location"
-msgstr ""
-
-#: includes/public/class-gls-shipping-checkout.php:68
-msgid "Please select a parcel locker/shop by clicking on Select Parcel button."
-msgstr ""
-
-#: includes/public/class-gls-shipping-checkout.php:102
-msgid "Select Parcel Locker"
-msgstr ""
-
-#: includes/public/class-gls-shipping-checkout.php:104
-msgid "Select Parcel Shop"
 msgstr ""
