@@ -427,7 +427,7 @@ msgstr "ID neúspěšných objednávek: %s"
 #: includes/methods/class-gls-shipping-method-parcel-locker-zones.php:103
 #: includes/methods/class-gls-shipping-method-parcel-locker.php:134
 msgid "Filter locker locations on the map for Hungary. Only applies when country is Hungary."
-msgstr ""
+msgstr "Filtrovat umístění boxů na mapě pro Maďarsko. Platí pouze pokud je země Maďarsko."
 "Filtrovat umístění výdejních boxů na mapě pro Maďarsko. Platí pouze v případě, že je země Maďarsko.\n"
 ""
 
@@ -483,7 +483,7 @@ msgstr "Německo"
 #: includes/admin/class-gls-shipping-order.php:228
 #, php-format
 msgid "Get Parcel Status #%1$d (%2$s)"
-msgstr ""
+msgstr "Získat stav zásilky #%1$d (%2$s)"
 "Získat stav zásilky #%1$d (%2$s)\n"
 ""
 
@@ -491,7 +491,7 @@ msgstr ""
 #: includes/admin/class-gls-shipping-order.php:231
 #, php-format
 msgid "Get Parcel Status (%s)"
-msgstr ""
+msgstr "Získat stav zásilky (%s)"
 "Získat stav zásilky (%s)\n"
 ""
 
@@ -1177,40 +1177,40 @@ msgstr "⚙️ Pokročilé služby"
 
 #: includes/admin/class-gls-shipping-order.php:52
 msgid "Order automatically completed after GLS label generation."
-msgstr ""
+msgstr "Objednávka byla automaticky dokončena po vygenerování štítku GLS."
 
 #: includes/admin/class-gls-shipping-product-restrictions.php:46
 msgid "GLS Free Shipping"
-msgstr ""
+msgstr "GLS doprava zdarma"
 
 #: includes/admin/class-gls-shipping-product-restrictions.php:47
 msgid "Check this box to offer free shipping on GLS methods when this product is in the cart. Only affects GLS shipping methods."
-msgstr ""
+msgstr "Zaškrtněte toto pole, abyste nabídli dopravu zdarma pro GLS metody, když je tento produkt v košíku. Ovlivňuje pouze GLS přepravní metody."
 
 #: includes/methods/class-gls-shipping-method.php:235
 msgid "Auto Complete Order"
-msgstr ""
+msgstr "Automaticky dokončit objednávku"
 
 #: includes/methods/class-gls-shipping-method.php:237
 msgid "Automatically mark order as Completed after label is printed"
-msgstr ""
+msgstr "Automaticky označit objednávku jako Dokončenou po vytisknutí štítku"
 
 #: includes/methods/class-gls-shipping-method.php:238
 msgid "When enabled, the order status will be set to Completed after a GLS shipping label is successfully generated."
-msgstr ""
+msgstr "Pokud je povoleno, stav objednávky bude nastaven na Dokončeno po úspěšném vygenerování přepravního štítku GLS."
 
 #: includes/methods/class-gls-shipping-method.php:243
 msgid "Free Shipping Product Condition"
-msgstr ""
+msgstr "Podmínka dopravy zdarma podle produktu"
 
 #: includes/methods/class-gls-shipping-method.php:245
 msgid "Controls when the per-product \"GLS Free Shipping\" flag triggers free GLS shipping. ANY: free shipping if at least one cart item is flagged. ALL: free shipping only if every cart item is flagged."
-msgstr ""
+msgstr "Určuje, kdy příznak \"GLS doprava zdarma\" u produktu aktivuje dopravu zdarma GLS. ANY: doprava zdarma, pokud je alespoň jedna položka v košíku označena. ALL: doprava zdarma pouze pokud je každá položka v košíku označena."
 
 #: includes/methods/class-gls-shipping-method.php:249
 msgid "ANY – at least one product in cart is flagged"
-msgstr ""
+msgstr "ANY – alespoň jeden produkt v košíku je označen"
 
 #: includes/methods/class-gls-shipping-method.php:250
 msgid "ALL – every product in cart must be flagged"
-msgstr ""
+msgstr "ALL – každý produkt v košíku musí být označen"

@@ -484,7 +484,7 @@ msgstr "Csomag státusz lekérdezése #%1$d (%2$s)"
 #: includes/admin/class-gls-shipping-order.php:231
 #, php-format
 msgid "Get Parcel Status (%s)"
-msgstr ""
+msgstr "Csomag állapotának lekérdezése (%s)"
 "Csomag státusz lekérdezése (%s)\n"
 ""
 
@@ -1169,40 +1169,40 @@ msgstr "⚙️ Speciális szolgáltatások"
 
 #: includes/admin/class-gls-shipping-order.php:52
 msgid "Order automatically completed after GLS label generation."
-msgstr ""
+msgstr "A rendelés automatikusan teljesítve a GLS csomagcímke előállítása után."
 
 #: includes/admin/class-gls-shipping-product-restrictions.php:46
 msgid "GLS Free Shipping"
-msgstr ""
+msgstr "GLS ingyenes szállítás"
 
 #: includes/admin/class-gls-shipping-product-restrictions.php:47
 msgid "Check this box to offer free shipping on GLS methods when this product is in the cart. Only affects GLS shipping methods."
-msgstr ""
+msgstr "Jelölje be ezt a négyzetet, hogy ingyenes szállítást kínáljon GLS módszerekkel, ha ez a termék a kosárban van. Csak a GLS szállítási módszerekre van hatással."
 
 #: includes/methods/class-gls-shipping-method.php:235
 msgid "Auto Complete Order"
-msgstr ""
+msgstr "Rendelés automatikus teljesítése"
 
 #: includes/methods/class-gls-shipping-method.php:237
 msgid "Automatically mark order as Completed after label is printed"
-msgstr ""
+msgstr "Rendelés automatikus megjelölése Teljesítettként a címke nyomtatása után"
 
 #: includes/methods/class-gls-shipping-method.php:238
 msgid "When enabled, the order status will be set to Completed after a GLS shipping label is successfully generated."
-msgstr ""
+msgstr "Ha engedélyezve van, a rendelés státusza Teljesítettre lesz állítva a GLS szállítási csomagcímke sikeres előállítása után."
 
 #: includes/methods/class-gls-shipping-method.php:243
 msgid "Free Shipping Product Condition"
-msgstr ""
+msgstr "Termékenkénti ingyenes szállítás feltétele"
 
 #: includes/methods/class-gls-shipping-method.php:245
 msgid "Controls when the per-product \"GLS Free Shipping\" flag triggers free GLS shipping. ANY: free shipping if at least one cart item is flagged. ALL: free shipping only if every cart item is flagged."
-msgstr ""
+msgstr "Szabályozza, hogy a termékenkénti \"GLS ingyenes szállítás\" jelölés mikor aktiválja az ingyenes GLS szállítást. ANY: ingyenes szállítás, ha legalább egy termék a kosárban meg van jelölve. ALL: ingyenes szállítás csak akkor, ha minden termék a kosárban meg van jelölve."
 
 #: includes/methods/class-gls-shipping-method.php:249
 msgid "ANY – at least one product in cart is flagged"
-msgstr ""
+msgstr "ANY – legalább egy termék a kosárban meg van jelölve"
 
 #: includes/methods/class-gls-shipping-method.php:250
 msgid "ALL – every product in cart must be flagged"
-msgstr ""
+msgstr "ALL – minden terméket meg kell jelölni a kosárban"

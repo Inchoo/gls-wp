@@ -1171,40 +1171,40 @@ msgstr "⚙️ Pokročilé služby"
 
 #: includes/admin/class-gls-shipping-order.php:52
 msgid "Order automatically completed after GLS label generation."
-msgstr ""
+msgstr "Objednávka bola automaticky dokončená po vygenerovaní GLS štítku."
 
 #: includes/admin/class-gls-shipping-product-restrictions.php:46
 msgid "GLS Free Shipping"
-msgstr ""
+msgstr "GLS doprava zadarmo"
 
 #: includes/admin/class-gls-shipping-product-restrictions.php:47
 msgid "Check this box to offer free shipping on GLS methods when this product is in the cart. Only affects GLS shipping methods."
-msgstr ""
+msgstr "Zaškrtnite toto pole, ak chcete ponúknuť dopravu zadarmo pre GLS metódy, keď je tento produkt v košíku. Ovplyvňuje iba GLS prepravné metódy."
 
 #: includes/methods/class-gls-shipping-method.php:235
 msgid "Auto Complete Order"
-msgstr ""
+msgstr "Automaticky dokončiť objednávku"
 
 #: includes/methods/class-gls-shipping-method.php:237
 msgid "Automatically mark order as Completed after label is printed"
-msgstr ""
+msgstr "Automaticky označiť objednávku ako Dokončenú po vytlačení štítku"
 
 #: includes/methods/class-gls-shipping-method.php:238
 msgid "When enabled, the order status will be set to Completed after a GLS shipping label is successfully generated."
-msgstr ""
+msgstr "Keď je povolené, stav objednávky bude nastavený na Dokončené po úspešnom vygenerovaní GLS prepravného štítku."
 
 #: includes/methods/class-gls-shipping-method.php:243
 msgid "Free Shipping Product Condition"
-msgstr ""
+msgstr "Podmienka dopravy zadarmo podľa produktu"
 
 #: includes/methods/class-gls-shipping-method.php:245
 msgid "Controls when the per-product \"GLS Free Shipping\" flag triggers free GLS shipping. ANY: free shipping if at least one cart item is flagged. ALL: free shipping only if every cart item is flagged."
-msgstr ""
+msgstr "Určuje, kedy príznak \"GLS doprava zadarmo\" pri produkte aktivuje dopravu zadarmo GLS. ANY: doprava zadarmo, ak je aspoň jedna položka v košíku označená. ALL: doprava zadarmo iba ak je každá položka v košíku označená."
 
 #: includes/methods/class-gls-shipping-method.php:249
 msgid "ANY – at least one product in cart is flagged"
-msgstr ""
+msgstr "ANY – aspoň jeden produkt v košíku je označený"
 
 #: includes/methods/class-gls-shipping-method.php:250
 msgid "ALL – every product in cart must be flagged"
-msgstr ""
+msgstr "ALL – každý produkt v košíku musí byť označený"

@@ -487,7 +487,7 @@ msgstr "Obține statusul coletului #%1$d (%2$s)"
 #: includes/admin/class-gls-shipping-order.php:231
 #, php-format
 msgid "Get Parcel Status (%s)"
-msgstr ""
+msgstr "Obține statusul coletului (%s)"
 "Obține statusul coletului (%s)\n"
 ""
 
@@ -1173,40 +1173,40 @@ msgstr "⚙️ Servicii avansate"
 
 #: includes/admin/class-gls-shipping-order.php:52
 msgid "Order automatically completed after GLS label generation."
-msgstr ""
+msgstr "Comanda a fost finalizată automat după generarea etichetei GLS."
 
 #: includes/admin/class-gls-shipping-product-restrictions.php:46
 msgid "GLS Free Shipping"
-msgstr ""
+msgstr "GLS livrare gratuită"
 
 #: includes/admin/class-gls-shipping-product-restrictions.php:47
 msgid "Check this box to offer free shipping on GLS methods when this product is in the cart. Only affects GLS shipping methods."
-msgstr ""
+msgstr "Bifați această casetă pentru a oferi livrare gratuită prin metodele GLS atunci când acest produs este în coș. Afectează doar metodele de livrare GLS."
 
 #: includes/methods/class-gls-shipping-method.php:235
 msgid "Auto Complete Order"
-msgstr ""
+msgstr "Finalizează automat comanda"
 
 #: includes/methods/class-gls-shipping-method.php:237
 msgid "Automatically mark order as Completed after label is printed"
-msgstr ""
+msgstr "Marchează automat comanda ca Finalizată după tipărirea etichetei"
 
 #: includes/methods/class-gls-shipping-method.php:238
 msgid "When enabled, the order status will be set to Completed after a GLS shipping label is successfully generated."
-msgstr ""
+msgstr "Când este activat, statusul comenzii va fi setat la Finalizat după generarea cu succes a unei etichete de livrare GLS."
 
 #: includes/methods/class-gls-shipping-method.php:243
 msgid "Free Shipping Product Condition"
-msgstr ""
+msgstr "Condiție de livrare gratuită pe produs"
 
 #: includes/methods/class-gls-shipping-method.php:245
 msgid "Controls when the per-product \"GLS Free Shipping\" flag triggers free GLS shipping. ANY: free shipping if at least one cart item is flagged. ALL: free shipping only if every cart item is flagged."
-msgstr ""
+msgstr "Controlează când marcajul \"GLS livrare gratuită\" pe produs declanșează livrarea gratuită GLS. ANY: livrare gratuită dacă cel puțin un produs din coș este marcat. ALL: livrare gratuită doar dacă fiecare produs din coș este marcat."
 
 #: includes/methods/class-gls-shipping-method.php:249
 msgid "ANY – at least one product in cart is flagged"
-msgstr ""
+msgstr "ANY – cel puțin un produs din coș este marcat"
 
 #: includes/methods/class-gls-shipping-method.php:250
 msgid "ALL – every product in cart must be flagged"
-msgstr ""
+msgstr "ALL – fiecare produs din coș trebuie să fie marcat"
