@@ -34,7 +34,7 @@ class GLS_Shipping_Order
      */
     public function maybe_auto_complete_order($order_id, $order)
     {
-        $settings = get_option('woocommerce_gls_shipping_method_settings');
+        $settings = get_option('woocommerce_gls_shipping_method_settings', array());
         if (empty($settings['auto_complete_order']) || $settings['auto_complete_order'] !== 'yes') {
             return;
         }
@@ -43,7 +43,18 @@ class GLS_Shipping_Order
             $order = wc_get_order($order_id);
         }
 
-        if (!$order || $order->get_status() === 'completed') {
+        if (!$order) {
+            return;
+        }
+
+        // Only auto-complete orders that are in a known "ready to fulfill" state.
+        $allowed_statuses = apply_filters(
+            'gls_auto_complete_allowed_statuses',
+            array('processing', 'on-hold'),
+            $order
+        );
+
+        if (!in_array($order->get_status(), $allowed_statuses, true)) {
             return;
         }
 
