@@ -26,6 +26,29 @@ class GLS_Shipping_Order
 
         // Auto-complete order after successful label generation when enabled in settings
         add_action('gls_label_generated', array($this, 'maybe_auto_complete_order'), 10, 2);
+
+        // Auto-complete orders after successful bulk print label generation
+        add_action('gls_bulk_labels_generated', array($this, 'maybe_auto_complete_bulk_orders'), 10, 3);
+    }
+
+    /**
+     * Auto-complete each successfully processed order after a bulk print label run.
+     *
+     * The bulk print flow does not call save_label_and_tracking_info()
+     *
+     * @param array $order_ids         All order IDs included in the bulk action.
+     * @param array $successful_orders Order IDs that received a label.
+     * @param array $failed_orders     Orders that failed.
+     */
+    public function maybe_auto_complete_bulk_orders($order_ids, $successful_orders, $failed_orders)
+    {
+        if (empty($successful_orders) || !is_array($successful_orders)) {
+            return;
+        }
+
+        foreach ($successful_orders as $order_id) {
+            $this->maybe_auto_complete_order($order_id, null);
+        }
     }
 
     /**

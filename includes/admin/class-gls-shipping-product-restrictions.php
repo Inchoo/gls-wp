@@ -107,6 +107,7 @@ class GLS_Shipping_Product_Restrictions
     {
         $gls_method_ids = array(
             'gls_shipping_method',
+            'gls_shipping_method_zones',
             'gls_shipping_method_parcel_shop',
             'gls_shipping_method_parcel_locker',
             'gls_shipping_method_parcel_shop_zones',
