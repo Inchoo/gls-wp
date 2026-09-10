@@ -314,11 +314,17 @@
 				codReference = $('#gls_cod_reference_new').val();
 			}
 
+			// Get parcel weight - check both possible IDs for regenerate vs new label
+			let weight = $('#gls_weight').val();
+			if (weight === undefined || weight === '') {
+				weight = $('#gls_weight_new').val();
+			}
+
 			// Collect service options
 			const services = collectServiceOptions();
 
 			$button.prop('disabled', true);
-			generateGLSLabel(orderId, $button, count, printPosition, codReference, services);
+			generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weight);
 		});
 
 		// Get parcel status in order details page
@@ -356,7 +362,7 @@
 			const orderId = $(this).closest('tr').find('.check-column input').val();
 			const $button = $(this);
 			$button.addClass('disabled');
-			generateGLSLabel(orderId, $button, null, null, null, null); // Use saved order settings for all parameters
+			generateGLSLabel(orderId, $button, null, null, null, null, null); // Use saved order settings for all parameters
 		});
 
 		function collectServiceOptions() {
@@ -376,7 +382,7 @@
 			};
 		}
 
-		function generateGLSLabel(orderId, $button, count, printPosition, codReference, services) {
+		function generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weight) {
 			const data = {
 				action: 'gls_generate_label',
 				orderId: orderId,
@@ -386,6 +392,11 @@
 			// Add count if provided
 			if (count !== null && count !== undefined) {
 				data.count = count;
+			}
+
+			// Add weight if provided
+			if (weight !== null && weight !== undefined && weight !== '') {
+				data.weight = weight;
 			}
 
 			// Add print position if provided

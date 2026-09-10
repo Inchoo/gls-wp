@@ -426,6 +426,44 @@ class GLS_Shipping_API_Data
     }
 
     /**
+     * Builds the ParcelPropertyList for a parcel.
+     *
+     * GLS (mandatory for Serbia) requires the parcel weight to be sent inside
+     * ParcelPropertyList. The weight is expressed in kilograms.
+     *
+     * @param \WC_Order $order  The WooCommerce order instance.
+     * @param float|null $weight Optional explicit weight in kg. When null, the
+     *                           saved/calculated order weight is used.
+     * @return array|null The ParcelPropertyList array, or null when no weight is available.
+     * @throws Exception When shipping to Serbia and no weight is available.
+     */
+    private function build_parcel_property_list($order, $weight = null)
+    {
+        if ($weight === null || $weight === '') {
+            $weight = GLS_Shipping_Weight_Helper::get_order_weight($order);
+        }
+
+        $weight = (float) $weight;
+
+        // Weight (package mass) is mandatory for shipments to Serbia.
+        if ($order->get_shipping_country() === 'RS' && $weight <= 0) {
+            throw new Exception(
+                esc_html__('Package weight is required for shipments to Serbia. Please set the product weight(s) or enter the package weight in the GLS Shipping Info box before generating the label.', 'gls-shipping-for-woocommerce')
+            );
+        }
+
+        if ($weight <= 0) {
+            return null;
+        }
+
+        return [
+            [
+                'Weight' => $weight,
+            ],
+        ];
+    }
+
+    /**
      * Generates post fields for the API request for multiple orders.
      *
      * @return array The generated post fields for the API request.
@@ -478,11 +516,17 @@ class GLS_Shipping_API_Data
             $parcel['DeliveryAddress'] = $this->get_delivery_address($order);
             $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info, $services);
 
+            // Add parcel weight (ParcelPropertyList) - mandatory for Serbia
+            $parcel_property_list = $this->build_parcel_property_list($order);
+            if (!empty($parcel_property_list)) {
+                $parcel['ParcelPropertyList'] = $parcel_property_list;
+            }
+
             // Add SenderIdentityCardNumber for Serbia
             if ($order->get_shipping_country() === 'RS') {
                 $parcel['SenderIdentityCardNumber'] = $senderIdentityCardNumber;
             }
-            
+
             // Add Content with placeholder processing (for all countries)
             if (!empty($content)) {
                 $parcel['Content'] = $this->process_content_placeholders($content, $order);
@@ -525,9 +569,10 @@ class GLS_Shipping_API_Data
      * @param int|null $print_position Custom print position for this order.
      * @param string|null $cod_reference Custom COD reference for this order.
      * @param array|null $services Custom services for this order.
+     * @param float|null $weight Custom parcel weight in kg for this order.
      * @return array The generated post fields for the API request.
      */
-    public function generate_post_fields($count = 1, $print_position = null, $cod_reference = null, $services = null)
+    public function generate_post_fields($count = 1, $print_position = null, $cod_reference = null, $services = null, $weight = null)
     {
         if (empty($this->orders)) {
             throw new Exception("No orders available.");
@@ -553,11 +598,17 @@ class GLS_Shipping_API_Data
         $parcel['DeliveryAddress'] = $this->get_delivery_address($order);
         $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info, $services);
 
+        // Add parcel weight (ParcelPropertyList) - mandatory for Serbia
+        $parcel_property_list = $this->build_parcel_property_list($order, $weight);
+        if (!empty($parcel_property_list)) {
+            $parcel['ParcelPropertyList'] = $parcel_property_list;
+        }
+
         // Add SenderIdentityCardNumber for Serbia
         if ($order->get_shipping_country() === 'RS') {
             $parcel['SenderIdentityCardNumber'] = $senderIdentityCardNumber;
         }
-        
+
         // Add Content with placeholder processing (for all countries)
         if (!empty($content)) {
             $parcel['Content'] = $this->process_content_placeholders($content, $order);
