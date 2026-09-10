@@ -3,7 +3,7 @@
 /**
  * Plugin Name: GLS Shipping for WooCommerce
  * Description: Offical GLS Shipping for WooCommerce plugin
- * Version: 1.5.3
+ * Version: 1.5.4
  * Author: Inchoo
  * License: GPLv2
  * License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -24,7 +24,7 @@ final class GLS_Shipping_For_Woo
 {
     private static $instance;
 
-    private $version = '1.5.3';
+    private $version = '1.5.4';
 
     private function __construct()
     {
@@ -40,6 +40,7 @@ final class GLS_Shipping_For_Woo
         // Load helpers first
         require_once(GLS_SHIPPING_ABSPATH . 'includes/helpers/class-gls-shipping-sender-address-helper.php');
         require_once(GLS_SHIPPING_ABSPATH . 'includes/helpers/class-gls-shipping-account-helper.php');
+        require_once(GLS_SHIPPING_ABSPATH . 'includes/helpers/class-gls-shipping-weight-helper.php');
         
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-assets.php');
         require_once(GLS_SHIPPING_ABSPATH . 'includes/public/class-gls-shipping-checkout.php');

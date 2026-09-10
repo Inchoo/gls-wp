@@ -186,6 +186,12 @@ class GLS_Shipping_Order
 
         // Use secure URL getter to handle both old and new format labels
         $gls_print_label = GLS_Shipping_For_Woo::get_secure_label_url($order->get_id());
+
+        // Parcel weight (kg) - use saved value if present, otherwise calculate from products
+        $saved_weight = $order->get_meta('_gls_weight', true);
+        $gls_weight_value = ($saved_weight !== '' && $saved_weight !== null)
+            ? (float) $saved_weight
+            : GLS_Shipping_Weight_Helper::calculate_order_weight($order);
         
         // Get tracking numbers for status buttons
         $tracking_codes = $order->get_meta('_gls_tracking_codes', true);
@@ -212,7 +218,11 @@ class GLS_Shipping_Order
                             <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="<?php echo esc_attr($order->get_meta('_gls_label_count', true) ?: 1); ?>" style="width: 60px;">
                         </div>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                            <?php 
+                            <span><?php esc_html_e("Package Weight (kg):", "gls-shipping-for-woocommerce"); ?></span>
+                            <input type="number" step="0.01" min="0" id="gls_weight" name="gls_weight" value="<?php echo esc_attr($gls_weight_value ?: ''); ?>" style="width: 60px;">
+                        </div>
+                        <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <?php
                             $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
                             $default_print_position = isset($gls_shipping_method_settings['print_position']) ? $gls_shipping_method_settings['print_position'] : '1';
                             $saved_print_position = $order->get_meta('_gls_print_position', true) ?: $default_print_position;
@@ -276,7 +286,11 @@ class GLS_Shipping_Order
                             <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="<?php echo esc_attr($order->get_meta('_gls_label_count', true) ?: 1); ?>" style="width: 60px;">
                         </div>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                            <?php 
+                            <span><?php esc_html_e("Package Weight (kg):", "gls-shipping-for-woocommerce"); ?></span>
+                            <input type="number" step="0.01" min="0" id="gls_weight_new" name="gls_weight_new" value="<?php echo esc_attr($gls_weight_value ?: ''); ?>" style="width: 60px;">
+                        </div>
+                        <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                            <?php
                             $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
                             $default_print_position = isset($gls_shipping_method_settings['print_position']) ? $gls_shipping_method_settings['print_position'] : '1';
                             $saved_print_position = $order->get_meta('_gls_print_position', true) ?: $default_print_position;
@@ -335,9 +349,10 @@ class GLS_Shipping_Order
      * @param int|null $print_position Print position (if null, uses saved or default)
      * @param string|null $cod_reference COD reference (if null, uses saved or default)
      * @param array|null $services Services array (if null, uses saved or default)
+     * @param float|null $weight Parcel weight in kg (if null, uses saved or calculated)
      * @return array Result with success status and data/error
      */
-    public function generate_single_order_label($order_id, $count = null, $print_position = null, $cod_reference = null, $services = null)
+    public function generate_single_order_label($order_id, $count = null, $print_position = null, $cod_reference = null, $services = null, $weight = null)
     {
         try {
             $order = wc_get_order($order_id);
@@ -368,10 +383,20 @@ class GLS_Shipping_Order
             if (empty($final_services)) {
                 $final_services = null;
             }
-            
+
+            // Resolve weight - use provided value, saved meta, or calculated from products
+            if ($weight !== null && $weight !== '') {
+                $final_weight = (float) $weight;
+            } else {
+                $final_weight = GLS_Shipping_Weight_Helper::get_order_weight($order);
+            }
+            if ($final_weight <= 0) {
+                $final_weight = null;
+            }
+
             // Prepare data for API request
             $prepare_data = new GLS_Shipping_API_Data($order_id);
-            $data = $prepare_data->generate_post_fields($final_count, $final_print_position, $final_cod_reference, $final_services);
+            $data = $prepare_data->generate_post_fields($final_count, $final_print_position, $final_cod_reference, $final_services, $final_weight);
 
             // Send to GLS API
             $api = new GLS_Shipping_API_Service();
@@ -400,9 +425,10 @@ class GLS_Shipping_Order
         $print_position = isset($_POST['printPosition']) ? intval($_POST['printPosition']) : null;
         $cod_reference = isset($_POST['codReference']) ? sanitize_text_field(wp_unslash($_POST['codReference'])) : null;
         $services = isset($_POST['services']) ? json_decode(sanitize_text_field(wp_unslash($_POST['services'])), true) : null;
-        
+        $weight = isset($_POST['weight']) && $_POST['weight'] !== '' ? (float) wc_clean(wp_unslash($_POST['weight'])) : null;
+
         // Use centralized method
-        $result = $this->generate_single_order_label($order_id, $count, $print_position, $cod_reference, $services);
+        $result = $this->generate_single_order_label($order_id, $count, $print_position, $cod_reference, $services, $weight);
         
         if ($result['success']) {
             wp_send_json_success(array('success' => true));
@@ -739,6 +765,18 @@ class GLS_Shipping_Order
             if ($label_count > 0) {
                 $order->update_meta_data('_gls_label_count', $label_count);
             }
+        }
+
+        // Save parcel weight if provided (check both possible fields)
+        $weight = null;
+        if (isset($_POST['gls_weight']) && $_POST['gls_weight'] !== '') {
+            $weight = (float) wc_clean(wp_unslash($_POST['gls_weight']));
+        } elseif (isset($_POST['gls_weight_new']) && $_POST['gls_weight_new'] !== '') {
+            $weight = (float) wc_clean(wp_unslash($_POST['gls_weight_new']));
+        }
+
+        if ($weight !== null && $weight > 0) {
+            $order->update_meta_data('_gls_weight', $weight);
         }
 
         // Save print position if provided (check both possible fields)

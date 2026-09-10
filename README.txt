@@ -3,7 +3,7 @@ Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 5.9
 Tested up to: 6.9
-Stable tag: 1.5.3
+Stable tag: 1.5.4
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,10 @@ To install and configure this plugin:
 == Screenshots ==
 
 == Changelog ==
+
+= 1.5.4 =
+* Feature: Added parcel weight (ParcelPropertyList) to the label request. Weight is required for shipments to Serbia and is now sent in kilograms.
+* Feature: Added an editable "Package Weight (kg)" field to the GLS Shipping Info box, pre-populated from the products' weight and adjustable per order.
 
 = 1.5.3 =
 * Fix: "Bulk Print GLS Labels" now saves parcel tracking numbers to the GLS Tracking Number column for shops that use a custom Order Reference Format (previously only worked with the default format).
