@@ -428,16 +428,23 @@ class GLS_Shipping_API_Data
     /**
      * Builds the ParcelPropertyList for a parcel.
      *
-     * The parcel weight (in kilograms) is sent inside ParcelPropertyList when
-     * available. The field is optional: when no weight data exists we omit it
-     * entirely and let GLS validate/handle it (matching the Magento behaviour).
+     * GLS expects one ParcelProperty entry per parcel, so the list length must
+     * match Count (this mirrors the Magento integration, where each package
+     * gets its own entry). We only have a single total order weight (no
+     * per-box breakdown), so the total is split evenly across the Count
+     * parcels; the last entry absorbs any rounding remainder so the sum stays
+     * exact.
+     *
+     * The weight (in kilograms) is optional: when no weight data exists we omit
+     * the field entirely and let GLS validate/handle it (Magento behaviour).
      *
      * @param \WC_Order $order  The WooCommerce order instance.
-     * @param float|null $weight Optional explicit weight in kg. When null, the
-     *                           saved/calculated order weight is used.
+     * @param float|null $weight Optional explicit total weight in kg. When null,
+     *                           the saved/calculated order weight is used.
+     * @param int $count Number of parcels (labels) for this order.
      * @return array|null The ParcelPropertyList array, or null when no weight is available.
      */
-    private function build_parcel_property_list($order, $weight = null)
+    private function build_parcel_property_list($order, $weight = null, $count = 1)
     {
         if ($weight === null || $weight === '') {
             $weight = GLS_Shipping_Weight_Helper::get_order_weight($order);
@@ -450,11 +457,20 @@ class GLS_Shipping_API_Data
             return null;
         }
 
-        return [
-            [
-                'Weight' => $weight,
-            ],
-        ];
+        $count = max(1, (int) $count);
+
+        // Split the total weight evenly across parcels, exact-sum preserving.
+        $per_parcel = round($weight / $count, 3);
+        $property_list = [];
+        $allocated = 0.0;
+        for ($i = 0; $i < $count - 1; $i++) {
+            $property_list[] = ['Weight' => $per_parcel];
+            $allocated += $per_parcel;
+        }
+        // Last parcel gets the remainder so the total is preserved.
+        $property_list[] = ['Weight' => round($weight - $allocated, 3)];
+
+        return $property_list;
     }
 
     /**
@@ -510,8 +526,8 @@ class GLS_Shipping_API_Data
             $parcel['DeliveryAddress'] = $this->get_delivery_address($order);
             $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info, $services);
 
-            // Add parcel weight (ParcelPropertyList) - mandatory for Serbia
-            $parcel_property_list = $this->build_parcel_property_list($order);
+            // Add parcel weight (ParcelPropertyList) - one entry per parcel
+            $parcel_property_list = $this->build_parcel_property_list($order, null, $label_count);
             if (!empty($parcel_property_list)) {
                 $parcel['ParcelPropertyList'] = $parcel_property_list;
             }
@@ -592,8 +608,8 @@ class GLS_Shipping_API_Data
         $parcel['DeliveryAddress'] = $this->get_delivery_address($order);
         $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info, $services);
 
-        // Add parcel weight (ParcelPropertyList) - mandatory for Serbia
-        $parcel_property_list = $this->build_parcel_property_list($order, $weight);
+        // Add parcel weight (ParcelPropertyList) - one entry per parcel
+        $parcel_property_list = $this->build_parcel_property_list($order, $weight, $count);
         if (!empty($parcel_property_list)) {
             $parcel['ParcelPropertyList'] = $parcel_property_list;
         }
