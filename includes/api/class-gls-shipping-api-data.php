@@ -428,14 +428,14 @@ class GLS_Shipping_API_Data
     /**
      * Builds the ParcelPropertyList for a parcel.
      *
-     * GLS (mandatory for Serbia) requires the parcel weight to be sent inside
-     * ParcelPropertyList. The weight is expressed in kilograms.
+     * The parcel weight (in kilograms) is sent inside ParcelPropertyList when
+     * available. The field is optional: when no weight data exists we omit it
+     * entirely and let GLS validate/handle it (matching the Magento behaviour).
      *
      * @param \WC_Order $order  The WooCommerce order instance.
      * @param float|null $weight Optional explicit weight in kg. When null, the
      *                           saved/calculated order weight is used.
      * @return array|null The ParcelPropertyList array, or null when no weight is available.
-     * @throws Exception When shipping to Serbia and no weight is available.
      */
     private function build_parcel_property_list($order, $weight = null)
     {
@@ -445,13 +445,7 @@ class GLS_Shipping_API_Data
 
         $weight = (float) $weight;
 
-        // Weight (package mass) is mandatory for shipments to Serbia.
-        if ($order->get_shipping_country() === 'RS' && $weight <= 0) {
-            throw new Exception(
-                esc_html__('Package weight is required for shipments to Serbia. Please set the product weight(s) or enter the package weight in the GLS Shipping Info box before generating the label.', 'gls-shipping-for-woocommerce')
-            );
-        }
-
+        // No weight data - omit the field, GLS will handle validation if needed.
         if ($weight <= 0) {
             return null;
         }

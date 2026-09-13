@@ -187,11 +187,15 @@ class GLS_Shipping_Order
         // Use secure URL getter to handle both old and new format labels
         $gls_print_label = GLS_Shipping_For_Woo::get_secure_label_url($order->get_id());
 
-        // Parcel weight (kg) - use saved value if present, otherwise calculate from products
+        // Parcel weight (kg). The calculated weight (from product data) is the
+        // auto value; a manual override is stored in _gls_weight. The field shows
+        // the override when set, otherwise the calculated value. When there is no
+        // weight data at all the field stays empty (nothing is pre-populated/sent).
+        $gls_calculated_weight = GLS_Shipping_Weight_Helper::calculate_order_weight($order);
         $saved_weight = $order->get_meta('_gls_weight', true);
         $gls_weight_value = ($saved_weight !== '' && $saved_weight !== null)
             ? (float) $saved_weight
-            : GLS_Shipping_Weight_Helper::calculate_order_weight($order);
+            : $gls_calculated_weight;
         
         // Get tracking numbers for status buttons
         $tracking_codes = $order->get_meta('_gls_tracking_codes', true);
@@ -219,7 +223,8 @@ class GLS_Shipping_Order
                         </div>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <span><?php esc_html_e("Package Weight (kg):", "gls-shipping-for-woocommerce"); ?></span>
-                            <input type="number" step="0.01" min="0" id="gls_weight" name="gls_weight" value="<?php echo esc_attr($gls_weight_value ?: ''); ?>" style="width: 60px;">
+                            <input type="number" step="any" min="0" id="gls_weight" name="gls_weight" value="<?php echo esc_attr($gls_weight_value ?: ''); ?>" style="width: 80px;">
+                            <input type="hidden" name="gls_weight_calculated" value="<?php echo esc_attr($gls_calculated_weight ?: ''); ?>">
                         </div>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <?php
@@ -287,7 +292,8 @@ class GLS_Shipping_Order
                         </div>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <span><?php esc_html_e("Package Weight (kg):", "gls-shipping-for-woocommerce"); ?></span>
-                            <input type="number" step="0.01" min="0" id="gls_weight_new" name="gls_weight_new" value="<?php echo esc_attr($gls_weight_value ?: ''); ?>" style="width: 60px;">
+                            <input type="number" step="any" min="0" id="gls_weight_new" name="gls_weight_new" value="<?php echo esc_attr($gls_weight_value ?: ''); ?>" style="width: 80px;">
+                            <input type="hidden" name="gls_weight_calculated_new" value="<?php echo esc_attr($gls_calculated_weight ?: ''); ?>">
                         </div>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <?php
@@ -384,15 +390,9 @@ class GLS_Shipping_Order
                 $final_services = null;
             }
 
-            // Resolve weight - use provided value, saved meta, or calculated from products
-            if ($weight !== null && $weight !== '') {
-                $final_weight = (float) $weight;
-            } else {
-                $final_weight = GLS_Shipping_Weight_Helper::get_order_weight($order);
-            }
-            if ($final_weight <= 0) {
-                $final_weight = null;
-            }
+            // Weight: pass the explicit value through when provided, otherwise let
+            // the API data layer resolve it from saved meta / product calculation.
+            $final_weight = ($weight !== null && $weight !== '') ? (float) $weight : null;
 
             // Prepare data for API request
             $prepare_data = new GLS_Shipping_API_Data($order_id);
@@ -767,16 +767,31 @@ class GLS_Shipping_Order
             }
         }
 
-        // Save parcel weight if provided (check both possible fields)
-        $weight = null;
-        if (isset($_POST['gls_weight']) && $_POST['gls_weight'] !== '') {
-            $weight = (float) wc_clean(wp_unslash($_POST['gls_weight']));
-        } elseif (isset($_POST['gls_weight_new']) && $_POST['gls_weight_new'] !== '') {
-            $weight = (float) wc_clean(wp_unslash($_POST['gls_weight_new']));
+        // Parcel weight: only store a *manual override*. The field is pre-filled
+        // with the calculated weight (passed alongside as a hidden baseline). We
+        // persist _gls_weight only when the submitted value differs from that
+        // baseline; otherwise we delete it so the weight keeps auto-calculating
+        // from product data (and can be un-set by clearing the field).
+        $submitted_weight = null;
+        $calculated_baseline = '';
+        if (isset($_POST['gls_weight'])) {
+            $submitted_weight = wc_clean(wp_unslash($_POST['gls_weight']));
+            $calculated_baseline = isset($_POST['gls_weight_calculated']) ? wc_clean(wp_unslash($_POST['gls_weight_calculated'])) : '';
+        } elseif (isset($_POST['gls_weight_new'])) {
+            $submitted_weight = wc_clean(wp_unslash($_POST['gls_weight_new']));
+            $calculated_baseline = isset($_POST['gls_weight_calculated_new']) ? wc_clean(wp_unslash($_POST['gls_weight_calculated_new'])) : '';
         }
 
-        if ($weight !== null && $weight > 0) {
-            $order->update_meta_data('_gls_weight', $weight);
+        if ($submitted_weight !== null) {
+            $submitted_value = (float) $submitted_weight;
+            $baseline_value = (float) $calculated_baseline;
+
+            if ($submitted_weight === '' || $submitted_value <= 0 || abs($submitted_value - $baseline_value) < 0.0001) {
+                // Empty, invalid, or unchanged from the auto value - keep auto-calculation.
+                $order->delete_meta_data('_gls_weight');
+            } else {
+                $order->update_meta_data('_gls_weight', $submitted_value);
+            }
         }
 
         // Save print position if provided (check both possible fields)
