@@ -314,18 +314,63 @@
 				codReference = $('#gls_cod_reference_new').val();
 			}
 
-			// Get parcel weight - check both possible IDs for regenerate vs new label
-			let weight = $('#gls_weight').val();
-			if (weight === undefined || weight === '') {
-				weight = $('#gls_weight_new').val();
-			}
+			// Collect per-package weights (one input per package)
+			const weights = collectWeights();
 
 			// Collect service options
 			const services = collectServiceOptions();
 
 			$button.prop('disabled', true);
-			generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weight);
+			generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weights);
 		});
+
+		// Rebuild the per-package weight inputs when the package count changes.
+		$(document).on('input change', '#gls_label_count', function () {
+			rebuildWeightRows();
+		});
+
+		function rebuildWeightRows() {
+			const $wrapper = $('#gls-weights-wrapper');
+			if (!$wrapper.length) return;
+
+			let count = parseInt($('#gls_label_count').val(), 10);
+			if (isNaN(count) || count < 1) count = 1;
+
+			const calculated = $wrapper.data('calculated');
+
+			// Preserve values already entered.
+			const existing = [];
+			$wrapper.find('.gls-weight-input').each(function (i) {
+				existing[i] = $(this).val();
+			});
+
+			let html = '';
+			for (let i = 0; i < count; i++) {
+				let val;
+				if (existing[i] !== undefined) {
+					val = existing[i];
+				} else if (i === 0 && calculated) {
+					val = calculated;
+				} else {
+					val = '';
+				}
+				const label = count > 1 ? '#' + (i + 1) : '';
+				html +=
+					'<div class="gls-weight-row" style="margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">' +
+					'<span class="gls-weight-label" style="color: #666;">' + label + '</span>' +
+					'<input type="number" step="any" min="0" class="gls-weight-input" name="gls_weights[' + i + ']" value="' + val + '" style="width: 80px;">' +
+					'</div>';
+			}
+			$wrapper.html(html);
+		}
+
+		function collectWeights() {
+			const weights = [];
+			$('#gls-weights-wrapper .gls-weight-input').each(function () {
+				weights.push($(this).val());
+			});
+			return weights;
+		}
 
 		// Get parcel status in order details page
 		$('.gls-get-status').on('click', function () {
@@ -382,7 +427,7 @@
 			};
 		}
 
-		function generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weight) {
+		function generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weights) {
 			const data = {
 				action: 'gls_generate_label',
 				orderId: orderId,
@@ -394,9 +439,9 @@
 				data.count = count;
 			}
 
-			// Add weight if provided
-			if (weight !== null && weight !== undefined && weight !== '') {
-				data.weight = weight;
+			// Add per-package weights if provided
+			if (weights && weights.length) {
+				data.weights = JSON.stringify(weights);
 			}
 
 			// Add print position if provided

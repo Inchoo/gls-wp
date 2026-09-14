@@ -428,49 +428,37 @@ class GLS_Shipping_API_Data
     /**
      * Builds the ParcelPropertyList for a parcel.
      *
-     * GLS expects one ParcelProperty entry per parcel, so the list length must
-     * match Count (this mirrors the Magento integration, where each package
-     * gets its own entry). We only have a single total order weight (no
-     * per-box breakdown), so the total is split evenly across the Count
-     * parcels; the last entry absorbs any rounding remainder so the sum stays
-     * exact.
+     * GLS expects one ParcelProperty entry per parcel (this mirrors the Magento
+     * integration, where each package carries its own weight). WooCommerce has
+     * no per-package weight breakdown, so weights are entered per package on the
+     * order screen (first package pre-filled with the full order weight, the
+     * rest filled in by the merchant).
      *
-     * The weight (in kilograms) is optional: when no weight data exists we omit
-     * the field entirely and let GLS validate/handle it (Magento behaviour).
+     * Weight (in kilograms) is optional: we add one entry per package that has a
+     * weight, and omit the field entirely when no weight data exists (Magento
+     * behaviour - GLS validates/handles it if needed).
      *
-     * @param \WC_Order $order  The WooCommerce order instance.
-     * @param float|null $weight Optional explicit total weight in kg. When null,
-     *                           the saved/calculated order weight is used.
+     * @param \WC_Order $order The WooCommerce order instance.
+     * @param array|null $weights Optional explicit per-package weights (kg). When
+     *                            null, the saved/calculated weights are used.
      * @param int $count Number of parcels (labels) for this order.
      * @return array|null The ParcelPropertyList array, or null when no weight is available.
      */
-    private function build_parcel_property_list($order, $weight = null, $count = 1)
+    private function build_parcel_property_list($order, $weights = null, $count = 1)
     {
-        if ($weight === null || $weight === '') {
-            $weight = GLS_Shipping_Weight_Helper::get_order_weight($order);
+        if (!is_array($weights)) {
+            $weights = GLS_Shipping_Weight_Helper::get_package_weights($order, $count);
         }
 
-        $weight = (float) $weight;
-
-        // No weight data - omit the field, GLS will handle validation if needed.
-        if ($weight <= 0) {
-            return null;
-        }
-
-        $count = max(1, (int) $count);
-
-        // Split the total weight evenly across parcels, exact-sum preserving.
-        $per_parcel = round($weight / $count, 3);
         $property_list = [];
-        $allocated = 0.0;
-        for ($i = 0; $i < $count - 1; $i++) {
-            $property_list[] = ['Weight' => $per_parcel];
-            $allocated += $per_parcel;
+        foreach ($weights as $weight) {
+            if ($weight === '' || $weight === null || (float) $weight <= 0) {
+                continue; // no data for this package - skip it
+            }
+            $property_list[] = ['Weight' => (float) $weight];
         }
-        // Last parcel gets the remainder so the total is preserved.
-        $property_list[] = ['Weight' => round($weight - $allocated, 3)];
 
-        return $property_list;
+        return !empty($property_list) ? $property_list : null;
     }
 
     /**
@@ -579,10 +567,10 @@ class GLS_Shipping_API_Data
      * @param int|null $print_position Custom print position for this order.
      * @param string|null $cod_reference Custom COD reference for this order.
      * @param array|null $services Custom services for this order.
-     * @param float|null $weight Custom parcel weight in kg for this order.
+     * @param array|null $weights Custom per-package weights in kg for this order.
      * @return array The generated post fields for the API request.
      */
-    public function generate_post_fields($count = 1, $print_position = null, $cod_reference = null, $services = null, $weight = null)
+    public function generate_post_fields($count = 1, $print_position = null, $cod_reference = null, $services = null, $weights = null)
     {
         if (empty($this->orders)) {
             throw new Exception("No orders available.");
@@ -609,7 +597,7 @@ class GLS_Shipping_API_Data
         $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info, $services);
 
         // Add parcel weight (ParcelPropertyList) - one entry per parcel
-        $parcel_property_list = $this->build_parcel_property_list($order, $weight, $count);
+        $parcel_property_list = $this->build_parcel_property_list($order, $weights, $count);
         if (!empty($parcel_property_list)) {
             $parcel['ParcelPropertyList'] = $parcel_property_list;
         }

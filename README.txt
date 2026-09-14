@@ -82,8 +82,8 @@ To install and configure this plugin:
 == Changelog ==
 
 = 1.5.4 =
-* Feature: Added parcel weight (ParcelPropertyList) to the label request. Weight is required for shipments to Serbia and is now sent in kilograms.
-* Feature: Added an editable "Package Weight (kg)" field to the GLS Shipping Info box, pre-populated from the products' weight and adjustable per order.
+* Feature: Send parcel weight (ParcelPropertyList) with labels, in kilograms.
+* Feature: Per-package weight fields in the order box, pre-filled from product weights.
 
 = 1.5.3 =
 * Fix: "Bulk Print GLS Labels" now saves parcel tracking numbers to the GLS Tracking Number column for shops that use a custom Order Reference Format (previously only worked with the default format).
