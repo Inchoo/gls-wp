@@ -378,10 +378,13 @@ class GLS_Shipping_Order
      * Persist per-package weight overrides on an order.
      *
      * Stores only manual overrides in _gls_weights: empty/invalid values are
-     * skipped, and the first package is not stored when it still equals the
-     * auto-calculated baseline (so it keeps auto-calculating). When nothing
-     * qualifies, the meta is removed (back to auto-calculation). Does not call
-     * save() - the caller is responsible for persisting the order.
+     * skipped. The first package is not stored when it still equals the
+     * auto-calculated baseline AND no other package has a weight (so a
+     * single/untouched shipment keeps auto-calculating). Once the shipment has
+     * any additional per-package weight, the first package is pinned too so it
+     * can't silently desync if the calculated weight later changes. When
+     * nothing qualifies, the meta is removed (back to auto-calculation). Does
+     * not call save() - the caller is responsible for persisting the order.
      *
      * @param \WC_Order $order The WooCommerce order instance.
      * @param array $weights Per-package weights (index => value string/float).
@@ -389,6 +392,18 @@ class GLS_Shipping_Order
      */
     private function store_package_weights($order, array $weights, $baseline)
     {
+        // Does any package beyond the first carry a weight?
+        $has_additional = false;
+        foreach ($weights as $index => $value) {
+            if ((int) $index === 0) {
+                continue;
+            }
+            if ($value !== '' && $value !== null && (float) $value > 0) {
+                $has_additional = true;
+                break;
+            }
+        }
+
         $result = array();
         foreach ($weights as $index => $value) {
             if ($value === '' || $value === null) {
@@ -398,8 +413,9 @@ class GLS_Shipping_Order
             if ($fvalue <= 0) {
                 continue;
             }
-            // Don't freeze the auto-calculated pre-fill of the first package.
-            if ((int) $index === 0 && abs($fvalue - (float) $baseline) < 0.0001) {
+            // Skip the first package only when it still equals the auto baseline
+            // and there are no other per-package weights to pin it against.
+            if ((int) $index === 0 && !$has_additional && abs($fvalue - (float) $baseline) < 0.0001) {
                 continue;
             }
             $result[(int) $index] = $fvalue;

@@ -59,29 +59,6 @@ class GLS_Shipping_Weight_Helper
     }
 
     /**
-     * Resolve the effective parcel weight for an order in kilograms.
-     *
-     * Priority: a manually entered/saved order weight (_gls_weight),
-     * otherwise the calculated weight from product data.
-     *
-     * @param \WC_Order $order The WooCommerce order instance.
-     * @return float Weight in kg (0 when none available).
-     */
-    public static function get_order_weight($order)
-    {
-        if (!$order instanceof WC_Order) {
-            return 0.0;
-        }
-
-        $saved_weight = $order->get_meta('_gls_weight', true);
-        if ($saved_weight !== '' && $saved_weight !== null) {
-            return (float) $saved_weight;
-        }
-
-        return self::calculate_order_weight($order);
-    }
-
-    /**
      * Resolve per-package weights (in kg) for an order.
      *
      * WooCommerce has no per-package weight support (we only know the total

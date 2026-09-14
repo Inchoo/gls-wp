@@ -325,7 +325,9 @@
 		});
 
 		// Rebuild the per-package weight inputs when the package count changes.
-		$(document).on('input change', '#gls_label_count', function () {
+		// Use 'change' only (not 'input') so entered weights aren't discarded
+		// mid-typing while the merchant edits the package count.
+		$(document).on('change', '#gls_label_count', function () {
 			rebuildWeightRows();
 		});
 
