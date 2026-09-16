@@ -3,7 +3,7 @@ Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 5.9
 Tested up to: 6.9
-Stable tag: 1.5.2
+Stable tag: 1.5.3
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,9 @@ To install and configure this plugin:
 == Screenshots ==
 
 == Changelog ==
+
+= 1.5.3 =
+* Feat: Added new "ShipIt" printer type.
 
 = 1.5.2 =
 * Fix: Corrected a corrupt Romanian (ro_RO) translation of the "Get Parcel Status (%s)" string that caused a fatal ArgumentCountError on the order edit screen.
