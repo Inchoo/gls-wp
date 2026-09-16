@@ -317,11 +317,14 @@
 			// Collect per-package weights (one input per package)
 			const weights = collectWeights();
 
+			// Calculated-weight baseline captured at render (matches the save path)
+			const weightCalculated = $('#gls-weights-wrapper').data('calculated');
+
 			// Collect service options
 			const services = collectServiceOptions();
 
 			$button.prop('disabled', true);
-			generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weights);
+			generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weights, weightCalculated);
 		});
 
 		// Rebuild the per-package weight inputs when the package count changes.
@@ -409,7 +412,7 @@
 			const orderId = $(this).closest('tr').find('.check-column input').val();
 			const $button = $(this);
 			$button.addClass('disabled');
-			generateGLSLabel(orderId, $button, null, null, null, null, null); // Use saved order settings for all parameters
+			generateGLSLabel(orderId, $button, null, null, null, null, null, null); // Use saved order settings for all parameters
 		});
 
 		function collectServiceOptions() {
@@ -429,7 +432,7 @@
 			};
 		}
 
-		function generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weights) {
+		function generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weights, weightCalculated) {
 			const data = {
 				action: 'gls_generate_label',
 				orderId: orderId,
@@ -444,6 +447,11 @@
 			// Add per-package weights if provided
 			if (weights && weights.length) {
 				data.weights = JSON.stringify(weights);
+			}
+
+			// Add calculated-weight baseline if available
+			if (weightCalculated !== null && weightCalculated !== undefined && weightCalculated !== '') {
+				data.weightCalculated = weightCalculated;
 			}
 
 			// Add print position if provided

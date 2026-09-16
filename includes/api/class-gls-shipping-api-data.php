@@ -434,15 +434,17 @@ class GLS_Shipping_API_Data
      * order screen (first package pre-filled with the full order weight, the
      * rest filled in by the merchant).
      *
-     * Weight (in kilograms) is optional: we add one entry per package that has a
-     * weight, and omit the field entirely when no weight data exists (Magento
-     * behaviour - GLS validates/handles it if needed).
+     * Weight (in kilograms) is sent on an all-or-nothing basis: the list is only
+     * included when EVERY package has a valid weight, producing exactly one
+     * aligned entry per parcel. If any package weight is missing we omit the
+     * field entirely - sending a partial list would shift parcel positions
+     * (entry 1 wrongly assigned to parcel 1, etc.) and may be rejected by GLS.
      *
      * @param \WC_Order $order The WooCommerce order instance.
      * @param array|null $weights Optional explicit per-package weights (kg). When
      *                            null, the saved/calculated weights are used.
      * @param int $count Number of parcels (labels) for this order.
-     * @return array|null The ParcelPropertyList array, or null when no weight is available.
+     * @return array|null The ParcelPropertyList array, or null when any weight is missing.
      */
     private function build_parcel_property_list($order, $weights = null, $count = 1)
     {
@@ -450,10 +452,16 @@ class GLS_Shipping_API_Data
             $weights = GLS_Shipping_Weight_Helper::get_package_weights($order, $count);
         }
 
+        if (empty($weights)) {
+            return null;
+        }
+
         $property_list = [];
         foreach ($weights as $weight) {
+            // All-or-nothing: a single missing weight means we send nothing,
+            // so parcel positions can never be misaligned.
             if ($weight === '' || $weight === null || (float) $weight <= 0) {
-                continue; // no data for this package - skip it
+                return null;
             }
             $property_list[] = ['Weight' => (float) $weight];
         }

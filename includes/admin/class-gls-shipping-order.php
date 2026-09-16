@@ -441,9 +441,10 @@ class GLS_Shipping_Order
      * @param string|null $cod_reference COD reference (if null, uses saved or default)
      * @param array|null $services Services array (if null, uses saved or default)
      * @param array|null $weights Per-package weights in kg (if null, uses saved or calculated)
+     * @param float|null $weight_baseline Calculated-weight baseline captured at page render (AJAX only)
      * @return array Result with success status and data/error
      */
-    public function generate_single_order_label($order_id, $count = null, $print_position = null, $cod_reference = null, $services = null, $weights = null)
+    public function generate_single_order_label($order_id, $count = null, $print_position = null, $cod_reference = null, $services = null, $weights = null, $weight_baseline = null)
     {
         try {
             $order = wc_get_order($order_id);
@@ -482,9 +483,17 @@ class GLS_Shipping_Order
 
             // Persist manually entered weights so they survive a page reload
             // (e.g. when generating via the AJAX button without saving the order).
+            // Use the baseline captured at page render when provided, so it matches
+            // the value the save-order path uses (avoids a stale recalculation
+            // turning the pre-filled first package into a phantom manual override).
             if (is_array($weights)) {
-                $baseline = GLS_Shipping_Weight_Helper::calculate_order_weight($order);
+                $baseline = ($weight_baseline !== null)
+                    ? (float) $weight_baseline
+                    : GLS_Shipping_Weight_Helper::calculate_order_weight($order);
                 $this->store_package_weights($order, $weights, $baseline);
+                // Keep the stored package count in sync so a reload shows the same
+                // number of weight rows that were just submitted.
+                $order->update_meta_data('_gls_label_count', $final_count);
                 $order->save();
             }
 
@@ -533,8 +542,14 @@ class GLS_Shipping_Order
             }
         }
 
+        // Baseline (calculated weight captured at page render) - used to detect
+        // whether the first package is still the auto-filled value.
+        $weight_baseline = isset($_POST['weightCalculated']) && $_POST['weightCalculated'] !== ''
+            ? (float) wc_clean(wp_unslash($_POST['weightCalculated']))
+            : null;
+
         // Use centralized method
-        $result = $this->generate_single_order_label($order_id, $count, $print_position, $cod_reference, $services, $weights);
+        $result = $this->generate_single_order_label($order_id, $count, $print_position, $cod_reference, $services, $weights, $weight_baseline);
         
         if ($result['success']) {
             wp_send_json_success(array('success' => true));
