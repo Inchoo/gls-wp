@@ -7,7 +7,7 @@
  * weights of all order line items (respecting quantity) and converts the
  * total from the store's configured weight unit to kilograms.
  *
- * @since 1.5.4
+ * @since 1.5.5
  */
 
 if (!defined('ABSPATH')) {
