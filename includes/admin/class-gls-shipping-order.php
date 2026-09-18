@@ -186,7 +186,7 @@ class GLS_Shipping_Order
 
         // Use secure URL getter to handle both old and new format labels
         $gls_print_label = GLS_Shipping_For_Woo::get_secure_label_url($order->get_id());
-        
+
         // Get tracking numbers for status buttons
         $tracking_codes = $order->get_meta('_gls_tracking_codes', true);
         $gls_tracking_numbers = array();
@@ -211,8 +211,12 @@ class GLS_Shipping_Order
                             <span><?php esc_html_e("Number of Packages:", "gls-shipping-for-woocommerce"); ?></span>
                             <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="<?php echo esc_attr($order->get_meta('_gls_label_count', true) ?: 1); ?>" style="width: 60px;">
                         </div>
+                        <?php
+                        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted internal method outputting form fields
+                        echo $this->render_weight_fields($order);
+                        ?>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                            <?php 
+                            <?php
                             $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
                             $default_print_position = isset($gls_shipping_method_settings['print_position']) ? $gls_shipping_method_settings['print_position'] : '1';
                             $saved_print_position = $order->get_meta('_gls_print_position', true) ?: $default_print_position;
@@ -275,8 +279,12 @@ class GLS_Shipping_Order
                             <span><?php esc_html_e("Number of Packages:", "gls-shipping-for-woocommerce"); ?></span>
                             <input type="number" id="gls_label_count" name="gls_label_count" min="1" value="<?php echo esc_attr($order->get_meta('_gls_label_count', true) ?: 1); ?>" style="width: 60px;">
                         </div>
+                        <?php
+                        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Trusted internal method outputting form fields
+                        echo $this->render_weight_fields($order);
+                        ?>
                         <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                            <?php 
+                            <?php
                             $gls_shipping_method_settings = get_option("woocommerce_gls_shipping_method_settings");
                             $default_print_position = isset($gls_shipping_method_settings['print_position']) ? $gls_shipping_method_settings['print_position'] : '1';
                             $saved_print_position = $order->get_meta('_gls_print_position', true) ?: $default_print_position;
@@ -327,6 +335,103 @@ class GLS_Shipping_Order
     }
 
     /**
+     * Render the per-package weight input fields.
+     *
+     * One input is shown per package (based on "Number of Packages"). The first
+     * package is pre-filled with the full calculated order weight; the rest are
+     * left empty for the merchant to fill in. JS rebuilds these rows when the
+     * package count changes. A hidden baseline carries the calculated weight so
+     * save can tell an untouched auto value from a manual override.
+     *
+     * @param \WC_Order $order The WooCommerce order instance.
+     * @return string HTML markup.
+     */
+    private function render_weight_fields($order)
+    {
+        $count = (int) ($order->get_meta('_gls_label_count', true) ?: 1);
+        if ($count < 1) {
+            $count = 1;
+        }
+
+        $calculated = GLS_Shipping_Weight_Helper::calculate_order_weight($order);
+        $weights = GLS_Shipping_Weight_Helper::get_package_weights($order, $count);
+
+        ob_start();
+        ?>
+        <div style="margin-bottom: 10px;">
+            <div style="margin-bottom: 6px;"><strong><?php esc_html_e("Package Weight (kg):", "gls-shipping-for-woocommerce"); ?></strong></div>
+            <div id="gls-weights-wrapper" data-calculated="<?php echo esc_attr($calculated ?: ''); ?>">
+                <?php for ($i = 0; $i < $count; $i++) : ?>
+                    <div class="gls-weight-row" style="margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span class="gls-weight-label" style="color: #666;"><?php echo $count > 1 ? esc_html('#' . ($i + 1)) : ''; ?></span>
+                        <input type="number" step="any" min="0" class="gls-weight-input" name="gls_weights[<?php echo esc_attr($i); ?>]" value="<?php echo esc_attr(($weights[$i] === '' || $weights[$i] === null) ? '' : $weights[$i]); ?>" style="width: 80px;">
+                    </div>
+                <?php endfor; ?>
+            </div>
+            <input type="hidden" class="gls-weight-calculated" name="gls_weight_calculated" value="<?php echo esc_attr($calculated ?: ''); ?>">
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+    /**
+     * Persist per-package weight overrides on an order.
+     *
+     * Stores only manual overrides in _gls_weights: empty/invalid values are
+     * skipped. The first package is not stored when it still equals the
+     * auto-calculated baseline AND no other package has a weight (so a
+     * single/untouched shipment keeps auto-calculating). Once the shipment has
+     * any additional per-package weight, the first package is pinned too so it
+     * can't silently desync if the calculated weight later changes. When
+     * nothing qualifies, the meta is removed (back to auto-calculation). Does
+     * not call save() - the caller is responsible for persisting the order.
+     *
+     * @param \WC_Order $order The WooCommerce order instance.
+     * @param array $weights Per-package weights (index => value string/float).
+     * @param float $baseline Calculated order weight used as the pre-fill baseline.
+     */
+    private function store_package_weights($order, array $weights, $baseline)
+    {
+        // Does any package beyond the first carry a weight?
+        $has_additional = false;
+        foreach ($weights as $index => $value) {
+            if ((int) $index === 0) {
+                continue;
+            }
+            if ($value !== '' && $value !== null && (float) $value > 0) {
+                $has_additional = true;
+                break;
+            }
+        }
+
+        $result = array();
+        foreach ($weights as $index => $value) {
+            if ($value === '' || $value === null) {
+                continue;
+            }
+            $fvalue = (float) $value;
+            if ($fvalue <= 0) {
+                continue;
+            }
+            // Skip the first package only when it still equals the auto baseline
+            // and there are no other per-package weights to pin it against.
+            if ((int) $index === 0 && !$has_additional && abs($fvalue - (float) $baseline) < 0.0001) {
+                continue;
+            }
+            $result[(int) $index] = $fvalue;
+        }
+
+        if (!empty($result)) {
+            $order->update_meta_data('_gls_weights', $result);
+        } else {
+            $order->delete_meta_data('_gls_weights');
+        }
+
+        // Migrate away from the legacy single-weight meta.
+        $order->delete_meta_data('_gls_weight');
+    }
+
+    /**
      * Centralized method to generate label for a single order
      * Used by both single order generation and bulk operations
      * 
@@ -335,9 +440,11 @@ class GLS_Shipping_Order
      * @param int|null $print_position Print position (if null, uses saved or default)
      * @param string|null $cod_reference COD reference (if null, uses saved or default)
      * @param array|null $services Services array (if null, uses saved or default)
+     * @param array|null $weights Per-package weights in kg (if null, uses saved or calculated)
+     * @param float|null $weight_baseline Calculated-weight baseline captured at page render (AJAX only)
      * @return array Result with success status and data/error
      */
-    public function generate_single_order_label($order_id, $count = null, $print_position = null, $cod_reference = null, $services = null)
+    public function generate_single_order_label($order_id, $count = null, $print_position = null, $cod_reference = null, $services = null, $weights = null, $weight_baseline = null)
     {
         try {
             $order = wc_get_order($order_id);
@@ -368,10 +475,31 @@ class GLS_Shipping_Order
             if (empty($final_services)) {
                 $final_services = null;
             }
-            
+
+            // Weights: pass the explicit per-package array through when provided,
+            // otherwise let the API data layer resolve it from saved meta /
+            // product calculation.
+            $final_weights = is_array($weights) ? $weights : null;
+
+            // Persist manually entered weights so they survive a page reload
+            // (e.g. when generating via the AJAX button without saving the order).
+            // Use the baseline captured at page render when provided, so it matches
+            // the value the save-order path uses (avoids a stale recalculation
+            // turning the pre-filled first package into a phantom manual override).
+            if (is_array($weights)) {
+                $baseline = ($weight_baseline !== null)
+                    ? (float) $weight_baseline
+                    : GLS_Shipping_Weight_Helper::calculate_order_weight($order);
+                $this->store_package_weights($order, $weights, $baseline);
+                // Keep the stored package count in sync so a reload shows the same
+                // number of weight rows that were just submitted.
+                $order->update_meta_data('_gls_label_count', $final_count);
+                $order->save();
+            }
+
             // Prepare data for API request
             $prepare_data = new GLS_Shipping_API_Data($order_id);
-            $data = $prepare_data->generate_post_fields($final_count, $final_print_position, $final_cod_reference, $final_services);
+            $data = $prepare_data->generate_post_fields($final_count, $final_print_position, $final_cod_reference, $final_services, $final_weights);
 
             // Send to GLS API
             $api = new GLS_Shipping_API_Service();
@@ -400,9 +528,28 @@ class GLS_Shipping_Order
         $print_position = isset($_POST['printPosition']) ? intval($_POST['printPosition']) : null;
         $cod_reference = isset($_POST['codReference']) ? sanitize_text_field(wp_unslash($_POST['codReference'])) : null;
         $services = isset($_POST['services']) ? json_decode(sanitize_text_field(wp_unslash($_POST['services'])), true) : null;
-        
+
+        // Per-package weights arrive as a JSON array of strings.
+        $weights = null;
+        if (isset($_POST['weights'])) {
+            $decoded = json_decode(sanitize_text_field(wp_unslash($_POST['weights'])), true);
+            if (is_array($decoded)) {
+                $weights = array();
+                foreach ($decoded as $w) {
+                    $w = wc_clean($w);
+                    $weights[] = ($w === '' ? '' : (float) $w);
+                }
+            }
+        }
+
+        // Baseline (calculated weight captured at page render) - used to detect
+        // whether the first package is still the auto-filled value.
+        $weight_baseline = isset($_POST['weightCalculated']) && $_POST['weightCalculated'] !== ''
+            ? (float) wc_clean(wp_unslash($_POST['weightCalculated']))
+            : null;
+
         // Use centralized method
-        $result = $this->generate_single_order_label($order_id, $count, $print_position, $cod_reference, $services);
+        $result = $this->generate_single_order_label($order_id, $count, $print_position, $cod_reference, $services, $weights, $weight_baseline);
         
         if ($result['success']) {
             wp_send_json_success(array('success' => true));
@@ -739,6 +886,19 @@ class GLS_Shipping_Order
             if ($label_count > 0) {
                 $order->update_meta_data('_gls_label_count', $label_count);
             }
+        }
+
+        // Per-package weights: store only *manual overrides* in _gls_weights.
+        // The first package is pre-filled with the calculated weight (carried as
+        // a hidden baseline); if it is left at that auto value we don't store it
+        // so it keeps auto-calculating. Additional packages are always manual.
+        // Clearing all fields removes the meta (back to auto-calculation).
+        if (isset($_POST['gls_weights']) && is_array($_POST['gls_weights'])) {
+            $baseline = isset($_POST['gls_weight_calculated']) ? (float) wc_clean(wp_unslash($_POST['gls_weight_calculated'])) : 0.0;
+
+            // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- values sanitized in store_package_weights
+            $raw_weights = array_map('wc_clean', wp_unslash($_POST['gls_weights']));
+            $this->store_package_weights($order, $raw_weights, $baseline);
         }
 
         // Save print position if provided (check both possible fields)

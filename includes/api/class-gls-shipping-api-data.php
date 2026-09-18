@@ -426,6 +426,50 @@ class GLS_Shipping_API_Data
     }
 
     /**
+     * Builds the ParcelPropertyList for a parcel.
+     *
+     * GLS expects one ParcelProperty entry per parcel (this mirrors the Magento
+     * integration, where each package carries its own weight). WooCommerce has
+     * no per-package weight breakdown, so weights are entered per package on the
+     * order screen (first package pre-filled with the full order weight, the
+     * rest filled in by the merchant).
+     *
+     * Weight (in kilograms) is sent on an all-or-nothing basis: the list is only
+     * included when EVERY package has a valid weight, producing exactly one
+     * aligned entry per parcel. If any package weight is missing we omit the
+     * field entirely - sending a partial list would shift parcel positions
+     * (entry 1 wrongly assigned to parcel 1, etc.) and may be rejected by GLS.
+     *
+     * @param \WC_Order $order The WooCommerce order instance.
+     * @param array|null $weights Optional explicit per-package weights (kg). When
+     *                            null, the saved/calculated weights are used.
+     * @param int $count Number of parcels (labels) for this order.
+     * @return array|null The ParcelPropertyList array, or null when any weight is missing.
+     */
+    private function build_parcel_property_list($order, $weights = null, $count = 1)
+    {
+        if (!is_array($weights)) {
+            $weights = GLS_Shipping_Weight_Helper::get_package_weights($order, $count);
+        }
+
+        if (empty($weights)) {
+            return null;
+        }
+
+        $property_list = [];
+        foreach ($weights as $weight) {
+            // All-or-nothing: a single missing weight means we send nothing,
+            // so parcel positions can never be misaligned.
+            if ($weight === '' || $weight === null || (float) $weight <= 0) {
+                return null;
+            }
+            $property_list[] = ['Weight' => (float) $weight];
+        }
+
+        return !empty($property_list) ? $property_list : null;
+    }
+
+    /**
      * Generates post fields for the API request for multiple orders.
      *
      * @return array The generated post fields for the API request.
@@ -478,11 +522,17 @@ class GLS_Shipping_API_Data
             $parcel['DeliveryAddress'] = $this->get_delivery_address($order);
             $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info, $services);
 
+            // Add parcel weight (ParcelPropertyList) - one entry per parcel
+            $parcel_property_list = $this->build_parcel_property_list($order, null, $label_count);
+            if (!empty($parcel_property_list)) {
+                $parcel['ParcelPropertyList'] = $parcel_property_list;
+            }
+
             // Add SenderIdentityCardNumber for Serbia
             if ($order->get_shipping_country() === 'RS') {
                 $parcel['SenderIdentityCardNumber'] = $senderIdentityCardNumber;
             }
-            
+
             // Add Content with placeholder processing (for all countries)
             if (!empty($content)) {
                 $parcel['Content'] = $this->process_content_placeholders($content, $order);
@@ -525,9 +575,10 @@ class GLS_Shipping_API_Data
      * @param int|null $print_position Custom print position for this order.
      * @param string|null $cod_reference Custom COD reference for this order.
      * @param array|null $services Custom services for this order.
+     * @param array|null $weights Custom per-package weights in kg for this order.
      * @return array The generated post fields for the API request.
      */
-    public function generate_post_fields($count = 1, $print_position = null, $cod_reference = null, $services = null)
+    public function generate_post_fields($count = 1, $print_position = null, $cod_reference = null, $services = null, $weights = null)
     {
         if (empty($this->orders)) {
             throw new Exception("No orders available.");
@@ -553,11 +604,17 @@ class GLS_Shipping_API_Data
         $parcel['DeliveryAddress'] = $this->get_delivery_address($order);
         $parcel['ServiceList'] = $this->get_service_list($order, $is_parcel_delivery_service, $pickup_info, $services);
 
+        // Add parcel weight (ParcelPropertyList) - one entry per parcel
+        $parcel_property_list = $this->build_parcel_property_list($order, $weights, $count);
+        if (!empty($parcel_property_list)) {
+            $parcel['ParcelPropertyList'] = $parcel_property_list;
+        }
+
         // Add SenderIdentityCardNumber for Serbia
         if ($order->get_shipping_country() === 'RS') {
             $parcel['SenderIdentityCardNumber'] = $senderIdentityCardNumber;
         }
-        
+
         // Add Content with placeholder processing (for all countries)
         if (!empty($content)) {
             $parcel['Content'] = $this->process_content_placeholders($content, $order);

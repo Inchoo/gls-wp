@@ -314,12 +314,68 @@
 				codReference = $('#gls_cod_reference_new').val();
 			}
 
+			// Collect per-package weights (one input per package)
+			const weights = collectWeights();
+
+			// Calculated-weight baseline captured at render (matches the save path)
+			const weightCalculated = $('#gls-weights-wrapper').data('calculated');
+
 			// Collect service options
 			const services = collectServiceOptions();
 
 			$button.prop('disabled', true);
-			generateGLSLabel(orderId, $button, count, printPosition, codReference, services);
+			generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weights, weightCalculated);
 		});
+
+		// Rebuild the per-package weight inputs when the package count changes.
+		// Use 'change' only (not 'input') so entered weights aren't discarded
+		// mid-typing while the merchant edits the package count.
+		$(document).on('change', '#gls_label_count', function () {
+			rebuildWeightRows();
+		});
+
+		function rebuildWeightRows() {
+			const $wrapper = $('#gls-weights-wrapper');
+			if (!$wrapper.length) return;
+
+			let count = parseInt($('#gls_label_count').val(), 10);
+			if (isNaN(count) || count < 1) count = 1;
+
+			const calculated = $wrapper.data('calculated');
+
+			// Preserve values already entered.
+			const existing = [];
+			$wrapper.find('.gls-weight-input').each(function (i) {
+				existing[i] = $(this).val();
+			});
+
+			let html = '';
+			for (let i = 0; i < count; i++) {
+				let val;
+				if (existing[i] !== undefined) {
+					val = existing[i];
+				} else if (i === 0 && calculated) {
+					val = calculated;
+				} else {
+					val = '';
+				}
+				const label = count > 1 ? '#' + (i + 1) : '';
+				html +=
+					'<div class="gls-weight-row" style="margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">' +
+					'<span class="gls-weight-label" style="color: #666;">' + label + '</span>' +
+					'<input type="number" step="any" min="0" class="gls-weight-input" name="gls_weights[' + i + ']" value="' + val + '" style="width: 80px;">' +
+					'</div>';
+			}
+			$wrapper.html(html);
+		}
+
+		function collectWeights() {
+			const weights = [];
+			$('#gls-weights-wrapper .gls-weight-input').each(function () {
+				weights.push($(this).val());
+			});
+			return weights;
+		}
 
 		// Get parcel status in order details page
 		$('.gls-get-status').on('click', function () {
@@ -356,7 +412,7 @@
 			const orderId = $(this).closest('tr').find('.check-column input').val();
 			const $button = $(this);
 			$button.addClass('disabled');
-			generateGLSLabel(orderId, $button, null, null, null, null); // Use saved order settings for all parameters
+			generateGLSLabel(orderId, $button, null, null, null, null, null, null); // Use saved order settings for all parameters
 		});
 
 		function collectServiceOptions() {
@@ -376,7 +432,7 @@
 			};
 		}
 
-		function generateGLSLabel(orderId, $button, count, printPosition, codReference, services) {
+		function generateGLSLabel(orderId, $button, count, printPosition, codReference, services, weights, weightCalculated) {
 			const data = {
 				action: 'gls_generate_label',
 				orderId: orderId,
@@ -386,6 +442,16 @@
 			// Add count if provided
 			if (count !== null && count !== undefined) {
 				data.count = count;
+			}
+
+			// Add per-package weights if provided
+			if (weights && weights.length) {
+				data.weights = JSON.stringify(weights);
+			}
+
+			// Add calculated-weight baseline if available
+			if (weightCalculated !== null && weightCalculated !== undefined && weightCalculated !== '') {
+				data.weightCalculated = weightCalculated;
 			}
 
 			// Add print position if provided

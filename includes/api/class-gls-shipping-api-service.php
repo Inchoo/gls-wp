@@ -44,6 +44,22 @@ class GLS_Shipping_API_Service
 			return $reference_map[$client_reference];
 		}
 
+		// Reverse the configured reference format, anchored around the
+		// {{order_id}} placeholder, so digits elsewhere in the format (e.g.
+		// "{{order_id}}-2024") don't get mistaken for the order id.
+		$settings = get_option('woocommerce_gls_shipping_method_settings', array());
+		$format = !empty($settings['client_reference_format'])
+			? $settings['client_reference_format']
+			: 'Order:{{order_id}}';
+
+		if (strpos($format, '{{order_id}}') !== false) {
+			$pattern = str_replace(preg_quote('{{order_id}}', '/'), '(\d+)', preg_quote($format, '/'));
+			if (preg_match('/^' . $pattern . '$/', $client_reference, $matches)) {
+				return $matches[1];
+			}
+		}
+
+		// Fallback: the last run of digits in the reference.
 		if (preg_match('/(\d+)(?!.*\d)/', $client_reference, $matches)) {
 			return $matches[1];
 		}
