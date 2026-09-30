@@ -258,7 +258,6 @@ max_weight|cost',
 						'desc_tip'    => true,
 						'options'     => array(
 							'A4_2x2'  => 'A4_2x2',
-							'A4_4x1'  => 'A4_4x1',
 							'Connect' => 'Connect',
 							'Thermo'  => 'Thermo',
 							'ShipItThermoPdf' => 'ShipIt',
