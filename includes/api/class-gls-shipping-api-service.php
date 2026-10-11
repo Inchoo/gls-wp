@@ -141,7 +141,7 @@ class GLS_Shipping_API_Service
 		// Check for general API errors (authentication, authorization, etc.)
 		if (isset($body['ErrorCode']) && $body['ErrorCode'] !== 0) {
 			$error_message = isset($body['ErrorDescription']) ? esc_html($body['ErrorDescription']) : 'Unknown GLS API error';
-			$this->log_error($error_message, $post_fields);
+			$this->log_error($error_message, $post_fields, $body['ErrorCode']);
 			throw new Exception(esc_html($error_message));
 		}
 
@@ -149,12 +149,12 @@ class GLS_Shipping_API_Service
 
 		if (!empty($body['PrintLabelsErrorList'])) {
 			foreach ($body['PrintLabelsErrorList'] as $error) {
-				$error_message = esc_html($error['ErrorDescription']) ?? esc_html('GLS API error.');
+				$error_message = esc_html($error['ErrorDescription'] ?? 'GLS API error.');
 				$error_code = $error['ErrorCode'] ?? '';
-				
+
 				// If ClientReferenceList is empty, this is likely a general error (like authentication)
 				if (empty($error['ClientReferenceList'])) {
-					$this->log_error($error_message, $post_fields);
+					$this->log_error($error_message, $post_fields, $error_code);
 					throw new Exception(esc_html($error_message));
 				}
 				
@@ -167,7 +167,7 @@ class GLS_Shipping_API_Service
 						'error_code' => $error_code
 					];
 				}
-				$this->log_error($error_message, $post_fields);
+				$this->log_error($error_message, $post_fields, $error_code, $error['ClientReferenceList']);
 			}
 			if (!$is_multi && count($failed_orders) > 0) {
 				throw new Exception(esc_html($failed_orders[0]['error_message']));
@@ -248,16 +248,61 @@ class GLS_Shipping_API_Service
 		if (isset($sanitized['Password'])) {
 			$sanitized['Password'] = '***REDACTED***';
 		}
+
+		// Remove customer personal data (name, street, contact details) from parcels.
+		// City, ZipCode and CountryIsoCode are kept as they are needed to diagnose address errors.
+		if (!empty($sanitized['ParcelList']) && is_array($sanitized['ParcelList'])) {
+			foreach ($sanitized['ParcelList'] as &$parcel) {
+				if (!empty($parcel['DeliveryAddress']) && is_array($parcel['DeliveryAddress'])) {
+					foreach (['Name', 'Street', 'HouseNumber', 'HouseNumberInfo', 'ContactName', 'ContactPhone', 'ContactEmail'] as $field) {
+						if (isset($parcel['DeliveryAddress'][$field])) {
+							$parcel['DeliveryAddress'][$field] = '***REDACTED***';
+						}
+					}
+				}
+
+				// Service parameters (CS1, FDS, FSS, SM1, SM2, AOS) carry customer phone, email or name.
+				if (!empty($parcel['ServiceList']) && is_array($parcel['ServiceList'])) {
+					foreach ($parcel['ServiceList'] as &$service) {
+						foreach ($service as $key => $value) {
+							if (is_array($value) && isset($value['Value'])) {
+								$service[$key]['Value'] = '***REDACTED***';
+							}
+						}
+					}
+					unset($service);
+				}
+
+				// Content can include customer data through placeholders.
+				if (isset($parcel['Content'])) {
+					$parcel['Content'] = '***REDACTED***';
+				}
+				if (isset($parcel['SenderIdentityCardNumber'])) {
+					$parcel['SenderIdentityCardNumber'] = '***REDACTED***';
+				}
+			}
+			unset($parcel);
+		}
+
 		return $sanitized;
 	}
 
-	private function log_error($error_message, $params)
+	private function log_error($error_message, $params, $error_code = null, $client_references = array())
 	{
 		$sanitized_params = $this->sanitize_params_for_logging($params);
+		$details = '';
+		if ($error_code !== null && $error_code !== '') {
+			$details .= '
+			Error Code: ' . $error_code;
+		}
+		if (!empty($client_references)) {
+			$details .= '
+			Client Reference: ' . implode(', ', (array) $client_references);
+		}
 		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional API error logging for debugging
 		error_log('** API request to: ' . $this->api_url . ' FAILED **
 			Request Params: {' . wp_json_encode($sanitized_params) . '}
-			Error: ' . $error_message . '
+			Error: ' . $error_message . $details . '
 			** END **');
 	}
 
