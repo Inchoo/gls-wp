@@ -261,13 +261,23 @@ class GLS_Shipping_API_Service
 					}
 				}
 
-				// Service parameters (CS1, FDS, FSS, SM1, SM2, AOS) carry customer phone, email or name.
+				// Only these services carry customer phone, email or name. Others (INS, PSD, 24H...) are kept.
 				if (!empty($parcel['ServiceList']) && is_array($parcel['ServiceList'])) {
+					$personal_data_services = ['CS1', 'FDS', 'FSS', 'SM1', 'SM2', 'AOS'];
 					foreach ($parcel['ServiceList'] as &$service) {
-						foreach ($service as $key => $value) {
-							if (is_array($value) && isset($value['Value'])) {
-								$service[$key]['Value'] = '***REDACTED***';
-							}
+						$code = $service['Code'] ?? '';
+						$parameter_key = $code . 'Parameter';
+						if (!in_array($code, $personal_data_services, true) || !isset($service[$parameter_key]['Value'])) {
+							continue;
+						}
+
+						if ($code === 'SM1') {
+							// SM1 value is "phone|text", keep the SMS text.
+							$parts = explode('|', (string) $service[$parameter_key]['Value'], 2);
+							$parts[0] = '***REDACTED***';
+							$service[$parameter_key]['Value'] = implode('|', $parts);
+						} else {
+							$service[$parameter_key]['Value'] = '***REDACTED***';
 						}
 					}
 					unset($service);

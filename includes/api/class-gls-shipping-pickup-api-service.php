@@ -190,6 +190,29 @@ private function convert_date_to_dotnet_format($date_string)
         if (isset($sanitized['Password'])) {
             $sanitized['Password'] = '***REDACTED***';
         }
+        // Remove personal data (name, street, contact details) from the pickup address.
+        // City, ZipCode and CountryIsoCode are kept for diagnostics.
+        if (!empty($sanitized['Address']) && is_array($sanitized['Address'])) {
+            foreach (array('Name', 'ContactName', 'ContactPhone', 'ContactEmail', 'Street', 'HouseNumber') as $field) {
+                if (isset($sanitized['Address'][$field])) {
+                    $sanitized['Address'][$field] = '***REDACTED***';
+                }
+            }
+        }
+        return $sanitized;
+    }
+
+    /**
+     * Remove personal data from pickup form data before logging
+     */
+    private function sanitize_pickup_data_for_logging($pickup_data)
+    {
+        $sanitized = $pickup_data;
+        foreach (array('address_name', 'contact_name', 'contact_phone', 'contact_email', 'street', 'house_number') as $field) {
+            if (isset($sanitized[$field])) {
+                $sanitized[$field] = '***REDACTED***';
+            }
+        }
         return $sanitized;
     }
 
@@ -225,7 +248,7 @@ private function convert_date_to_dotnet_format($date_string)
             'timestamp' => current_time('mysql'),
             'action' => 'pickup_request_error',
             'error' => $error_message,
-            'request_data' => $pickup_data // pickup_data doesn't contain credentials, safe to log
+            'request_data' => $this->sanitize_pickup_data_for_logging($pickup_data)
         );
 
         // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intentional API error logging for debugging
