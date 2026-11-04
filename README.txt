@@ -3,7 +3,7 @@ Contributors: goran87
 Tags: gls, shipping, woocommerce shipping
 Requires at least: 5.9
 Tested up to: 6.9
-Stable tag: 1.5.7
+Stable tag: 1.5.8
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -80,6 +80,10 @@ To install and configure this plugin:
 == Screenshots ==
 
 == Changelog ==
+
+= 1.5.8 =
+* Improvement: The parcel locker / parcel shop map now opens even when the theme or site setup does not output the map element on the checkout page.
+* Fix: Removed a JavaScript error triggered when changing the shipping method on the classic checkout.
 
 = 1.5.7 =
 * Fix: Customer personal data (name, street, phone, email) is no longer written to the error log. Failure logs now include the GLS ErrorCode and order reference.
